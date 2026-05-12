@@ -1,0 +1,111 @@
+# =========================
+# Unity Generated Folders
+# =========================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+
+# =========================
+# Unity Cache
+# =========================
+Library/
+Artifacts/
+AssetImportWorker*
+ShaderCache/
+
+# =========================
+# Visual Studio / Rider
+# =========================
+.vs/
+.idea/
+.gradle/
+ExportedObj/
+.consulo/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Unity Addressables / Asset Bundles
+# =========================
+ServerData/
+StreamingAssets/aa.meta
+StreamingAssets/aa/
+
+# =========================
+# Auto Generated
+# =========================
+sysinfo.txt
+
+# =========================
+# Crash Reports
+# =========================
+crashlytics-build.properties
+
+# =========================
+# Packages
+# Keep manifest + lock
+# =========================
+Packages/*
+!Packages/manifest.json
+!Packages/packages-lock.json
+
+# =========================
+# Ignore large binaries if needed
+# =========================
+# *.apk
+# *.aab
+# *.unitypackage
+
+# =========================
+# JetBrains Rider
+# =========================
+.idea/
+*.DotSettings.user
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# Android
+# =========================
+.gradle/
+*.keystore
+
+# =========================
+# iOS
+# =========================
+DerivedData/
+*.xcworkspace
+*.xcuserdata
+
+# =========================
+# WebGL
+# =========================
+Build/
+TemplateData/
