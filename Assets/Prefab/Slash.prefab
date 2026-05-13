@@ -107,9 +107,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlashProjectile
   sweepAngle: 180
-  lifetime: 0.42
-  radius: 1.51
-  damage: 10
+  lifetime: 0.2
+  radius: 4
+  damage: 15
 --- !u!65 &5165159735173569279
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -234,13 +234,13 @@ TrailRenderer:
     numCapVertices: 50
     alignment: 0
     textureMode: 0
-    textureScale: {x: 1.01, y: 0}
+    textureScale: {x: 0.99, y: 0}
     shadowBias: 2.22
     generateLightingData: 0
   m_MinVertexDistance: 0.1
   m_Autodestruct: 0
   m_Emitting: 1
-  m_ApplyActiveColorSpace: 1
+  m_ApplyActiveColorSpace: 0
 --- !u!54 &-8556167127478340528
 Rigidbody:
   m_ObjectHideFlags: 0

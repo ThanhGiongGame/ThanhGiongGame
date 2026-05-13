@@ -66,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 4450948840220887291}
   - component: {fileID: -2293573238738314894}
   m_Layer: 6
-  m_Name: EnemyA
+  m_Name: EnemyB
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -136,13 +136,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 107606313993d9543a7ce37c6d409cfa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  maxHealth: 20
+  maxHealth: 40
   currentHealth: 20
-  moveSpeed: 3
+  moveSpeed: 5
   damage: 10
   attackRange: 1.5
   attackCooldown: 0.5
-  selfKnockbackForce: 10
+  selfKnockbackForce: 20
   selfKnockbackDuration: 1
   personalSpaceRadius: 1
   separationRadius: 1.2

@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class WaveSpawner : MonoBehaviour
@@ -41,22 +43,43 @@ public class WaveSpawner : MonoBehaviour
     {
         while (currentWave < waves.Length)
         {
-            SpawnWave(waves[currentWave]);
-
+            StartCoroutine(SpawnWave(waves[currentWave]));
             currentWave++;
 
             yield return new WaitForSeconds(timeBetweenWaves);
         }
     }
 
-    private void SpawnWave(Wave wave)
+    private IEnumerator SpawnWave(Wave wave)
     {
+        List<GameObject> enemiesToSpawn = new List<GameObject>();
+
+        // Add all enemies into one list
         foreach (EnemySpawnInfo enemyInfo in wave.enemies)
         {
             for (int i = 0; i < enemyInfo.count; i++)
             {
-                SpawnEnemy(enemyInfo.enemyPrefab);
+                enemiesToSpawn.Add(enemyInfo.enemyPrefab);
             }
+        }
+
+        // Shuffle list randomly
+        for (int i = 0; i < enemiesToSpawn.Count; i++)
+        {
+            int randomIndex = Random.Range(i, enemiesToSpawn.Count);
+
+            GameObject temp = enemiesToSpawn[i];
+            enemiesToSpawn[i] = enemiesToSpawn[randomIndex];
+            enemiesToSpawn[randomIndex] = temp;
+        }
+
+        // Spawn one by one with random delay
+        foreach (GameObject enemyPrefab in enemiesToSpawn)
+        {
+            SpawnEnemy(enemyPrefab);
+
+            float randomDelay = Random.Range(0.5f, 2f);
+            yield return new WaitForSeconds(randomDelay);
         }
     }
 

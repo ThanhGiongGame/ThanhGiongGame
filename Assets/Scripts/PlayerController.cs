@@ -14,11 +14,17 @@ public class PlayerController : MonoBehaviour
     public Transform attackSpawnPoint;
     public float attackInterval = 1.5f;
     private float attackTimer;
+    private Transform enemyTransform;
 
     private Camera mainCamera;
 
     void Start()
     {
+        GameObject enemy = GameObject.FindGameObjectWithTag("Enemy");
+        if(enemy != null)
+        {
+            enemyTransform = enemy.transform;
+        }
         controller = GetComponent<CharacterController>();
         mainCamera = Camera.main;
         attackTimer = attackInterval;
@@ -32,7 +38,6 @@ public class PlayerController : MonoBehaviour
         HandleAttack();
         if (Keyboard.current != null)
         {
-            Debug.Log($"Button {Keyboard.current.anyKey.wasPressedThisFrame} pressed!");
             HandleMovement();
 
         }
@@ -46,6 +51,7 @@ public class PlayerController : MonoBehaviour
 
         if (Keyboard.current != null)
         {
+
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
             {
                 horizontal -= 1f;

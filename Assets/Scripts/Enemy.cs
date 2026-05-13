@@ -64,22 +64,26 @@ public class Enemy : MonoBehaviour
 
     private void MoveTowardPlayer()
     {
-        Vector3 offset =
-            (transform.position - player.position).normalized
-            * personalSpaceRadius;
+        Vector3 toPlayer =
+            player.position - transform.position;
 
-        Vector3 targetPosition =
-            player.position + offset;
+        toPlayer.y = 0f;
 
-        Vector3 directionToPlayer =
-            (targetPosition - transform.position).normalized;
+        float distance = toPlayer.magnitude;
 
-        directionToPlayer.y = 0f;
+        Vector3 moveDirection = Vector3.zero;
 
-        Vector3 separationForce = GetSeparationForce();
+        // Only move if outside attack range
+        if (distance > attackRange * 0.9f)
+        {
+            moveDirection = toPlayer.normalized;
+        }
+
+        Vector3 separationForce =
+            GetSeparationForce();
 
         Vector3 finalDirection =
-            (directionToPlayer + separationForce).normalized;
+            (moveDirection + separationForce).normalized;
 
         finalDirection.y = 0f;
 
@@ -98,7 +102,6 @@ public class Enemy : MonoBehaviour
             );
         }
     }
-
     private Vector3 GetSeparationForce()
     {
         Collider[] nearbyEnemies =
@@ -135,20 +138,20 @@ public class Enemy : MonoBehaviour
     {
         attackTimer -= Time.deltaTime;
 
-        float distance =
-            Vector3.Distance(transform.position, player.position);
+        Vector3 offset = player.position - transform.position;
+        offset.y = 0f;
 
-        if (distance <= attackRange && attackTimer <= 0f)
+        float sqrDistance = offset.sqrMagnitude;
+        float attackRangeSqr = attackRange * attackRange;
+
+        // Small buffer helps when player moves into enemy
+        if (sqrDistance <= attackRangeSqr + 0.1f && attackTimer <= 0f)
         {
-            PlayerHealth playerHealth =
-                player.GetComponent<PlayerHealth>();
+            PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
 
             if (playerHealth != null)
             {
-                Vector3 knockbackDirection =
-                    player.position - transform.position;
-
-                knockbackDirection.y = 0f;
+                Vector3 knockbackDirection = offset.normalized;
 
                 playerHealth.TakeDamage(
                     damage,
@@ -162,7 +165,6 @@ public class Enemy : MonoBehaviour
             attackTimer = attackCooldown;
         }
     }
-
     private void ApplySelfKnockback()
     {
         knockbackTimer = selfKnockbackDuration;
