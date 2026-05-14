@@ -45,10 +45,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaveSpawner
   waves:
-  - enemies:
+  - waveName: 1
+    requiredKills: 0
+    enemies:
     - enemyPrefab: {fileID: 5810271536746850111, guid: cf558690094ee6f4a9b6fa0715721254, type: 3}
-      count: 30
+      count: 10
+    hasSpawned: 0
+  - waveName: 2
+    requiredKills: 5
+    enemies:
+    - enemyPrefab: {fileID: 5810271536746850111, guid: cf558690094ee6f4a9b6fa0715721254, type: 3}
+      count: 15
     - enemyPrefab: {fileID: 5810271536746850111, guid: 21030613417f8de45955d9c83af70803, type: 3}
       count: 30
-  timeBetweenWaves: 20
+    hasSpawned: 0
+  - waveName: 3
+    requiredKills: 40
+    enemies:
+    - enemyPrefab: {fileID: 5810271536746850111, guid: cf558690094ee6f4a9b6fa0715721254, type: 3}
+      count: 20
+    - enemyPrefab: {fileID: 5810271536746850111, guid: 21030613417f8de45955d9c83af70803, type: 3}
+      count: 20
+    - enemyPrefab: {fileID: 5810271536746850111, guid: b725e55c36fe16e4e8bb00da0d7bb0da, type: 3}
+      count: 200
+    hasSpawned: 0
   spawnRadius: 50

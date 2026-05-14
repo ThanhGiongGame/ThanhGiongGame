@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 3707686177712396614}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -40,7 +40,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3707686177712396614}
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 7290318536208130037, guid: e4298c643f312a442941cc72c13fe539, type: 3}
 --- !u!23 &9159447364697888322
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -66,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: -3846018093981099296, guid: 6616093fcaebaaf4fa8f8e814037fca9, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -118,7 +118,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2549569458663406893}
@@ -136,17 +136,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 107606313993d9543a7ce37c6d409cfa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  maxHealth: 40
-  currentHealth: 20
+  maxHealth: 75
+  currentHealth: 75
   moveSpeed: 5
   damage: 10
-  attackRange: 1.5
+  attackRange: 3
   attackCooldown: 0.5
   selfKnockbackForce: 20
   selfKnockbackDuration: 1
-  personalSpaceRadius: 1
+  personalSpaceRadius: 1.5
   separationRadius: 1.2
   separationStrength: 5
+  waveSpawner: {fileID: 0}
 --- !u!136 &-2293573238738314894
 CapsuleCollider:
   m_ObjectHideFlags: 0

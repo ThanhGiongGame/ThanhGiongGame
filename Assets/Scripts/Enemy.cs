@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
@@ -21,6 +21,9 @@ public class Enemy : MonoBehaviour
     public float personalSpaceRadius = 2f;
     public float separationRadius = 1.5f;
     public float separationStrength = 2f;
+
+    [HideInInspector]
+    public WaveSpawner waveSpawner;
 
     private Transform player;
 
@@ -102,6 +105,7 @@ public class Enemy : MonoBehaviour
             );
         }
     }
+
     private Vector3 GetSeparationForce()
     {
         Collider[] nearbyEnemies =
@@ -144,19 +148,20 @@ public class Enemy : MonoBehaviour
         float sqrDistance = offset.sqrMagnitude;
         float attackRangeSqr = attackRange * attackRange;
 
-        // Small buffer helps when player moves into enemy
         if (sqrDistance <= attackRangeSqr + 0.1f && attackTimer <= 0f)
         {
-            PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+            PlayerHealth playerHealth =
+                player.GetComponent<PlayerHealth>();
 
             if (playerHealth != null)
             {
-                Vector3 knockbackDirection = offset.normalized;
+                Vector3 knockbackDirection =
+                    offset.normalized;
 
                 playerHealth.TakeDamage(
                     damage,
                     knockbackDirection,
-                    5f
+                    10f
                 );
             }
 
@@ -165,6 +170,7 @@ public class Enemy : MonoBehaviour
             attackTimer = attackCooldown;
         }
     }
+
     private void ApplySelfKnockback()
     {
         knockbackTimer = selfKnockbackDuration;
@@ -208,6 +214,12 @@ public class Enemy : MonoBehaviour
 
     private void Die()
     {
+        // Báo cho WaveSpawner biết đã kill enemy
+        if (waveSpawner != null)
+        {
+            waveSpawner.OnEnemyKilled();
+        }
+
         Destroy(gameObject);
     }
 }

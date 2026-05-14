@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,18 +14,27 @@ public class WaveSpawner : MonoBehaviour
     [System.Serializable]
     public class Wave
     {
+        [Header("Wave Info")]
+        public string waveName;
+
+        [Header("Spawn this wave when total kills reach")]
+        public int requiredKills;
+
+        [Header("Enemies")]
         public EnemySpawnInfo[] enemies;
+
+        [HideInInspector]
+        public bool hasSpawned = false;
     }
 
     [Header("Wave Settings")]
     public Wave[] waves;
 
-    public float timeBetweenWaves = 5f;
     public float spawnRadius = 10f;
 
-    private int currentWave = 0;
-
     private Transform player;
+
+    private int totalKills = 0;
 
     private void Start()
     {
@@ -36,17 +45,34 @@ public class WaveSpawner : MonoBehaviour
             player = playerObject.transform;
         }
 
-        StartCoroutine(SpawnWaveLoop());
+        // Spawn all waves có requiredKills = 0
+        CheckWaveUnlock();
     }
 
-    private System.Collections.IEnumerator SpawnWaveLoop()
+    // Gọi hàm này khi enemy chết
+    public void OnEnemyKilled()
     {
-        while (currentWave < waves.Length)
-        {
-            StartCoroutine(SpawnWave(waves[currentWave]));
-            currentWave++;
+        totalKills++;
 
-            yield return new WaitForSeconds(timeBetweenWaves);
+        Debug.Log("Total Kills: " + totalKills);
+
+        CheckWaveUnlock();
+    }
+
+    private void CheckWaveUnlock()
+    {
+        for (int i = 0; i < waves.Length; i++)
+        {
+            Wave wave = waves[i];
+
+            if (!wave.hasSpawned && totalKills >= wave.requiredKills)
+            {
+                wave.hasSpawned = true;
+
+                Debug.Log("Spawn Wave: " + wave.waveName);
+
+                StartCoroutine(SpawnWave(wave));
+            }
         }
     }
 
@@ -79,6 +105,7 @@ public class WaveSpawner : MonoBehaviour
             SpawnEnemy(enemyPrefab);
 
             float randomDelay = Random.Range(0.5f, 2f);
+
             yield return new WaitForSeconds(randomDelay);
         }
     }
@@ -87,10 +114,25 @@ public class WaveSpawner : MonoBehaviour
     {
         if (player == null) return;
 
-        Vector2 randomCircle = Random.insideUnitCircle.normalized * spawnRadius;
+        Vector2 randomCircle =
+            Random.insideUnitCircle.normalized * spawnRadius;
 
-        Vector3 spawnPosition = player.position + new Vector3(randomCircle.x, 0f, randomCircle.y);
+        Vector3 spawnPosition =
+            player.position +
+            new Vector3(randomCircle.x, 0f, randomCircle.y);
 
-        Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        GameObject enemyObj = Instantiate(
+            enemyPrefab,
+            spawnPosition,
+            Quaternion.identity
+        );
+
+        // Auto gán WaveSpawner vào enemy
+        Enemy enemy = enemyObj.GetComponent<Enemy>();
+
+        if (enemy != null)
+        {
+            enemy.waveSpawner = this;
+        }
     }
 }
