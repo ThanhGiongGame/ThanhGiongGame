@@ -1,0 +1,4 @@
+repository "Thanh Giong/ThanhGiongGame@18966702313374@cloud"
+  path "/"
+    br "/main"
+    co "/main"

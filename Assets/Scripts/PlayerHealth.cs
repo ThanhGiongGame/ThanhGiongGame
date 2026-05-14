@@ -6,28 +6,27 @@ public class PlayerHealth : MonoBehaviour
 
     private float currentHealth;
 
-    private CharacterController controller;
-
-    private Vector3 knockbackVelocity;
-
-    public bool IsKnockedBack => knockbackVelocity.magnitude > 0.1f;
+    // Knockback is now OWNED by PlayerController via the public getter.
+    // PlayerHealth only tracks the vector and decays it — it never calls controller.Move() itself.
+    private Vector3 _knockbackVelocity;
 
     public float knockbackDamping = 5f;
 
-    // ---- Properties exposed for UI ----
-    public float CurrentHealth        => currentHealth;
-    public float MaxHealth            => maxHealth;
-    public float CurrentHealthPercent => Mathf.Clamp01(currentHealth / maxHealth);
+    // ---- Properties exposed for PlayerController & UI ----
+    public float   CurrentHealth        => currentHealth;
+    public float   MaxHealth            => maxHealth;
+    public float   CurrentHealthPercent => Mathf.Clamp01(currentHealth / maxHealth);
+    public bool    IsKnockedBack        => _knockbackVelocity.sqrMagnitude > 0.01f; // 0.1^2
+    public Vector3 KnockbackVelocity    => _knockbackVelocity;
 
-    // ---- Hit effect color for player (red) ----
+    // ---- Hit effect color ----
     private static readonly Color HitColor = new Color(1f, 0.15f, 0.15f);
 
     private void Start()
     {
         currentHealth = maxHealth;
-        controller    = GetComponent<CharacterController>();
 
-        // Auto-create the health bar UI if it doesn't exist yet
+        // Auto-create UI if not already in scene
         if (FindObjectOfType<PlayerHealthUI>() == null)
         {
             GameObject uiGO = new GameObject("PlayerHealthUI");
@@ -38,30 +37,34 @@ public class PlayerHealth : MonoBehaviour
 
     private void Update()
     {
-        if (knockbackVelocity.magnitude > 0.1f)
+        // Decay knockback over time — no controller.Move() here.
+        // PlayerController reads KnockbackVelocity and applies it in its own Move() call.
+        if (_knockbackVelocity.sqrMagnitude > 0.0001f)
         {
-            controller.Move(knockbackVelocity * Time.deltaTime);
-
-            knockbackVelocity = Vector3.Lerp(
-                knockbackVelocity,
+            _knockbackVelocity = Vector3.Lerp(
+                _knockbackVelocity,
                 Vector3.zero,
                 knockbackDamping * Time.deltaTime
             );
+
+            // Snap to zero when small enough to stop jitter
+            if (_knockbackVelocity.sqrMagnitude < 0.01f)
+                _knockbackVelocity = Vector3.zero;
         }
     }
 
     public void TakeDamage(float damage, Vector3 knockbackDirection, float knockbackForce)
     {
-        currentHealth -= damage;
-        currentHealth  = Mathf.Max(currentHealth, 0f);
+        currentHealth = Mathf.Max(currentHealth - damage, 0f);
 
         Debug.Log("Player took damage: " + damage);
 
-        // Spawn red hit burst at the player's chest height
-        HitEffect.Spawn(transform.position + Vector3.up * 1f, HitColor, 1.4f);
-
+        // Overwrite knockback — enemy hit always re-applies full force
         knockbackDirection.y = 0f;
-        knockbackVelocity    = knockbackDirection.normalized * knockbackForce;
+        _knockbackVelocity   = knockbackDirection.normalized * knockbackForce;
+
+        // Spawn red hit burst at chest height
+        HitEffect.Spawn(transform.position + Vector3.up * 1f, HitColor, 1.4f);
 
         if (currentHealth <= 0f)
         {

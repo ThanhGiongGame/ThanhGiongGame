@@ -104,7 +104,7 @@ public class PlayerHealthUI : MonoBehaviour
         border.anchorMax = new Vector2(0f, 0f);
         border.pivot     = new Vector2(0f, 0f);
         border.anchoredPosition = new Vector2(30f, 30f);
-        border.sizeDelta = new Vector2(364f, 44f);
+        border.sizeDelta = new Vector2(900f, 100f);
 
         // ---- Background ----
         RectTransform bg = CreateRect("HPBackground", border);
@@ -135,7 +135,7 @@ public class PlayerHealthUI : MonoBehaviour
         labelGO.transform.SetParent(border, false);
         _hpText = labelGO.AddComponent<Text>();
         _hpText.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        _hpText.fontSize  = 18;
+        _hpText.fontSize  = 70;
         _hpText.fontStyle = FontStyle.Bold;
         _hpText.color     = Color.white;
         _hpText.alignment = TextAnchor.MiddleCenter;
