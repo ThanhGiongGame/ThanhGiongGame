@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
@@ -24,6 +24,9 @@ public class Enemy : MonoBehaviour
 
     [HideInInspector]
     public WaveSpawner waveSpawner;
+
+    // Hit effect color: bright golden-yellow
+    private static readonly Color HitColor = new Color(1f, 0.85f, 0.1f);
 
     private Transform player;
 
@@ -205,6 +208,9 @@ public class Enemy : MonoBehaviour
         currentHealth -= damageAmount;
 
         Debug.Log(gameObject.name + " took damage: " + damageAmount);
+
+        // Spawn a yellow hit burst at the enemy's centre
+        HitEffect.Spawn(transform.position + Vector3.up * 0.8f, HitColor, 1.0f);
 
         if (currentHealth <= 0f)
         {

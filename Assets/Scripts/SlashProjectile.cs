@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SlashProjectile : MonoBehaviour
@@ -12,6 +13,8 @@ public class SlashProjectile : MonoBehaviour
     private float currentLerpTime = 0f;
     private float startAngle;
     private float endAngle;
+
+    private readonly HashSet<Enemy> hitEnemies = new HashSet<Enemy>();
 
     public void Initialize(Transform player, Vector3 targetDirection)
     {
@@ -62,8 +65,9 @@ public class SlashProjectile : MonoBehaviour
         {
             Enemy enemy = other.GetComponent<Enemy>();
 
-            if (enemy != null)
+            if (enemy != null && !hitEnemies.Contains(enemy))
             {
+                hitEnemies.Add(enemy);
                 enemy.TakeDamage(damage);
             }
         }

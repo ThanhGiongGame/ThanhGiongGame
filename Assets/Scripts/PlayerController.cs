@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     [Header("Movement")]
     public float moveSpeed = 5f;
     private CharacterController controller;
+    private PlayerHealth playerHealth;
 
     [Header("Attack")]
     public GameObject slashPrefab;
@@ -26,6 +27,7 @@ public class PlayerController : MonoBehaviour
             enemyTransform = enemy.transform;
         }
         controller = GetComponent<CharacterController>();
+        playerHealth = GetComponent<PlayerHealth>();
         mainCamera = Camera.main;
         attackTimer = attackInterval;
         Debug.Log($"Button {Keyboard.current.anyKey.wasPressedThisFrame} pressed!");
@@ -36,10 +38,10 @@ public class PlayerController : MonoBehaviour
     {
         HandleRotation();
         HandleAttack();
-        if (Keyboard.current != null)
+        bool isKnockedBack = playerHealth != null && playerHealth.IsKnockedBack;
+        if (Keyboard.current != null && !isKnockedBack)
         {
             HandleMovement();
-
         }
     }
 
