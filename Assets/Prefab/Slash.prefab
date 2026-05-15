@@ -106,7 +106,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60719d86edd86c94cad91b1627de3bb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlashProjectile
-  sweepAngle: 360
+  sweepAngle: 180
   lifetime: 0.2
   radius: 5
   damage: 15

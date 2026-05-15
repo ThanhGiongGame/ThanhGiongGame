@@ -140,7 +140,7 @@ MonoBehaviour:
   currentHealth: 75
   moveSpeed: 5
   damage: 10
-  attackRange: 10
+  attackRange: 5.5
   attackCooldown: 0.5
   selfKnockbackForce: 20
   selfKnockbackDuration: 1
