@@ -1,14 +1,14 @@
 using UnityEngine;
+using UnityEngine.InputSystem; // Bắt buộc phải thêm dòng này để dùng Input System mới
 
-[RequireComponent(typeof(RectTransform))]
 public class MouseParallaxUI : MonoBehaviour
 {
     [Header("Parallax Settings")]
     [Tooltip("Mức độ di chuyển theo chiều ngang (trái/phải)")]
-    public float movementX = 20f;
+    public float movementX = 50f;
     
     [Tooltip("Mức độ di chuyển theo chiều dọc (lên/xuống)")]
-    public float movementY = 20f;
+    public float movementY = 50f;
     
     [Tooltip("Độ mượt của chuyển động. Số càng nhỏ càng trễ, càng lớn càng nhanh.")]
     public float smoothing = 5f;
@@ -16,39 +16,37 @@ public class MouseParallaxUI : MonoBehaviour
     [Tooltip("Bật nếu muốn hướng di chuyển ngược lại với hướng chuột")]
     public bool invertDirection = true;
 
-    private RectTransform rectTransform;
-    private Vector2 startPosition;
+    private Vector3 startPosition;
 
     private void Start()
     {
-        // Lấy component RectTransform (UI)
-        rectTransform = GetComponent<RectTransform>();
-        
-        // Lưu lại vị trí ban đầu
-        startPosition = rectTransform.anchoredPosition;
+        startPosition = transform.localPosition;
     }
 
     private void Update()
     {
-        // Lấy tọa độ chuột hiện tại
-        Vector2 mousePos = Input.mousePosition;
+        // Kiểm tra xem chuột có đang kết nối/tồn tại không
+        if (Mouse.current == null) return;
 
-        // Tính toán độ lệch của chuột so với tâm màn hình (Chuẩn hóa về khoảng -1 đến 1)
+        // LẤY TỌA ĐỘ CHUỘT BẰNG HỆ THỐNG MỚI CỦA UNITY (Input System)
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+
+        // Tính toán độ lệch của chuột so với tâm màn hình
         float normalizedX = (mousePos.x / Screen.width) * 2f - 1f;
         float normalizedY = (mousePos.y / Screen.height) * 2f - 1f;
 
-        // Đảo ngược hướng nếu cần
         int dir = invertDirection ? -1 : 1;
 
-        // Tính toán vị trí mục tiêu dựa trên độ lệch
-        Vector2 targetPosition = new Vector2(
+        // Tính toán vị trí mục tiêu
+        Vector3 targetPosition = new Vector3(
             startPosition.x + (normalizedX * movementX * dir),
-            startPosition.y + (normalizedY * movementY * dir)
+            startPosition.y + (normalizedY * movementY * dir),
+            startPosition.z
         );
 
-        // Nội suy mượt mà (Lerp) từ vị trí hiện tại đến vị trí mục tiêu
-        rectTransform.anchoredPosition = Vector2.Lerp(
-            rectTransform.anchoredPosition, 
+        // Di chuyển thật mượt mà
+        transform.localPosition = Vector3.Lerp(
+            transform.localPosition, 
             targetPosition, 
             Time.deltaTime * smoothing
         );
