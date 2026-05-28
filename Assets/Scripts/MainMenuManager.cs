@@ -1,13 +1,20 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI; // Cần dùng UI để nhận diện Slider
+using UnityEngine.Video; // Thêm thư viện Video
 
 public class MainMenuManager : MonoBehaviour
 {
     [Header("UI Panels")]
     public GameObject settingsPanel;
+    
+    [Header("Intro Video")]
+    public GameObject introVideoPanel;
+    public VideoPlayer introVideoPlayer;
+    public GameObject mainMenuContainer; // Kéo cụm UI chứa nút Play, Settings... vào đây để ẩn đi
 
     [Header("Audio Settings")]
+    public AudioSource backgroundMusic; // Kéo Audio Source phát nhạc nền vào đây để tắt khi xem video
     public Image muteButtonImage;
     public Sprite soundOnSprite;
     public Sprite soundOffSprite;
@@ -39,10 +46,61 @@ public class MainMenuManager : MonoBehaviour
             volumeSlider.onValueChanged.AddListener(SetVolume);
         }
 
+        // Tắt panel video ban đầu (nếu có)
+        if (introVideoPanel != null)
+        {
+            introVideoPanel.SetActive(false);
+        }
+        
+        // Lắng nghe sự kiện video chạy xong
+        if (introVideoPlayer != null)
+        {
+            introVideoPlayer.loopPointReached += OnIntroVideoFinished;
+        }
+
         ApplyMuteState();
     }
 
     public void PlayGame()
+    {
+        // Thay vì LoadScene ngay, ta hiển thị và bật video trước
+        if (introVideoPanel != null && introVideoPlayer != null)
+        {
+            introVideoPanel.SetActive(true);
+            introVideoPlayer.Play();
+            
+            // Ẩn Menu đi khi video bắt đầu phát
+            if (mainMenuContainer != null)
+            {
+                mainMenuContainer.SetActive(false);
+            }
+            
+            // Tắt nhạc nền
+            if (backgroundMusic != null)
+            {
+                backgroundMusic.Stop();
+            }
+        }
+        else
+        {
+            // Nếu không có thiết lập video, thì vào thẳng game
+            LoadNextScene();
+        }
+    }
+
+    // Hàm dành cho nút Bỏ qua (Skip)
+    public void SkipVideo()
+    {
+        LoadNextScene();
+    }
+
+    // Hàm tự động gọi khi video chạy xong
+    private void OnIntroVideoFinished(VideoPlayer vp)
+    {
+        LoadNextScene();
+    }
+
+    private void LoadNextScene()
     {
         SceneManager.LoadScene("SampleScene"); 
     }
