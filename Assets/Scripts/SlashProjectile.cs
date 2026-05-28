@@ -5,7 +5,7 @@ public class SlashProjectile : MonoBehaviour
 {
     [Header("Projectile Settings")]
     public float sweepAngle = 180f; // Half circle
-    public float lifetime = 0.3f; // How long the sweep takes
+    public float lifetime = 1.0f; // How long the sweep takes (matches swing duration)
     public float radius = 2f; // Distance from player
     public float damage = 10f;
 

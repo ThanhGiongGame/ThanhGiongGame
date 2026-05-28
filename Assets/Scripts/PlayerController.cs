@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,15 +8,18 @@ public class PlayerController : MonoBehaviour
     [Header("Movement")]
     public float moveSpeed = 5f;
 
+    [HideInInspector]
+    public float slashDamageMultiplier = 1.0f; // Defaults to 100% damage base
     [Header("Attack")]
     public GameObject slashPrefab;
     public Transform attackSpawnPoint;
-    public float attackInterval = 1.5f;
+    public float attackInterval = 1.2f;   // 0.2s wind-up + 1.0s swing
+    public float attackWindUp = 0.2f;   // delay before slash spawns
 
     // ---- Private references ----
     private CharacterController controller;
-    private PlayerHealth         playerHealth;
-    private Camera               mainCamera;
+    private PlayerHealth playerHealth;
+    private Camera mainCamera;
 
     // ---- Attack timer ----
     private float attackTimer;
@@ -26,20 +30,44 @@ public class PlayerController : MonoBehaviour
     // ---- Unused legacy field (kept to avoid prefab warnings) ----
     private Transform enemyTransform;
 
+    // ================================================================
+    // Properties used by Skills (Fixes compilation errors)
+    // ================================================================
+    /// <summary>
+    /// Tracks if the player is currently executing a manual movement skill (like Flame Dash)
+    /// to block regular WASD movement inputs and automated primary attacks.
+    /// </summary>
+    public bool IsPerformingSkill { get; set; }
+
+    /// <summary>
+    /// Provides access to the player's vulnerability state.
+    /// </summary>
+    public bool IsInvulnerable
+    {
+        get => _isInvulnerable;
+        set => _isInvulnerable = value;
+    }
+    private bool _isInvulnerable;
+
     // -------------------------------------------------------
 
     void Start()
     {
-        controller   = GetComponent<CharacterController>();
+        controller = GetComponent<CharacterController>();
         playerHealth = GetComponent<PlayerHealth>();
-        mainCamera   = Camera.main;
-        attackTimer  = attackInterval;
+        mainCamera = Camera.main;
+        attackTimer = attackInterval;
     }
 
     void Update()
     {
-        HandleRotation();
-        HandleAttack();
+        // Don't rotate or attack automatically if aiming or performing a skill
+        if (!IsPerformingSkill)
+        {
+            HandleRotation();
+            HandleAttack();
+        }
+
         HandleMovement();
     }
 
@@ -49,6 +77,10 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMovement()
     {
+        // If a skill like Flame Dash is currently driving CharacterController.Move(),
+        // we completely bypass the standard movement calculation loop.
+        if (IsPerformingSkill) return;
+
         Vector3 moveVelocity = Vector3.zero;
 
         bool isKnockedBack = playerHealth != null && playerHealth.IsKnockedBack;
@@ -56,12 +88,12 @@ public class PlayerController : MonoBehaviour
         if (!isKnockedBack && Keyboard.current != null)
         {
             float horizontal = 0f;
-            float vertical   = 0f;
+            float vertical = 0f;
 
-            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)  horizontal -= 1f;
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) horizontal -= 1f;
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) horizontal += 1f;
-            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)  vertical   -= 1f;
-            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed)    vertical   += 1f;
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) vertical -= 1f;
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) vertical += 1f;
 
             moveVelocity = new Vector3(horizontal, 0f, vertical).normalized * moveSpeed;
         }
@@ -120,36 +152,48 @@ public class PlayerController : MonoBehaviour
 
         if (attackTimer <= 0f)
         {
-            Attack();
-            attackTimer = attackInterval;
+            StartCoroutine(AttackCoroutine());
+            attackTimer = attackInterval;   // reset immediately so interval is consistent
         }
     }
 
-    private void Attack()
+    // Wind-up (0.2 s) → spawn slash → swing for 1 s
+    private IEnumerator AttackCoroutine()
     {
         if (slashPrefab == null)
         {
             Debug.LogWarning("Slash Prefab is not assigned in PlayerController!");
-            return;
+            yield break;
         }
 
-        if (Mouse.current == null) return;
+        if (Mouse.current == null) yield break;
 
+        // --- Capture direction at the moment the attack is triggered ---
         Vector2 mousePos = Mouse.current.position.ReadValue();
         Ray ray = mainCamera.ScreenPointToRay(mousePos);
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
         float rayDistance;
 
-        if (groundPlane.Raycast(ray, out rayDistance))
-        {
-            Vector3 targetPoint   = ray.GetPoint(rayDistance);
-            Vector3 lookDirection = targetPoint - transform.position;
-            lookDirection.y = 0f;
+        if (!groundPlane.Raycast(ray, out rayDistance)) yield break;
 
-            GameObject slash = Instantiate(slashPrefab, transform.position, Quaternion.identity);
-            SlashProjectile slashScript = slash.GetComponent<SlashProjectile>();
-            if (slashScript != null)
-                slashScript.Initialize(transform, lookDirection);
+        Vector3 targetPoint = ray.GetPoint(rayDistance);
+        Vector3 lookDirection = targetPoint - transform.position;
+        lookDirection.y = 0f;
+
+        // --- Wind-up pause ---
+        yield return new WaitForSeconds(attackWindUp);
+
+        // --- Spawn & launch the slash ---
+        GameObject slash = Instantiate(slashPrefab, transform.position, Quaternion.identity);
+        SlashProjectile slashScript = slash.GetComponent<SlashProjectile>();
+
+        if (slashScript != null)
+        {
+            slashScript.Initialize(transform, lookDirection);
+
+            // Multiply the projectile's native damage by the player's stat multiplier
+            // (Change 'damage' to whatever variable name your projectile script uses)
+            slashScript.damage *= slashDamageMultiplier;
         }
     }
 }

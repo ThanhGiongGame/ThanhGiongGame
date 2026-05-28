@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlayerHealth : MonoBehaviour
 {
     public float maxHealth = 100f;
-
+    private PlayerController _pc;
     private float currentHealth;
 
     // Knockback is now OWNED by PlayerController via the public getter.
@@ -25,7 +25,7 @@ public class PlayerHealth : MonoBehaviour
     private void Start()
     {
         currentHealth = maxHealth;
-
+        _pc = GetComponent<PlayerController>();
         // Auto-create UI if not already in scene
         if (FindObjectOfType<PlayerHealthUI>() == null)
         {
@@ -52,20 +52,32 @@ public class PlayerHealth : MonoBehaviour
                 _knockbackVelocity = Vector3.zero;
         }
     }
-
+    public void AddMaxHealth(float amount)
+    {
+        maxHealth += amount;
+        currentHealth += amount; // Heal them for the amount gained so their bar fills up
+        Debug.Log($"Max HP upgraded! New Max HP: {maxHealth}");
+    }
     public void TakeDamage(float damage, Vector3 knockbackDirection, float knockbackForce)
     {
-        currentHealth = Mathf.Max(currentHealth - damage, 0f);
+        if (_pc != null && _pc.IsInvulnerable)
+        {
+            Debug.Log("Player đang bất tử, né hoàn toàn sát thương!");
+            return; // Thoát hàm luôn, không trừ máu nữa
+        }
+        else
+        {
+            currentHealth = Mathf.Max(currentHealth - damage, 0f);
 
-        Debug.Log("Player took damage: " + damage);
+            Debug.Log("Player took damage: " + damage);
 
-        // Overwrite knockback — enemy hit always re-applies full force
-        knockbackDirection.y = 0f;
-        _knockbackVelocity   = knockbackDirection.normalized * knockbackForce;
+            // Overwrite knockback — enemy hit always re-applies full force
+            knockbackDirection.y = 0f;
+            _knockbackVelocity = knockbackDirection.normalized * knockbackForce;
 
-        // Spawn red hit burst at chest height
-        HitEffect.Spawn(transform.position + Vector3.up * 1f, HitColor, 1.4f);
-
+            // Spawn red hit burst at chest height
+            HitEffect.Spawn(transform.position + Vector3.up * 1f, HitColor, 1.4f);
+        }
         if (currentHealth <= 0f)
         {
             Debug.LogError("Player died");

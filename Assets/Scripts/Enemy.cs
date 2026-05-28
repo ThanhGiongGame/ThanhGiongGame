@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
@@ -141,6 +142,51 @@ public class Enemy : MonoBehaviour
         return separationForce * separationStrength;
     }
 
+    private Coroutine _knockbackCoroutine;
+    private bool _isStunned;
+    public void ApplyKnockbackStun(Vector3 direction, float force, float duration)
+    {
+        // If there's an active knockback coroutine, stop it first to prevent conflicts
+        if (_knockbackCoroutine != null)
+            StopCoroutine(_knockbackCoroutine);
+
+        _knockbackCoroutine = StartCoroutine(KnockbackRoutine(direction, force, duration));
+    }
+    private IEnumerator KnockbackRoutine(Vector3 direction, float force, float duration)
+    {
+        _isStunned = true;
+        float elapsed = 0f;
+
+        // Ensure direction is strictly horizontal if your game relies on flat XZ physics
+        direction.y = 0f;
+        direction.Normalize();
+
+        // Optional: Disable enemy AI movement or NavMeshAgent here
+        // var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        // if (agent != null) agent.isStopped = true;
+
+        while (elapsed < duration)
+        {
+            float dt = Time.deltaTime;
+            elapsed += dt;
+
+            // Calculate diminishing force over time (linear decay)
+            float currentForce = Mathf.Lerp(force, 0f, elapsed / duration);
+
+            // Move the enemy. If using a CharacterController or Rigidbody, adapt this line:
+            transform.Translate(direction * currentForce * dt, Space.World);
+
+            yield return null;
+        }
+
+        // Optional: Re-enable enemy AI movement here
+        // if (agent != null) agent.isStopped = false;
+
+        _isStunned = false;
+        _knockbackCoroutine = null;
+    }
+
+
     private void AttackPlayer()
     {
         attackTimer -= Time.deltaTime;
@@ -225,7 +271,7 @@ public class Enemy : MonoBehaviour
         {
             waveSpawner.OnEnemyKilled();
         }
-
+        XPOrb.Spawn(transform.position, 10f);
         Destroy(gameObject);
     }
 }
