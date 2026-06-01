@@ -99,8 +99,9 @@ public class Enemy : MonoBehaviour
 
         if (finalDirection != Vector3.zero)
         {
+            Vector3 flat = new Vector3(0f, finalDirection.x, finalDirection.z); 
             Quaternion targetRotation =
-                Quaternion.LookRotation(finalDirection);
+                Quaternion.LookRotation(flat);
 
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
