@@ -36,9 +36,14 @@ public class Enemy : MonoBehaviour
     private Vector3 knockbackVelocity;
     private float knockbackTimer;
 
+    private float initialRotationX;
+    private float initialRotationZ;
+
     private void Start()
     {
         currentHealth = maxHealth;
+        initialRotationX = transform.eulerAngles.x;
+        initialRotationZ = transform.eulerAngles.z;
 
         GameObject playerObject =
             GameObject.FindGameObjectWithTag("Player");
@@ -99,8 +104,14 @@ public class Enemy : MonoBehaviour
 
         if (finalDirection != Vector3.zero)
         {
+            Vector3 flat = new Vector3(finalDirection.x, 0f, finalDirection.z); 
             Quaternion targetRotation =
-                Quaternion.LookRotation(finalDirection);
+                Quaternion.LookRotation(flat);
+
+            Vector3 targetEuler = targetRotation.eulerAngles;
+            targetEuler.x = initialRotationX;
+            targetEuler.z = initialRotationZ;
+            targetRotation = Quaternion.Euler(targetEuler);
 
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
