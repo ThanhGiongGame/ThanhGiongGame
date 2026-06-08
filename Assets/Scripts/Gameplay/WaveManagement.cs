@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -124,7 +124,7 @@ public class WaveSpawner : MonoBehaviour
         GameObject enemyObj = Instantiate(
             enemyPrefab,
             spawnPosition,
-            Quaternion.identity
+            enemyPrefab.transform.rotation
         );
 
         // Auto gán WaveSpawner vào enemy

@@ -109,3 +109,9 @@ DerivedData/
 # =========================
 Build/
 TemplateData/
+
+# =========================
+# Screenshots
+# =========================
+[Aa]ssets/[Ss]creenshots/
+[Aa]ssets/[Ss]creenshots.meta
