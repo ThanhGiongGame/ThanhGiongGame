@@ -39,6 +39,7 @@ public class Enemy : MonoBehaviour
     private float initialRotationX;
     private float initialRotationZ;
 
+    public static bool GlobalFreeze = false;
     private void Start()
     {
         currentHealth = maxHealth;
@@ -56,6 +57,8 @@ public class Enemy : MonoBehaviour
 
     private void Update()
     {
+        if (GlobalFreeze)
+            return;
         if (player == null) return;
 
         if (knockbackTimer > 0f)
@@ -113,11 +116,6 @@ public class Enemy : MonoBehaviour
             targetEuler.z = initialRotationZ;
             targetRotation = Quaternion.Euler(targetEuler);
 
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                10f * Time.deltaTime
-            );
         }
     }
 

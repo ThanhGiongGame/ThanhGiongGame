@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private PlayerHealth playerHealth;
     private Camera mainCamera;
-
+    private UltimateController ultimateController;
     // ---- Attack timer ----
     private float attackTimer;
 
@@ -55,6 +55,7 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         playerHealth = GetComponent<PlayerHealth>();
+        ultimateController = GetComponent<UltimateController>();
         mainCamera = Camera.main;
         attackTimer = attackInterval;
         float baseDamage = 20f;
@@ -87,14 +88,36 @@ public class PlayerController : MonoBehaviour
             HandleRotation();
             HandleAttack();
         }
-
+        if (Keyboard.current.qKey.wasPressedThisFrame)
+        {
+            TryUseUltimate();
+        }
         HandleMovement();
     }
 
     // -------------------------------------------------------
     // Movement — SINGLE controller.Move() call per frame
     // -------------------------------------------------------
+    private void TryUseUltimate()
+    {
+        string equippedUltimate =
+            PlayerPrefs.GetString(
+                "EquippedUltimate",
+                ""
+            );
+        Debug.Log("Using Ultimate: " + equippedUltimate);
+        switch (equippedUltimate)
+        {
+            case "Ultimate_Tier1":
 
+                if (ultimateController != null)
+                {
+                    ultimateController.TryUseUltimate();
+                }
+
+                break;
+        }
+    }
     private void HandleMovement()
     {
         // If a skill like Flame Dash is currently driving CharacterController.Move(),

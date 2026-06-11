@@ -77,7 +77,7 @@ public class PlayerEquipmentLoader : MonoBehaviour
         if (equipped == "Horse_Tier2")
         {
             Vector3 pos = characterRoot.localPosition;
-            pos.y = 4f;
+            pos.y = 1f;
             characterRoot.localPosition = pos;
             Vector3 posChild = characterRoot.GetChild(0).position;
             Debug.Log("posChild = " + posChild);

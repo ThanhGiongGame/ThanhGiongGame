@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class WaveSpawner : MonoBehaviour
 {
+    public static bool PauseSpawn = false;
     [System.Serializable]
     public class EnemySpawnInfo
     {
@@ -102,11 +103,18 @@ public class WaveSpawner : MonoBehaviour
         // Spawn one by one with random delay
         foreach (GameObject enemyPrefab in enemiesToSpawn)
         {
-            SpawnEnemy(enemyPrefab);
+            while (true)
+            {
 
-            float randomDelay = Random.Range(0.5f, 2f);
+                if (!PauseSpawn)
+                {
+                    SpawnEnemy(enemyPrefab);
+                }
 
-            yield return new WaitForSeconds(randomDelay);
+                float randomDelay = Random.Range(0.5f, 2f);
+
+                yield return new WaitForSeconds(randomDelay);
+            }
         }
     }
 

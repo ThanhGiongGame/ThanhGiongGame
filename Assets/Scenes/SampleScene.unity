@@ -536,6 +536,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1500706631}
+    - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1500706632}
   m_SourcePrefab: {fileID: 100100000, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
 --- !u!1001 &1270390507
 PrefabInstance:
@@ -587,7 +590,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.size
@@ -942,9 +945,33 @@ MonoBehaviour:
   characterRoot: {fileID: 666081251}
   horseRoot: {fileID: 1316441235}
   characterTier1: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
-  characterTier2: {fileID: 736190690156417937, guid: 5b966e8d87c776c42af48c875a658a82, type: 3}
+  characterTier2: {fileID: 460888558947869650, guid: 5b966e8d87c776c42af48c875a658a82, type: 3}
   horseTier1: {fileID: 7367693240031936043, guid: 58d7a45f4ee4a8f4ba9998c7b26961ac, type: 3}
   horseTier2: {fileID: 4890721479578592870, guid: 1e5bd0efab9f92442af0c562665c110f, type: 3}
+--- !u!114 &1500706632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 277011917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a55e005fc7c2cb439702d02a0ba8308, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UltimateController
+  player: {fileID: 1500706620}
+  equipmentLoader: {fileID: 1500706631}
+  cameraController: {fileID: 6938606960425385047}
+  thunderKickPrefab: {fileID: 919132149155446097, guid: a55204f90e1c84640bf88e1a3cdce04e, type: 3}
+  startupTime: 1.5
+  closeupTime: 0.8
+  chargeTime: 0.5
+  finishDelay: 0.5
+  cinematicOffset: {x: 0, y: 4, z: -6}
+  closeupOffset: {x: 0, y: 2, z: -2}
+  cinematicPitch: 20
+  closeupPitch: 10
 --- !u!1001 &6938606960425385046
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1018,6 +1045,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
+--- !u!114 &6938606960425385047 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
+  m_PrefabInstance: {fileID: 6938606960425385046}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3010ab2390af28d4fb9d4801b9257e54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraController
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

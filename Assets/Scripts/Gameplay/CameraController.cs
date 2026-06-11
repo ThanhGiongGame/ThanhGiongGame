@@ -13,7 +13,8 @@ public class CameraController : MonoBehaviour
     [Header("Offset")]
     public Vector3 offset        = new Vector3(0f, 15f, -10f);
     public float   pitchAngle    = 60f;
-
+    private Vector3 _defaultOffset;
+    private float _defaultPitch;
     [Header("Follow")]
     public float smoothSpeed     = 6f;
 
@@ -43,14 +44,41 @@ public class CameraController : MonoBehaviour
     private void Start()
     {
         transform.rotation = Quaternion.Euler(pitchAngle, 0f, 0f);
-
+        _defaultOffset = offset;
+        _defaultPitch = pitchAngle;
         if (target != null)
         {
             _focusPoint    = target.position;
             _prevPlayerPos = target.position;
         }
     }
+    //Cinematic View
+    public void SetCinematicView(
+    Vector3 newOffset,
+    float newPitch)
+    {
+        offset = newOffset;
+        pitchAngle = newPitch;
 
+        transform.rotation =
+            Quaternion.Euler(
+                pitchAngle,
+                0,
+                0
+            );
+    }
+    public void ResetView()
+    {
+        offset = _defaultOffset;
+        pitchAngle = _defaultPitch;
+
+        transform.rotation =
+            Quaternion.Euler(
+                pitchAngle,
+                0,
+                0
+            );
+    }
     private void LateUpdate()
     {
         if (target == null) return;

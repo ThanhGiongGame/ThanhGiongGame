@@ -90,9 +90,16 @@ public class InventoryManager : MonoBehaviour
             cost = 300,
 
         });
-
-
-    }
+        allItems.Add(new GameItemData
+        {
+            id = "Ultimate_Tier1",
+            displayName = "Cú đá sấm sét",
+            description =
+            "Nhất kích tất sát thương",
+            category = ItemCategory.Ultimate,
+            cost = 500,
+        });
+        }
 
     // ---- CÁC HÀM XỬ LÝ LOGIC CORE ----
 
