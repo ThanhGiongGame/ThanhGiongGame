@@ -23,7 +23,7 @@ public class PlayerEquipmentLoader : MonoBehaviour
         string equipped =
             PlayerPrefs.GetString(
                 "EquippedCharacter",
-                "Character_Tier2"
+                "Character_Tier1"
             );
 
         GameObject prefab = characterTier1;

@@ -32,73 +32,73 @@ public class InventoryManager : MonoBehaviour
     // Thiết lập toàn bộ dữ liệu vật phẩm tại đây (Dễ dàng thêm mới món thứ 5, thứ 6)
     private void InitDatabase()
     {
-        allItems.Clear();
+        //allItems.Clear();
 
-        allItems.Add(new GameItemData
-        {
-            id = "Character_Tier1",
-            displayName = "Kiếm Trúc",
+        //allItems.Add(new GameItemData
+        //{
+        //    id = "Character_Tier1",
+        //    displayName = "Kiếm Trúc",
 
-            description =
-                "+10 Sát thương",
+        //    description =
+        //        "+10 Sát thương",
 
-            category =
-                ItemCategory.Weapon,
+        //    category =
+        //        ItemCategory.Weapon,
 
-            cost = 100,
+        //    cost = 100,
 
-        });
+        //});
 
-        allItems.Add(new GameItemData
-        {
-            id = "Character_Tier2",
-            displayName = "Đoản Đao Sắt",
+        //allItems.Add(new GameItemData
+        //{
+        //    id = "Character_Tier2",
+        //    displayName = "Đoản Đao Sắt",
 
-            description =
-                "+25 Sát thương",
+        //    description =
+        //        "+25 Sát thương",
 
-            category =
-                ItemCategory.Weapon,
+        //    category =
+        //        ItemCategory.Weapon,
 
-            cost = 300,
+        //    cost = 300,
 
-        });
-        allItems.Add(new GameItemData
-        {
-            id = "Horse_Tier1",
-            displayName = "Ngựa Sắt",
+        //});
+        //allItems.Add(new GameItemData
+        //{
+        //    id = "Horse_Tier1",
+        //    displayName = "Ngựa Sắt",
 
-            description =
-        "+25 Sát thương",
+        //    description =
+        //"+25 Sát thương",
 
-            category =
-        ItemCategory.Mount,
+        //    category =
+        //ItemCategory.Mount,
 
-            cost = 300,
+        //    cost = 300,
 
-        });
-        allItems.Add(new GameItemData
-        {
-            id = "Horse_Tier2",
-            displayName = "Ngựa Bạc",
+        //});
+        //allItems.Add(new GameItemData
+        //{
+        //    id = "Horse_Tier2",
+        //    displayName = "Ngựa Bạc",
 
-            description =
-        "+50 Sát thương",
-            category =
-        ItemCategory.Mount,
+        //    description =
+        //"+50 Sát thương",
+        //    category =
+        //ItemCategory.Mount,
 
-            cost = 300,
+        //    cost = 300,
 
-        });
-        allItems.Add(new GameItemData
-        {
-            id = "Ultimate_Tier1",
-            displayName = "Cú đá sấm sét",
-            description =
-            "Nhất kích tất sát thương",
-            category = ItemCategory.Ultimate,
-            cost = 500,
-        });
+        //});
+        //allItems.Add(new GameItemData
+        //{
+        //    id = "Ultimate_Tier1",
+        //    displayName = "Cú đá sấm sét",
+        //    description =
+        //    "Nhất kích tất sát thương",
+        //    category = ItemCategory.Ultimate,
+        //    cost = 500,
+        //});
         }
 
     // ---- CÁC HÀM XỬ LÝ LOGIC CORE ----

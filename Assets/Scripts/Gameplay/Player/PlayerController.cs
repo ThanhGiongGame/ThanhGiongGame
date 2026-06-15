@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,6 +22,10 @@ public class PlayerController : MonoBehaviour
     private PlayerHealth playerHealth;
     private Camera mainCamera;
     private UltimateController ultimateController;
+    private Animator horseAnimator;
+    public PlayerEquipmentLoader equipmentLoader;
+    private float walkTimer = 0f;
+
     // ---- Attack timer ----
     private float attackTimer;
 
@@ -48,7 +53,6 @@ public class PlayerController : MonoBehaviour
         set => _isInvulnerable = value;
     }
     private bool _isInvulnerable;
-
     // -------------------------------------------------------
 
     void Start()
@@ -56,7 +60,28 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         playerHealth = GetComponent<PlayerHealth>();
         ultimateController = GetComponent<UltimateController>();
+
+        // Always find the camera first so combat functions even if visuals are missing
         mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            Debug.LogError("PlayerController: No Camera tagged 'MainCamera' found in the scene!");
+        }
+
+        // --- Safe Initialization for the Horse Animator ---
+        if ( equipmentLoader == null)
+        {
+            equipmentLoader = GetComponent<PlayerEquipmentLoader>();
+            if (equipmentLoader == null)
+            {
+                Debug.LogWarning("PlayerController: No PlayerEquipmentLoader found on the player! Horse animations will not play.");
+            }
+            else if (equipmentLoader.horseRoot == null)
+            {
+                Debug.LogWarning("PlayerController: PlayerEquipmentLoader found but horseRoot is not assigned! Horse animations will not play.");
+            }
+
+        }
         attackTimer = attackInterval;
         float baseDamage = 20f;
         float baseMaxHealth = 100f;
@@ -65,21 +90,20 @@ public class PlayerController : MonoBehaviour
         // --- Đọc dữ liệu Loadout từ Shop Menu ---
         if (PlayerPrefs.GetInt("Item_DamageBuff", 0) == 2)
         {
-            baseDamage += 15f; // Cộng thêm 15 sát thương nếu lắp Kiếm
+            baseDamage += 15f;
             Debug.Log("Đã kích hoạt: +15 Sát thương từ trang bị Hotbar!");
         }
 
         if (PlayerPrefs.GetInt("Item_HealthBuff", 0) == 2)
         {
-            baseMaxHealth += 50f; // Cộng thêm 50 Máu tối đa nếu lắp Giáp
+            baseMaxHealth += 50f;
         }
 
         if (PlayerPrefs.GetInt("Item_SpeedBuff", 0) == 2)
         {
-            baseSpeed += 3f; // Cộng tốc độ chạy nếu đi giày
+            baseSpeed += 3f;
         }
     }
-
     void Update()
     {
         // Don't rotate or attack automatically if aiming or performing a skill
@@ -120,6 +144,7 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleMovement()
     {
+        horseAnimator = equipmentLoader.horseRoot.GetComponentInChildren<Animator>();
         // If a skill like Flame Dash is currently driving CharacterController.Move(),
         // we completely bypass the standard movement calculation loop.
         if (IsPerformingSkill) return;
@@ -132,13 +157,40 @@ public class PlayerController : MonoBehaviour
         {
             float horizontal = 0f;
             float vertical = 0f;
-
+            float moveMutiplier = 1f;
+            if (walkTimer > 3)
+            {
+                moveMutiplier = 1.5f;
+            }
+            else moveMutiplier = 1;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) horizontal -= 1f;
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) horizontal += 1f;
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) vertical -= 1f;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) vertical += 1f;
 
-            moveVelocity = new Vector3(horizontal, 0f, vertical).normalized * moveSpeed;
+            moveVelocity = new Vector3(horizontal, 0f, vertical).normalized * moveSpeed * moveMutiplier;
+        }
+        if (horseAnimator != null)
+        {
+            Debug.Log("Updating horse animation. Knockback: " + isKnockedBack + ", Move Velocity: " + moveVelocity + ", Object" + horseAnimator);
+            if (isKnockedBack)
+            {
+                horseAnimator.SetBool("isWalking", false);
+                walkTimer = 0f;
+            }
+            else
+            {
+                bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
+                if (hasHorizontalMovement) {
+                    walkTimer += Time.deltaTime;
+                    Debug.Log("Player is moving. Walk timer: " + walkTimer);
+                }
+                else
+                {
+                    walkTimer = 0f;
+                }
+                horseAnimator.SetBool("isWalking", hasHorizontalMovement);
+            }
         }
 
         // --- Knockback (from PlayerHealth) ---
@@ -148,7 +200,6 @@ public class PlayerController : MonoBehaviour
             moveVelocity.x = kb.x;
             moveVelocity.z = kb.z;
         }
-
         // --- Small downward push keeps CharacterController grounded ---
         moveVelocity.y = GroundStick;
 
@@ -168,7 +219,7 @@ public class PlayerController : MonoBehaviour
     private void HandleRotation()
     {
         if (Mouse.current == null) return;
-
+        if (mainCamera == null) return;
         Vector2 mousePos = Mouse.current.position.ReadValue();
         Ray ray = mainCamera.ScreenPointToRay(mousePos);
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
