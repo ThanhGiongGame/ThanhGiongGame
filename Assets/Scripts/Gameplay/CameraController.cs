@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Vampire Survivors-style camera follow with dead zone and lookahead.
+/// Top-down camera follow that keeps the player centered.
 /// Also supports FreezeFor() (used by Sky Plunge) and Shake().
 /// </summary>
 public class CameraController : MonoBehaviour
@@ -18,19 +18,8 @@ public class CameraController : MonoBehaviour
     [Header("Follow")]
     public float smoothSpeed     = 6f;
 
-    [Header("Dead Zone")]
-    [Tooltip("Player must move this far from the camera focus before the camera starts catching up.")]
-    public float deadZoneRadius  = 2.0f;
-
-    [Header("Lookahead")]
-    [Tooltip("How far ahead of the player the camera peeks based on movement direction.")]
-    public float lookaheadStrength = 1.5f;
-    public float lookaheadSmooth   = 3.0f;
-
     // ---- Internal ----
     private Vector3 _focusPoint;          // world-space point camera is centred on (ground level)
-    private Vector3 _smoothedLookahead;
-    private Vector3 _prevPlayerPos;
 
     private bool  _frozen;
     private float _freezeTimer;
@@ -48,8 +37,8 @@ public class CameraController : MonoBehaviour
         _defaultPitch = pitchAngle;
         if (target != null)
         {
-            _focusPoint    = target.position;
-            _prevPlayerPos = target.position;
+            _focusPoint = target.position;
+            transform.position = _focusPoint + offset;
         }
     }
     //Cinematic View
@@ -83,28 +72,13 @@ public class CameraController : MonoBehaviour
     {
         if (target == null) return;
 
-        // ---- Dead zone ----
         if (!_frozen)
         {
-            Vector3 playerFlat = new Vector3(target.position.x, 0f, target.position.z);
-            Vector3 focusFlat  = new Vector3(_focusPoint.x,     0f, _focusPoint.z);
-
-            if (Vector3.Distance(playerFlat, focusFlat) > deadZoneRadius)
-            {
-                // Smoothly drag the focus point toward the player
-                _focusPoint = Vector3.Lerp(_focusPoint, target.position, smoothSpeed * Time.deltaTime);
-            }
+            _focusPoint = target.position;
         }
 
-        // ---- Lookahead ----
-        Vector3 velocity = (target.position - _prevPlayerPos) / Mathf.Max(Time.deltaTime, 0.0001f);
-        velocity.y = 0f;
-        Vector3 lookaheadTarget = velocity.normalized * Mathf.Min(velocity.magnitude, 5f) * lookaheadStrength;
-        _smoothedLookahead = Vector3.Lerp(_smoothedLookahead, lookaheadTarget, lookaheadSmooth * Time.deltaTime);
-        _prevPlayerPos     = target.position;
-
         // ---- Desired position ----
-        Vector3 desired = _focusPoint + _smoothedLookahead + offset;
+        Vector3 desired = _focusPoint + offset;
 
         // ---- Freeze ----
         if (_frozen)
@@ -115,7 +89,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            transform.position = Vector3.Lerp(transform.position, desired, smoothSpeed * Time.deltaTime);
+            transform.position = desired;
         }
 
         // ---- Shake ----

@@ -1,29 +1,20 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Creates and manages the player XP/Level bar UI entirely at runtime.
-/// Automatically places itself directly above the Health Bar HUD.
-/// </summary>
 public class PlayerLevelUI : MonoBehaviour
 {
-    private Image _bgBar;
-    private Image _fillBar;
+    private RectTransform _fillRect;
     private Text _levelText;
     private Text _xpText;
 
-    // Cosmic theme colors to differentiate from HP
-    private static readonly Color ColorBg = new Color(0.06f, 0.05f, 0.10f, 0.85f);
-    private static readonly Color ColorFill = new Color(0.20f, 0.75f, 0.95f, 1.00f); // Cyan/Teal glow
-    private static readonly Color ColorBorder = new Color(0.0f, 0.0f, 0.0f, 0.90f);
-    private static readonly Color ColorText = new Color(0.90f, 0.85f, 1.00f, 1.00f); // Soft violet white
+    private static readonly Color ColorBg = new Color(0.04f, 0.045f, 0.065f, 0.88f);
+    private static readonly Color ColorFill = new Color(0.20f, 0.75f, 0.95f, 1f);
+    private static readonly Color ColorBorder = new Color(0f, 0f, 0f, 0.95f);
+    private static readonly Color ColorText = new Color(0.92f, 0.95f, 1f, 1f);
 
     private void Start()
     {
-        // Listen to XP updates
         XPManager.OnXPChanged += UpdateUI;
-
-        // Give the UI generation a brief frame delay to ensure the HealthBarCanvas is initialized
         StartCoroutine(DelayedBuild());
     }
 
@@ -37,7 +28,6 @@ public class PlayerLevelUI : MonoBehaviour
         yield return null;
         BuildUI();
 
-        // Push initial values manually right after building
         if (XPManager.Instance != null)
         {
             UpdateUI(XPManager.Instance.CurrentXP, XPManager.Instance.XPForNextLevel, XPManager.Instance.CurrentLevel);
@@ -46,10 +36,13 @@ public class PlayerLevelUI : MonoBehaviour
 
     private void UpdateUI(float currentXP, float xpNeeded, int currentLevel)
     {
-        if (_fillBar == null) return;
+        if (_fillRect == null)
+        {
+            return;
+        }
 
-        float pct = Mathf.Clamp01(currentXP / xpNeeded);
-        _fillBar.fillAmount = pct;
+        float pct = xpNeeded <= 0f ? 0f : Mathf.Clamp01(currentXP / xpNeeded);
+        SetFill(_fillRect, pct);
 
         if (_levelText != null)
         {
@@ -64,88 +57,132 @@ public class PlayerLevelUI : MonoBehaviour
 
     private void BuildUI()
     {
-        // Locate the Canvas generated dynamically by PlayerHealthUI
-        GameObject canvasGO = GameObject.Find("HealthBarCanvas");
+        Canvas canvas = GetOrCreateHudCanvas();
+        DestroyExisting("XPBorder");
 
-        if (canvasGO == null)
-        {
-            Debug.LogWarning("PlayerLevelUI: Could not find 'HealthBarCanvas' in scene. Ensure PlayerHealthUI runs first.");
-            return;
-        }
-
-        // ---- Outer panel (border) ----
-        RectTransform border = CreateRect("XPBorder", canvasGO.transform);
+        RectTransform border = CreateRect("XPBorder", canvas.transform);
         Image borderImg = border.gameObject.AddComponent<Image>();
         borderImg.color = ColorBorder;
+        SetTopLeft(border, new Vector2(30f, -116f), new Vector2(420f, 26f));
 
-        // Position: Anchored bottom-left, placed exactly ABOVE the HP bar (HP is at Y:30 with H:100, so we start at Y:140)
-        border.anchorMin = new Vector2(0f, 0f);
-        border.anchorMax = new Vector2(0f, 0f);
-        border.pivot = new Vector2(0f, 0f);
-        border.anchoredPosition = new Vector2(30f, 140f);
-        border.sizeDelta = new Vector2(900f, 40f); // Sleeker, thinner design profile than the HP bar
-
-        // ---- Background ----
         RectTransform bg = CreateRect("XPBackground", border);
-        _bgBar = bg.gameObject.AddComponent<Image>();
-        _bgBar.color = ColorBg;
-        StretchFill(bg, 2f); // 2px inset
+        Image bgImage = bg.gameObject.AddComponent<Image>();
+        bgImage.color = ColorBg;
+        StretchFill(bg, 2f);
 
-        // ---- Fill bar ----
-        RectTransform fillRect = CreateRect("XPFill", border);
-        _fillBar = fillRect.gameObject.AddComponent<Image>();
-        _fillBar.color = ColorFill;
-        _fillBar.type = Image.Type.Filled;
-        _fillBar.fillMethod = Image.FillMethod.Horizontal;
-        _fillBar.fillAmount = 0f;
-        StretchFill(fillRect, 2f);
+        _fillRect = CreateRect("XPFill", border);
+        Image fillImage = _fillRect.gameObject.AddComponent<Image>();
+        fillImage.color = ColorFill;
+        StretchFill(_fillRect, 2f);
 
-        // ---- Level Text Label (Left side) ----
-        GameObject lvGO = new GameObject("XPLevelLabel");
+        GameObject lvGO = new GameObject("XPLevelLabel", typeof(RectTransform));
         lvGO.transform.SetParent(border, false);
         _levelText = lvGO.AddComponent<Text>();
         _levelText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        _levelText.fontSize = 26;
+        _levelText.fontSize = 18;
         _levelText.fontStyle = FontStyle.Bold;
         _levelText.color = ColorText;
         _levelText.alignment = TextAnchor.MiddleLeft;
-        _levelText.horizontalOverflow = HorizontalWrapMode.Overflow;
 
         RectTransform lvRect = lvGO.GetComponent<RectTransform>();
-        lvRect.anchorMin = Vector2.zero;
-        lvRect.anchorMax = Vector2.one;
-        lvRect.offsetMin = new Vector2(15f, 0f); // Small padding offset from left wall
-        lvRect.offsetMax = Vector2.zero;
+        StretchFill(lvRect, 0f);
+        lvRect.offsetMin = new Vector2(12f, 0f);
 
-        // ---- Numeric XP Counter (Right side) ----
-        GameObject numericGO = new GameObject("XPNumericLabel");
+        GameObject numericGO = new GameObject("XPNumericLabel", typeof(RectTransform));
         numericGO.transform.SetParent(border, false);
         _xpText = numericGO.AddComponent<Text>();
         _xpText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        _xpText.fontSize = 22;
-        _xpText.fontStyle = FontStyle.Normal;
+        _xpText.fontSize = 16;
+        _xpText.fontStyle = FontStyle.Bold;
         _xpText.color = ColorText;
         _xpText.alignment = TextAnchor.MiddleRight;
-        _xpText.horizontalOverflow = HorizontalWrapMode.Overflow;
 
         RectTransform numRect = numericGO.GetComponent<RectTransform>();
-        numRect.anchorMin = Vector2.zero;
-        numRect.anchorMax = Vector2.one;
-        numRect.offsetMin = Vector2.zero;
-        numRect.offsetMax = new Vector2(-15f, 0f); // Small padding offset from right wall
+        StretchFill(numRect, 0f);
+        numRect.offsetMax = new Vector2(-12f, 0f);
     }
 
-    private RectTransform CreateRect(string name, Transform parent)
+    private static Canvas GetOrCreateHudCanvas()
     {
-        GameObject go = new GameObject(name);
-        go.transform.SetParent(parent, false);
-        return go.AddComponent<RectTransform>();
+        GameObject canvasGO = GameObject.Find("GameplayHUDCanvas") ?? GameObject.Find("HealthBarCanvas");
+        if (canvasGO == null)
+        {
+            canvasGO = new GameObject("GameplayHUDCanvas");
+        }
+        else
+        {
+            canvasGO.name = "GameplayHUDCanvas";
+        }
+
+        Canvas canvas = canvasGO.GetComponent<Canvas>();
+        if (canvas == null)
+        {
+            canvas = canvasGO.AddComponent<Canvas>();
+        }
+
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
+
+        CanvasScaler scaler = canvasGO.GetComponent<CanvasScaler>();
+        if (scaler == null)
+        {
+            scaler = canvasGO.AddComponent<CanvasScaler>();
+        }
+
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.matchWidthOrHeight = 0.5f;
+
+        if (canvasGO.GetComponent<GraphicRaycaster>() == null)
+        {
+            canvasGO.AddComponent<GraphicRaycaster>();
+        }
+
+        return canvas;
     }
 
-    private void StretchFill(RectTransform rt, float inset)
+    private static RectTransform CreateRect(string name, Transform parent)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        return go.GetComponent<RectTransform>();
+    }
+
+    private static void DestroyExisting(string objectName)
+    {
+        GameObject existing = GameObject.Find(objectName);
+        if (existing != null)
+        {
+            Destroy(existing);
+        }
+    }
+
+    private static void SetTopLeft(RectTransform rt, Vector2 position, Vector2 size)
+    {
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot = new Vector2(0f, 1f);
+        rt.anchoredPosition = position;
+        rt.sizeDelta = size;
+    }
+
+    private static void StretchFill(RectTransform rt, float inset)
     {
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.one;
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.offsetMin = new Vector2(inset, inset);
+        rt.offsetMax = new Vector2(-inset, -inset);
+    }
+
+    private static void SetFill(RectTransform rt, float percent)
+    {
+        percent = Mathf.Clamp01(percent);
+        rt.gameObject.SetActive(percent > 0.001f);
+        float inset = 2f;
+        rt.anchorMin = new Vector2(0f, 0f);
+        rt.anchorMax = new Vector2(percent, 1f);
+        rt.pivot = new Vector2(0f, 0.5f);
         rt.offsetMin = new Vector2(inset, inset);
         rt.offsetMax = new Vector2(-inset, -inset);
     }

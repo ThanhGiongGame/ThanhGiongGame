@@ -50,9 +50,15 @@ public class PlayerController : MonoBehaviour
     public bool IsInvulnerable
     {
         get => _isInvulnerable;
-        set => _isInvulnerable = value;
+        set
+        {
+            _isInvulnerable = value;
+            _invulnerableExpiresAt = value ? Time.time + MaxInvulnerableSeconds : 0f;
+        }
     }
     private bool _isInvulnerable;
+    private float _invulnerableExpiresAt;
+    private const float MaxInvulnerableSeconds = 5f;
     // -------------------------------------------------------
 
     void Start()
@@ -60,6 +66,7 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         playerHealth = GetComponent<PlayerHealth>();
         ultimateController = GetComponent<UltimateController>();
+        IsInvulnerable = false;
 
         // Always find the camera first so combat functions even if visuals are missing
         mainCamera = Camera.main;
@@ -106,6 +113,8 @@ public class PlayerController : MonoBehaviour
     }
     void Update()
     {
+        ExpireStuckInvulnerability();
+
         // Don't rotate or attack automatically if aiming or performing a skill
         if (!IsPerformingSkill)
         {
@@ -144,7 +153,11 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleMovement()
     {
-        horseAnimator = equipmentLoader.horseRoot.GetComponentInChildren<Animator>();
+        if (equipmentLoader != null && equipmentLoader.horseRoot != null)
+        {
+            horseAnimator = equipmentLoader.horseRoot.GetComponentInChildren<Animator>();
+        }
+
         // If a skill like Flame Dash is currently driving CharacterController.Move(),
         // we completely bypass the standard movement calculation loop.
         if (IsPerformingSkill) return;
@@ -210,6 +223,16 @@ public class PlayerController : MonoBehaviour
         Vector3 pos = transform.position;
         pos.y = 0f;
         transform.position = pos;
+    }
+
+    private void ExpireStuckInvulnerability()
+    {
+        if (_isInvulnerable && _invulnerableExpiresAt > 0f && Time.time >= _invulnerableExpiresAt)
+        {
+            _isInvulnerable = false;
+            _invulnerableExpiresAt = 0f;
+            Debug.LogWarning("PlayerController: invulnerability auto-expired to avoid a stuck immortal state.");
+        }
     }
 
     // -------------------------------------------------------

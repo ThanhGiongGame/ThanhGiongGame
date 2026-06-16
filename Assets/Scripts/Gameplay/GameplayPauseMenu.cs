@@ -11,6 +11,7 @@ public class GameplayPauseMenu : MonoBehaviour
 {
     private const string MainMenuSceneName = "MainMenuScene";
     private const string ShopSceneName = "GameShopScene";
+    private const string GameplaySceneName = "SampleScene";
 
     private Canvas canvas;
     private GameObject pausePanel;
@@ -21,11 +22,48 @@ public class GameplayPauseMenu : MonoBehaviour
     private bool isPaused;
     private float previousTimeScale = 1f;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void BootstrapForCurrentScene()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        EnsurePauseMenuForScene(SceneManager.GetActiveScene());
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        EnsurePauseMenuForScene(scene);
+    }
+
+    private static void EnsurePauseMenuForScene(Scene scene)
+    {
+        if (scene.name != GameplaySceneName)
+        {
+            return;
+        }
+
+        if (FindFirstObjectByType<GameplayPauseMenu>(FindObjectsInactive.Include) != null)
+        {
+            return;
+        }
+
+        GameObject pauseMenuObject = new GameObject("GameplayPauseMenu");
+        pauseMenuObject.AddComponent<GameplayPauseMenu>();
+    }
+
     private void Awake()
     {
         BuildPauseUi();
         ApplySavedAudioSettings();
         SetPaused(false);
+    }
+
+    private void OnDestroy()
+    {
+        if (canvas != null)
+        {
+            Destroy(canvas.gameObject);
+        }
     }
 
     private void Update()
@@ -49,12 +87,14 @@ public class GameplayPauseMenu : MonoBehaviour
     public void BackToShop()
     {
         Time.timeScale = 1f;
+        isPaused = false;
         SceneManager.LoadScene(ShopSceneName);
     }
 
     public void BackToMainMenu()
     {
         Time.timeScale = 1f;
+        isPaused = false;
         SceneManager.LoadScene(MainMenuSceneName);
     }
 
@@ -143,16 +183,19 @@ public class GameplayPauseMenu : MonoBehaviour
         rect.anchorMax = new Vector2(1f, 1f);
         rect.pivot = new Vector2(1f, 1f);
         rect.anchoredPosition = new Vector2(-28f, -28f);
-        rect.sizeDelta = new Vector2(76f, 76f);
+        rect.sizeDelta = new Vector2(58f, 50f);
 
         Image image = buttonObject.AddComponent<Image>();
-        image.color = new Color(0.08f, 0.08f, 0.1f, 0.82f);
+        image.color = new Color(0.05f, 0.045f, 0.025f, 0.96f);
+        Outline outline = buttonObject.AddComponent<Outline>();
+        outline.effectColor = new Color(1f, 0.86f, 0.26f, 0.95f);
+        outline.effectDistance = new Vector2(2f, -2f);
 
         pauseButton = buttonObject.AddComponent<Button>();
         pauseButton.onClick.AddListener(TogglePause);
         ConfigureButtonColors(pauseButton, image.color);
 
-        CreateText(buttonObject.transform, "II", Vector2.zero, new Vector2(76f, 76f), 34, FontStyle.Bold, Color.white);
+        CreateText(buttonObject.transform, "=", Vector2.zero, new Vector2(58f, 50f), 36, FontStyle.Bold, new Color(1f, 0.92f, 0.36f, 1f));
     }
 
     private void BuildPausePanel(Transform parent)
@@ -166,6 +209,7 @@ public class GameplayPauseMenu : MonoBehaviour
 
         Image overlay = pausePanel.AddComponent<Image>();
         overlay.color = new Color(0f, 0f, 0f, 0.72f);
+        overlay.raycastTarget = true;
 
         GameObject card = CreatePanel(
             pausePanel.transform,
@@ -176,14 +220,14 @@ public class GameplayPauseMenu : MonoBehaviour
         );
 
         CreateText(card.transform, "TẠM DỪNG", new Vector2(0f, 250f), new Vector2(620f, 80f), 52, FontStyle.Bold, new Color(1f, 0.86f, 0.25f));
-        CreateText(card.transform, "Điều chỉnh âm lượng hoặc rời trận", new Vector2(0f, 195f), new Vector2(620f, 50f), 24, FontStyle.Normal, new Color(0.82f, 0.82f, 0.86f));
+        CreateText(card.transform, "Chỉnh âm lượng hoặc rời trận", new Vector2(0f, 195f), new Vector2(620f, 50f), 24, FontStyle.Normal, new Color(0.82f, 0.82f, 0.86f));
 
         BuildSettingsRow(card.transform);
 
         CreateButton(card.transform, "TIẾP TỤC", new Vector2(0f, 60f), new Vector2(460f, 74f), new Color(0.18f, 0.58f, 0.36f), ResumeGame);
         CreateButton(card.transform, "VỀ SHOP / ĐỔI TRANG BỊ", new Vector2(0f, -35f), new Vector2(460f, 74f), new Color(0.2f, 0.42f, 0.78f), BackToShop);
         CreateButton(card.transform, "VỀ MENU CHÍNH", new Vector2(0f, -130f), new Vector2(460f, 74f), new Color(0.34f, 0.34f, 0.4f), BackToMainMenu);
-        CreateText(card.transform, "ESC để đóng/mở", new Vector2(0f, -260f), new Vector2(620f, 42f), 22, FontStyle.Italic, new Color(0.62f, 0.62f, 0.68f));
+        CreateText(card.transform, "ESC hoặc = để đóng/mở", new Vector2(0f, -260f), new Vector2(620f, 42f), 22, FontStyle.Italic, new Color(0.62f, 0.62f, 0.68f));
     }
 
     private void BuildSettingsRow(Transform parent)

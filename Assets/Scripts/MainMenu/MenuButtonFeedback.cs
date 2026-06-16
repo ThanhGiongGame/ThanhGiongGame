@@ -5,63 +5,42 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Button))]
 public class MenuButtonFeedback : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
 {
-    [SerializeField] private float hoverScale = 1.04f;
-    [SerializeField] private float pressedScale = 0.98f;
-
     private Button button;
-    private Vector3 baseScale;
 
     private void Awake()
     {
         button = GetComponent<Button>();
-        baseScale = transform.localScale;
         ConfigureButtonColors();
     }
 
     private void OnEnable()
     {
-        if (baseScale == Vector3.zero)
-        {
-            baseScale = transform.localScale;
-        }
-
-        transform.localScale = baseScale;
+        transform.localScale = Vector3.one;
     }
 
     private void OnDisable()
     {
-        transform.localScale = baseScale;
+        transform.localScale = Vector3.one;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (IsInteractable())
-        {
-            transform.localScale = baseScale * hoverScale;
-        }
+        transform.localScale = Vector3.one;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        transform.localScale = baseScale;
+        transform.localScale = Vector3.one;
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (IsInteractable())
-        {
-            transform.localScale = baseScale * pressedScale;
-        }
+        transform.localScale = Vector3.one;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        transform.localScale = IsInteractable() ? baseScale * hoverScale : baseScale;
-    }
-
-    private bool IsInteractable()
-    {
-        return button != null && button.IsInteractable();
+        transform.localScale = Vector3.one;
     }
 
     private void ConfigureButtonColors()

@@ -1,156 +1,823 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 public class ShopUI : MonoBehaviour
 {
-    [Header("Left Panel")]
-    [SerializeField] private Transform contentRoot;
-    [SerializeField] private ShopItemUI itemPrefab;
+    private enum ShopMode
+    {
+        Shop,
+        Equipment
+    }
 
-    [Header("Right Panel")]
-    [SerializeField] private TMP_Text itemName;
-    [SerializeField] private TMP_Text itemCategory;
-    [SerializeField] private TMP_Text itemPrice;
-    [SerializeField] private TMP_Text itemDescription;
-    [SerializeField] private TMP_Text itemStatus;
+    private enum CategoryFilter
+    {
+        All,
+        Weapon,
+        Mount,
+        Ultimate
+    }
 
-    [Header("Bottom")]
-    [SerializeField] private Button actionButton;
-    [SerializeField] private TMP_Text actionButtonText;
+    [SerializeField] private PreviewManager previewManager;
 
-    [SerializeField]
-    private PreviewManager previewManager;
+    private ShopMode currentMode = ShopMode.Shop;
+    private CategoryFilter currentFilter = CategoryFilter.All;
     private GameItemData selectedItem;
+    private CameraManager cameraManager;
+
+    private RectTransform root;
+    private RectTransform listContent;
+    private TMP_Text titleText;
+    private TMP_Text hintText;
+    private TMP_Text currencyText;
+    private TMP_Text itemNameText;
+    private TMP_Text itemMetaText;
+    private TMP_Text itemPriceText;
+    private TMP_Text itemDescriptionText;
+    private TMP_Text itemStatusText;
+    private TMP_Text actionButtonText;
+    private Button actionButton;
+    private Button shopTabButton;
+    private Button equipmentTabButton;
+    private Button allFilterButton;
+    private Button weaponFilterButton;
+    private Button mountFilterButton;
+    private Button ultimateFilterButton;
+    private Button escButton;
+    private RectTransform escMenuPanel;
 
     private void Start()
     {
-        NormalizeStaticText();
-        BuildShop();
+        cameraManager = FindFirstObjectByType<CameraManager>(FindObjectsInactive.Include);
+        previewManager ??= FindFirstObjectByType<PreviewManager>(FindObjectsInactive.Include);
+        BuildRuntimeUi();
+        ShowShopMode();
     }
 
-    private void BuildShop()
+    private void Update()
     {
-        foreach (Transform child in contentRoot)
+        bool escapePressed = false;
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        escapePressed = Input.GetKeyDown(KeyCode.Escape);
+#endif
+
+#if ENABLE_INPUT_SYSTEM
+        escapePressed = escapePressed || (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame);
+#endif
+
+        if (escapePressed)
+        {
+            ToggleEscMenu();
+        }
+    }
+
+    public void ShowShopMode()
+    {
+        currentMode = ShopMode.Shop;
+        BuildRuntimeUi();
+        titleText.text = "CỬA HÀNG";
+        hintText.text = "Mua vật phẩm. Trang bị sẽ được đổi ở tab TRANG BỊ.";
+        RebuildItemList();
+        UpdateTabVisuals();
+    }
+
+    public void ShowEquipmentMode()
+    {
+        currentMode = ShopMode.Equipment;
+        BuildRuntimeUi();
+        titleText.text = "TRANG BỊ";
+        hintText.text = "Chỉ hiện vật phẩm đã sở hữu. Chọn món để trang bị.";
+        RebuildItemList();
+        UpdateTabVisuals();
+    }
+
+    public void BuySelectedItem()
+    {
+        PerformSelectedAction();
+    }
+
+    private void BuildRuntimeUi()
+    {
+        Canvas canvas = FindShopCanvas();
+        if (canvas == null)
+        {
+            return;
+        }
+
+        HideLegacyUi();
+
+        Transform existing = canvas.transform.Find("CleanShopRoot");
+        if (existing != null)
+        {
+            root = existing.GetComponent<RectTransform>();
+            root.gameObject.SetActive(true);
+            root.SetAsLastSibling();
+            CacheRuntimeRefs();
+            ApplyResponsiveLayout();
+            UpdateCurrency();
+            return;
+        }
+
+        root = CreateRect(canvas.transform, "CleanShopRoot");
+        Stretch(root, 0f, 0f, 0f, 0f);
+        root.SetAsLastSibling();
+
+        RectTransform leftPanel = CreatePanel(root, "CleanLeftPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(36f, -86f), new Vector2(560f, 700f), new Vector2(0f, 1f));
+        RectTransform rightPanel = CreatePanel(root, "CleanRightPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-36f, -86f), new Vector2(500f, 700f), new Vector2(1f, 1f));
+
+        currencyText = CreateText(root, "CurrencyText", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -28f), new Vector2(520f, 44f), new Vector2(0f, 1f), 28f, new Color(1f, 0.86f, 0.18f, 1f), FontStyles.Bold, TextAlignmentOptions.Left);
+        escButton = CreateButton(root, "EscButton", "=", new Vector2(-34f, -28f), new Vector2(58f, 50f), ToggleEscMenu, new Color(0.05f, 0.045f, 0.025f, 0.96f), 34f, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f));
+        StyleIconButton(escButton);
+
+        titleText = CreateText(leftPanel, "PanelTitle", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -38f), new Vector2(500f, 46f), new Vector2(0.5f, 1f), 34f, new Color(1f, 0.93f, 0.62f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+        hintText = CreateText(leftPanel, "PanelHint", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -82f), new Vector2(500f, 34f), new Vector2(0.5f, 1f), 18f, new Color(0.86f, 0.9f, 0.88f, 1f), FontStyles.Normal, TextAlignmentOptions.Center);
+
+        RectTransform filterBar = CreateRect(leftPanel, "FilterBar");
+        SetRect(filterBar, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -135f), new Vector2(500f, 44f), new Vector2(0.5f, 1f));
+        allFilterButton = CreateSmallButton(filterBar, "AllFilter", "TẤT CẢ", new Vector2(-187.5f, 0f), () => SelectFilter(CategoryFilter.All));
+        weaponFilterButton = CreateSmallButton(filterBar, "WeaponFilter", "WEAPON", new Vector2(-62.5f, 0f), () => SelectFilter(CategoryFilter.Weapon));
+        mountFilterButton = CreateSmallButton(filterBar, "MountFilter", "MOUNT", new Vector2(62.5f, 0f), () => SelectFilter(CategoryFilter.Mount));
+        ultimateFilterButton = CreateSmallButton(filterBar, "UltimateFilter", "ULT", new Vector2(187.5f, 0f), () => SelectFilter(CategoryFilter.Ultimate));
+
+        RectTransform listViewport = CreatePanel(leftPanel, "ListViewport", new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), new Color(0f, 0f, 0f, 0.22f));
+        Stretch(listViewport, 24f, 198f, 24f, 24f);
+        Mask mask = listViewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = true;
+        ScrollRect scroll = listViewport.gameObject.AddComponent<ScrollRect>();
+        listContent = CreateRect(listViewport, "ListContent");
+        listContent.anchorMin = new Vector2(0f, 1f);
+        listContent.anchorMax = new Vector2(1f, 1f);
+        listContent.pivot = new Vector2(0.5f, 1f);
+        listContent.anchoredPosition = Vector2.zero;
+        listContent.sizeDelta = new Vector2(0f, 0f);
+        VerticalLayoutGroup layout = listContent.gameObject.AddComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(10, 10, 10, 10);
+        layout.spacing = 12f;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+        ContentSizeFitter fitter = listContent.gameObject.AddComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        scroll.content = listContent;
+        scroll.viewport = listViewport;
+        scroll.horizontal = false;
+        scroll.vertical = true;
+
+        itemNameText = CreateText(rightPanel, "ItemName", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(440f, 54f), new Vector2(0.5f, 1f), 34f, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
+        itemMetaText = CreateText(rightPanel, "ItemMeta", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-110f, -128f), new Vector2(180f, 34f), new Vector2(0.5f, 1f), 20f, new Color(0.82f, 0.9f, 1f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+        itemPriceText = CreateText(rightPanel, "ItemPrice", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(110f, -128f), new Vector2(200f, 34f), new Vector2(0.5f, 1f), 20f, new Color(1f, 0.84f, 0.22f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+        itemDescriptionText = CreateText(rightPanel, "ItemDesc", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -194f), new Vector2(430f, 90f), new Vector2(0.5f, 1f), 22f, Color.white, FontStyles.Normal, TextAlignmentOptions.Center);
+        itemStatusText = CreateText(rightPanel, "ItemStatus", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -305f), new Vector2(430f, 56f), new Vector2(0.5f, 1f), 28f, new Color(0.38f, 1f, 0.42f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+        actionButton = CreateLargeButton(rightPanel, "ActionButton", "MUA", new Vector2(0f, 42f), PerformSelectedAction);
+        actionButtonText = actionButton.GetComponentInChildren<TMP_Text>();
+
+        RectTransform bottom = CreatePanel(root, "BottomNav", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(1040f, 76f), new Vector2(0.5f, 0f), new Color(0.02f, 0.02f, 0.02f, 0.58f));
+        shopTabButton = CreateNavButton(bottom, "ShopTab", "CỬA HÀNG", new Vector2(-350f, 8f), () => cameraManager?.ShowShop());
+        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(0f, 8f), () => cameraManager?.ShowEquipment());
+        CreateNavButton(bottom, "PlayTab", "VÀO TRẬN", new Vector2(350f, 8f), () => cameraManager?.ChangeGameplayScene());
+        BuildEscMenu();
+
+        CacheRuntimeRefs();
+        ApplyResponsiveLayout();
+        UpdateCurrency();
+    }
+
+    private void CacheRuntimeRefs()
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        listContent = FindRect(root, "ListContent");
+        titleText = FindText(root, "PanelTitle");
+        hintText = FindText(root, "PanelHint");
+        currencyText = FindText(root, "CurrencyText");
+        itemNameText = FindText(root, "ItemName");
+        itemMetaText = FindText(root, "ItemMeta");
+        itemPriceText = FindText(root, "ItemPrice");
+        itemDescriptionText = FindText(root, "ItemDesc");
+        itemStatusText = FindText(root, "ItemStatus");
+        actionButton = FindButton(root, "ActionButton");
+        actionButtonText = actionButton != null ? actionButton.GetComponentInChildren<TMP_Text>(true) : null;
+        shopTabButton = FindButton(root, "ShopTab");
+        equipmentTabButton = FindButton(root, "EquipmentTab");
+        allFilterButton = FindButton(root, "AllFilter");
+        weaponFilterButton = FindButton(root, "WeaponFilter");
+        mountFilterButton = FindButton(root, "MountFilter");
+        ultimateFilterButton = FindButton(root, "UltimateFilter");
+        escButton = FindButton(root, "EscButton");
+        escMenuPanel = FindRect(root, "EscMenuPanel");
+    }
+
+    private void ApplyResponsiveLayout()
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        Stretch(root, 0f, 0f, 0f, 0f);
+
+        RectTransform leftPanel = FindRect(root, "CleanLeftPanel");
+        RectTransform rightPanel = FindRect(root, "CleanRightPanel");
+        RectTransform filterBar = FindRect(root, "FilterBar");
+        RectTransform listViewport = FindRect(root, "ListViewport");
+        RectTransform bottomNav = FindRect(root, "BottomNav");
+
+        SetAnchorBox(leftPanel, new Vector2(0.035f, 0.24f), new Vector2(0.305f, 0.82f), Vector2.zero, Vector2.zero);
+        SetAnchorBox(rightPanel, new Vector2(0.695f, 0.24f), new Vector2(0.965f, 0.82f), Vector2.zero, Vector2.zero);
+        SetAnchorBox(bottomNav, new Vector2(0.07f, 0.035f), new Vector2(0.93f, 0.14f), Vector2.zero, Vector2.zero);
+
+        if (currencyText != null)
+        {
+            SetAnchorBox(currencyText.rectTransform, new Vector2(0.04f, 0.885f), new Vector2(0.33f, 0.955f), Vector2.zero, Vector2.zero);
+            currencyText.fontSize = 24f;
+            currencyText.alignment = TextAlignmentOptions.Left;
+        }
+
+        if (escButton != null)
+        {
+            SetAnchorBox(escButton.GetComponent<RectTransform>(), new Vector2(0.94f, 0.89f), new Vector2(0.985f, 0.975f), Vector2.zero, Vector2.zero);
+            StyleIconButton(escButton);
+        }
+
+        if (titleText != null)
+        {
+            SetAnchorBox(titleText.rectTransform, new Vector2(0.08f, 0.86f), new Vector2(0.92f, 0.97f), Vector2.zero, Vector2.zero);
+            titleText.fontSize = 27f;
+        }
+
+        if (hintText != null)
+        {
+            SetAnchorBox(hintText.rectTransform, new Vector2(0.08f, 0.77f), new Vector2(0.92f, 0.85f), Vector2.zero, Vector2.zero);
+            hintText.fontSize = 13f;
+        }
+
+        SetAnchorBox(filterBar, new Vector2(0.06f, 0.68f), new Vector2(0.94f, 0.75f), Vector2.zero, Vector2.zero);
+        LayoutFilterButton(allFilterButton, 0);
+        LayoutFilterButton(weaponFilterButton, 1);
+        LayoutFilterButton(mountFilterButton, 2);
+        LayoutFilterButton(ultimateFilterButton, 3);
+
+        SetAnchorBox(listViewport, new Vector2(0.06f, 0.06f), new Vector2(0.94f, 0.66f), Vector2.zero, Vector2.zero);
+
+        if (itemNameText != null)
+        {
+            SetAnchorBox(itemNameText.rectTransform, new Vector2(0.08f, 0.82f), new Vector2(0.92f, 0.95f), Vector2.zero, Vector2.zero);
+            itemNameText.fontSize = 28f;
+        }
+
+        if (itemMetaText != null)
+        {
+            SetAnchorBox(itemMetaText.rectTransform, new Vector2(0.08f, 0.72f), new Vector2(0.46f, 0.80f), Vector2.zero, Vector2.zero);
+        }
+
+        if (itemPriceText != null)
+        {
+            SetAnchorBox(itemPriceText.rectTransform, new Vector2(0.54f, 0.72f), new Vector2(0.92f, 0.80f), Vector2.zero, Vector2.zero);
+        }
+
+        if (itemDescriptionText != null)
+        {
+            SetAnchorBox(itemDescriptionText.rectTransform, new Vector2(0.08f, 0.46f), new Vector2(0.92f, 0.68f), Vector2.zero, Vector2.zero);
+        }
+
+        if (itemStatusText != null)
+        {
+            SetAnchorBox(itemStatusText.rectTransform, new Vector2(0.08f, 0.32f), new Vector2(0.92f, 0.43f), Vector2.zero, Vector2.zero);
+            itemStatusText.fontSize = 24f;
+        }
+
+        if (actionButton != null)
+        {
+            SetAnchorBox(actionButton.GetComponent<RectTransform>(), new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.18f), Vector2.zero, Vector2.zero);
+        }
+
+        LayoutBottomButton(shopTabButton, 0);
+        LayoutBottomButton(equipmentTabButton, 1);
+        LayoutBottomButton(FindButton(root, "PlayTab"), 2);
+
+        if (escMenuPanel != null)
+        {
+            SetRect(escMenuPanel, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 330f), new Vector2(0.5f, 0.5f));
+        }
+    }
+
+    private static void LayoutFilterButton(Button button, int index)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        float min = index * 0.25f;
+        float max = min + 0.25f;
+        SetAnchorBox(button.GetComponent<RectTransform>(), new Vector2(min, 0f), new Vector2(max, 1f), new Vector2(5f, 4f), new Vector2(-5f, -4f));
+    }
+
+    private static void LayoutBottomButton(Button button, int index)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        float min = index / 3f;
+        float max = (index + 1f) / 3f;
+        SetAnchorBox(button.GetComponent<RectTransform>(), new Vector2(min, 0f), new Vector2(max, 1f), new Vector2(14f, 9f), new Vector2(-14f, -9f));
+    }
+
+    private void HideLegacyUi()
+    {
+        string[] names =
+        {
+            "LeftPanel", "RightPannel", "Buy", "Scroll View", "BtnShop", "BtnEquipment", "BtnGame",
+            "ItemName", "ItemCategory", "ItemPrice", "ItemDescription", "ItemStatus",
+            "CategoryFilterBar", "CurrencyText", "ShopPanelTitle", "ShopPanelHint"
+        };
+
+        foreach (string objectName in names)
+        {
+            GameObject target = FindDirectOrGlobal(objectName);
+            if (target != null && target.name != "CleanShopRoot" && !IsInsideCleanShopRoot(target.transform))
+            {
+                target.SetActive(false);
+            }
+        }
+    }
+
+    private static bool IsInsideCleanShopRoot(Transform target)
+    {
+        Transform current = target;
+        while (current != null)
+        {
+            if (current.name == "CleanShopRoot")
+            {
+                return true;
+            }
+
+            current = current.parent;
+        }
+
+        return false;
+    }
+
+    private void SelectFilter(CategoryFilter filter)
+    {
+        currentFilter = filter;
+        RebuildItemList();
+        UpdateFilterVisuals();
+    }
+
+    private void RebuildItemList()
+    {
+        if (listContent == null || InventoryManager.Instance == null)
+        {
+            return;
+        }
+
+        foreach (Transform child in listContent)
         {
             Destroy(child.gameObject);
         }
 
-        foreach (var item in InventoryManager.Instance.allItems)
+        GameItemData first = null;
+        foreach (GameItemData item in InventoryManager.Instance.allItems)
         {
-            ShopItemUI entry =
-                Instantiate(
-                    itemPrefab,
-                    contentRoot
-                );
+            if (!MatchesFilter(item))
+            {
+                continue;
+            }
 
-            entry.Setup(
-                item,
-                OnItemSelected
-            );
+            if (currentMode == ShopMode.Equipment && !item.IsOwned())
+            {
+                continue;
+            }
+
+            CreateItemRow(item);
+            first ??= item;
         }
 
-        if (InventoryManager.Instance.allItems.Count > 0)
+        if (first != null)
         {
-            OnItemSelected(
-                InventoryManager.Instance.allItems[0]
-            );
+            SelectItem(first);
         }
+        else
+        {
+            ShowEmptyState();
+        }
+
+        UpdateCurrency();
+        UpdateFilterVisuals();
     }
 
-    private void OnItemSelected(GameItemData item)
+    private bool MatchesFilter(GameItemData item)
     {
-        Debug.Log("Selected: " + item.displayName + item.prefab);
+        return currentFilter == CategoryFilter.All
+            || (currentFilter == CategoryFilter.Weapon && item.category == InventoryManager.ItemCategory.Weapon)
+            || (currentFilter == CategoryFilter.Mount && item.category == InventoryManager.ItemCategory.Mount)
+            || (currentFilter == CategoryFilter.Ultimate && item.category == InventoryManager.ItemCategory.Ultimate);
+    }
 
+    private void CreateItemRow(GameItemData item)
+    {
+        Button row = CreateButton(listContent, "ItemRow_" + item.id, "", Vector2.zero, new Vector2(0f, 68f), () => SelectItem(item), new Color(0.88f, 0.78f, 0.52f, 0.98f));
+        LayoutElement element = row.gameObject.AddComponent<LayoutElement>();
+        element.minHeight = 68f;
+        element.preferredHeight = 68f;
+
+        TMP_Text name = CreateText(row.transform, "Name", new Vector2(0f, 0f), new Vector2(0.68f, 1f), new Vector2(12f, 0f), Vector2.zero, new Vector2(0f, 0.5f), 20f, new Color(0.08f, 0.07f, 0.04f, 1f), FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
+        name.text = item.displayName;
+
+        TMP_Text price = CreateText(row.transform, "Price", new Vector2(0.68f, 0f), Vector2.one, new Vector2(-12f, 0f), Vector2.zero, new Vector2(1f, 0.5f), 16f, new Color(0.08f, 0.07f, 0.04f, 1f), FontStyles.Bold, TextAlignmentOptions.MidlineRight);
+        price.text = currentMode == ShopMode.Equipment || item.IsOwned() ? "ĐÃ CÓ" : item.cost + " VD";
+    }
+
+    private void SelectItem(GameItemData item)
+    {
         selectedItem = item;
+        itemNameText.text = item.displayName;
+        itemMetaText.text = item.category.ToString();
+        itemPriceText.text = currentMode == ShopMode.Shop ? item.cost + " Vinh Danh" : "Đã sở hữu";
+        itemDescriptionText.text = item.description;
+        itemStatusText.text = GetStatusText(item);
 
-        itemName.text =
-            item.displayName;
+        if (previewManager != null)
+        {
+            previewManager.Show(item);
+        }
 
-        itemCategory.text =
-            item.category.ToString();
-
-        itemPrice.text =
-            item.cost + " Vinh Danh";
-
-        itemDescription.text =
-            item.description;
-
-        itemStatus.text =
-            item.IsOwned()
-                ? "Da so huu"
-                : "Chua so huu";
-        previewManager.Show(item);
         UpdateActionButton();
+    }
+
+    private void ShowEmptyState()
+    {
+        selectedItem = null;
+        itemNameText.text = "CHƯA CÓ ĐỒ";
+        itemMetaText.text = "";
+        itemPriceText.text = "";
+        itemDescriptionText.text = currentMode == ShopMode.Equipment
+            ? "Hãy mua vật phẩm trong CỬA HÀNG trước."
+            : "Không có vật phẩm trong danh mục này.";
+        itemStatusText.text = "";
+        UpdateActionButton();
+    }
+
+    private void PerformSelectedAction()
+    {
+        if (selectedItem == null || InventoryManager.Instance == null)
+        {
+            return;
+        }
+
+        if (currentMode == ShopMode.Shop)
+        {
+            if (InventoryManager.Instance.BuyItem(selectedItem))
+            {
+                SelectItem(selectedItem);
+                RebuildItemList();
+            }
+            return;
+        }
+
+        if (selectedItem.IsOwned())
+        {
+            InventoryManager.Instance.ToggleEquip(selectedItem);
+            SelectItem(selectedItem);
+            RebuildItemList();
+        }
     }
 
     private void UpdateActionButton()
     {
         if (selectedItem == null)
-            return;
-
-        if (selectedItem.IsOwned())
         {
-            actionButtonText.text =
-                "DA SO HUU";
-
-            actionButton.interactable =
-                false;
-        }
-        else
-        {
-            actionButtonText.text =
-                "MUA";
-
-            actionButton.interactable =
-                true;
-        }
-    }
-
-    public void BuySelectedItem()
-    {
-        if (selectedItem == null)
-            return;
-
-        if (
-            InventoryManager.Instance
-                .BuyItem(selectedItem)
-        )
-        {
-            OnItemSelected(
-                selectedItem
-            );
-        }
-    }
-
-    private void NormalizeStaticText()
-    {
-        ConfigureLabel(itemName, 38f, TextAlignmentOptions.Center);
-        ConfigureLabel(itemCategory, 22f, TextAlignmentOptions.Center);
-        ConfigureLabel(itemPrice, 20f, TextAlignmentOptions.Center);
-        ConfigureLabel(itemDescription, 20f, TextAlignmentOptions.Center);
-        ConfigureLabel(itemStatus, 34f, TextAlignmentOptions.Center);
-        ConfigureLabel(actionButtonText, 30f, TextAlignmentOptions.Center);
-
-        if (itemStatus != null)
-        {
-            itemStatus.color = new Color(0.2f, 1f, 0.25f, 1f);
-        }
-    }
-
-    private static void ConfigureLabel(TMP_Text label, float fontSize, TextAlignmentOptions alignment)
-    {
-        if (label == null)
-        {
+            actionButton.interactable = false;
+            actionButtonText.text = currentMode == ShopMode.Shop ? "MUA" : "TRANG BỊ";
             return;
         }
 
-        label.fontSize = fontSize;
-        label.enableAutoSizing = false;
-        label.enableWordWrapping = false;
-        label.alignment = alignment;
-        label.margin = Vector4.zero;
-        label.raycastTarget = false;
-        label.rectTransform.localScale = Vector3.one;
+        if (currentMode == ShopMode.Shop)
+        {
+            actionButtonText.text = selectedItem.IsOwned() ? "ĐÃ SỞ HỮU" : "MUA";
+            actionButton.interactable = !selectedItem.IsOwned();
+            return;
+        }
+
+        actionButtonText.text = selectedItem.IsEquipped() ? "ĐANG DÙNG" : "TRANG BỊ";
+        actionButton.interactable = selectedItem.IsOwned() && !selectedItem.IsEquipped();
+    }
+
+    private string GetStatusText(GameItemData item)
+    {
+        if (currentMode == ShopMode.Shop)
+        {
+            return item.IsOwned() ? "ĐÃ SỞ HỮU" : "CHƯA SỞ HỮU";
+        }
+
+        return item.IsEquipped() ? "ĐANG TRANG BỊ" : "ĐÃ SỞ HỮU";
+    }
+
+    private void UpdateCurrency()
+    {
+        if (currencyText != null && InventoryManager.Instance != null)
+        {
+            currencyText.text = "Vinh Danh: " + InventoryManager.Instance.GetCurrency() + " VD";
+            currencyText.gameObject.SetActive(true);
+        }
+    }
+
+    private void BuildEscMenu()
+    {
+        escMenuPanel = CreatePanel(root, "EscMenuPanel", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 330f), new Vector2(0.5f, 0.5f), new Color(0.02f, 0.02f, 0.02f, 0.94f));
+        escMenuPanel.SetAsLastSibling();
+
+        TMP_Text title = CreateText(escMenuPanel, "EscTitle", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -42f), new Vector2(360f, 50f), new Vector2(0.5f, 1f), 34f, new Color(1f, 0.93f, 0.62f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+        title.text = "TÙY CHỌN";
+
+        CreateButton(escMenuPanel, "ResumeButton", "TIẾP TỤC", new Vector2(0f, 48f), new Vector2(310f, 58f), ToggleEscMenu, new Color(0.62f, 0.88f, 0.9f, 0.98f), 24f);
+        CreateButton(escMenuPanel, "MainMenuButton", "VỀ MENU", new Vector2(0f, -28f), new Vector2(310f, 58f), BackToMainMenu, new Color(0.9f, 0.82f, 0.58f, 0.98f), 24f);
+        CreateButton(escMenuPanel, "QuitButton", "THOÁT", new Vector2(0f, -104f), new Vector2(310f, 58f), QuitGame, new Color(0.75f, 0.28f, 0.24f, 0.98f), 24f);
+
+        escMenuPanel.gameObject.SetActive(false);
+    }
+
+    private void ToggleEscMenu()
+    {
+        if (escMenuPanel == null)
+        {
+            BuildRuntimeUi();
+        }
+
+        if (escMenuPanel != null)
+        {
+            escMenuPanel.gameObject.SetActive(!escMenuPanel.gameObject.activeSelf);
+            escMenuPanel.SetAsLastSibling();
+        }
+    }
+
+    private void BackToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenuScene");
+    }
+
+    private void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
+    private void UpdateTabVisuals()
+    {
+        SetButtonColor(shopTabButton, currentMode == ShopMode.Shop, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
+        SetButtonColor(equipmentTabButton, currentMode == ShopMode.Equipment, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
+    }
+
+    private void UpdateFilterVisuals()
+    {
+        SetButtonColor(allFilterButton, currentFilter == CategoryFilter.All, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
+        SetButtonColor(weaponFilterButton, currentFilter == CategoryFilter.Weapon, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
+        SetButtonColor(mountFilterButton, currentFilter == CategoryFilter.Mount, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
+        SetButtonColor(ultimateFilterButton, currentFilter == CategoryFilter.Ultimate, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
+    }
+
+    private static RectTransform CreatePanel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size, Vector2 pivot)
+    {
+        return CreatePanel(parent, name, anchorMin, anchorMax, position, size, pivot, new Color(0.03f, 0.035f, 0.035f, 0.93f));
+    }
+
+    private static RectTransform CreatePanel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size, Vector2 pivot, Color color)
+    {
+        RectTransform rect = CreateRect(parent, name);
+        SetRect(rect, anchorMin, anchorMax, position, size, pivot);
+        Image image = rect.gameObject.AddComponent<Image>();
+        image.color = color;
+        image.raycastTarget = false;
+        Outline outline = rect.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color(1f, 0.86f, 0.42f, 0.42f);
+        outline.effectDistance = new Vector2(2f, -2f);
+        return rect;
+    }
+
+    private static Button CreateSmallButton(Transform parent, string name, string text, Vector2 position, UnityEngine.Events.UnityAction onClick)
+    {
+        return CreateButton(parent, name, text, position, new Vector2(118f, 42f), onClick, new Color(0.9f, 0.82f, 0.58f, 0.98f), 12f);
+    }
+
+    private static Button CreateLargeButton(Transform parent, string name, string text, Vector2 position, UnityEngine.Events.UnityAction onClick)
+    {
+        return CreateButton(parent, name, text, position, new Vector2(400f, 66f), onClick, new Color(0.28f, 0.58f, 0.28f, 0.96f), 27f, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
+    }
+
+    private static Button CreateNavButton(Transform parent, string name, string text, Vector2 position, UnityEngine.Events.UnityAction onClick)
+    {
+        return CreateButton(parent, name, text, position, new Vector2(300f, 58f), onClick, new Color(0.62f, 0.88f, 0.9f, 0.98f), 22f, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
+    }
+
+    private static Button CreateButton(Transform parent, string name, string text, Vector2 position, Vector2 size, UnityEngine.Events.UnityAction onClick, Color color, float fontSize = 22f)
+    {
+        return CreateButton(parent, name, text, position, size, onClick, color, fontSize, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
+    }
+
+    private static Button CreateButton(Transform parent, string name, string text, Vector2 position, Vector2 size, UnityEngine.Events.UnityAction onClick, Color color, float fontSize, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
+    {
+        RectTransform rect = CreateRect(parent, name);
+        SetRect(rect, anchorMin, anchorMax, position, size, pivot);
+        Image image = rect.gameObject.AddComponent<Image>();
+        image.color = color;
+        image.raycastTarget = true;
+        Button button = rect.gameObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        button.onClick.AddListener(onClick);
+        TMP_Text label = CreateText(rect, "Label", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), fontSize, new Color(0.08f, 0.08f, 0.08f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+        label.text = text;
+        return button;
+    }
+
+    private static TMP_Text CreateText(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size, Vector2 pivot, float fontSize, Color color, FontStyles style, TextAlignmentOptions alignment)
+    {
+        RectTransform rect = CreateRect(parent, name);
+        SetRect(rect, anchorMin, anchorMax, position, size, pivot);
+        TMP_Text text = rect.gameObject.AddComponent<TextMeshProUGUI>();
+        text.fontSize = fontSize;
+        text.color = color;
+        text.fontStyle = style;
+        text.alignment = alignment;
+        text.enableAutoSizing = false;
+        text.enableWordWrapping = false;
+        text.margin = Vector4.zero;
+        text.raycastTarget = false;
+        return text;
+    }
+
+    private static RectTransform CreateRect(Transform parent, string name)
+    {
+        GameObject obj = new GameObject(name, typeof(RectTransform));
+        obj.transform.SetParent(parent, false);
+        return obj.GetComponent<RectTransform>();
+    }
+
+    private static void SetRect(RectTransform rect, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size, Vector2 pivot)
+    {
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.pivot = pivot;
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+        rect.localScale = Vector3.one;
+    }
+
+    private static void Stretch(RectTransform rect, float left, float top, float right, float bottom)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.offsetMin = new Vector2(left, bottom);
+        rect.offsetMax = new Vector2(-right, -top);
+        rect.localScale = Vector3.one;
+    }
+
+    private static void SetAnchorBox(RectTransform rect, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+    {
+        if (rect == null)
+        {
+            return;
+        }
+
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.offsetMin = offsetMin;
+        rect.offsetMax = offsetMax;
+        rect.localScale = Vector3.one;
+    }
+
+    private static void SetButtonColor(Button button, bool active, Color activeColor, Color inactiveColor)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        Image image = button.GetComponent<Image>();
+        if (image != null)
+        {
+            image.color = active ? activeColor : inactiveColor;
+        }
+    }
+
+    private static void StyleIconButton(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        Image image = button.GetComponent<Image>();
+        if (image != null)
+        {
+            image.color = new Color(0.05f, 0.045f, 0.025f, 0.96f);
+        }
+
+        Outline outline = button.GetComponent<Outline>();
+        if (outline == null)
+        {
+            outline = button.gameObject.AddComponent<Outline>();
+        }
+
+        outline.effectColor = new Color(1f, 0.86f, 0.26f, 0.95f);
+        outline.effectDistance = new Vector2(2f, -2f);
+
+        TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
+        if (label != null)
+        {
+            label.color = new Color(1f, 0.92f, 0.36f, 1f);
+            label.fontSize = 36f;
+        }
+    }
+
+    private static GameObject FindDirectOrGlobal(string objectName)
+    {
+        Transform[] transforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (Transform transform in transforms)
+        {
+            if (transform.name == objectName)
+            {
+                return transform.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private static Canvas FindShopCanvas()
+    {
+        Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Canvas fallback = null;
+
+        foreach (Canvas canvas in canvases)
+        {
+            if (canvas.name == "ShopCanvas")
+            {
+                return canvas;
+            }
+
+            if (
+                fallback == null
+                && canvas.isRootCanvas
+                && canvas.name != "GameplayPauseCanvas"
+                && canvas.name != "MainMenuCanvas"
+            )
+            {
+                fallback = canvas;
+            }
+        }
+
+        return fallback;
+    }
+
+    private static RectTransform FindRect(Transform root, string objectName)
+    {
+        Transform found = FindChild(root, objectName);
+        return found != null ? found.GetComponent<RectTransform>() : null;
+    }
+
+    private static TMP_Text FindText(Transform root, string objectName)
+    {
+        Transform found = FindChild(root, objectName);
+        return found != null ? found.GetComponent<TMP_Text>() : null;
+    }
+
+    private static Button FindButton(Transform root, string objectName)
+    {
+        Transform found = FindChild(root, objectName);
+        return found != null ? found.GetComponent<Button>() : null;
+    }
+
+    private static Transform FindChild(Transform root, string objectName)
+    {
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        foreach (Transform child in children)
+        {
+            if (child.name == objectName)
+            {
+                return child;
+            }
+        }
+
+        return null;
     }
 }
