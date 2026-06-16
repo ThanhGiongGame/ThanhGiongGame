@@ -10,19 +10,19 @@ using UnityEngine.UI;
 public class LevelUpUI : MonoBehaviour
 {
     // ---- Colors ----
-    private static readonly Color OverlayColor  = new Color(0.00f, 0.00f, 0.04f, 0.82f);
-    private static readonly Color TitleColor    = new Color(0.92f, 0.82f, 1.00f, 1.00f);
-    private static readonly Color SubtitleColor = new Color(0.70f, 0.60f, 0.90f, 1.00f);
+    private static readonly Color OverlayColor  = new Color(0.02f, 0.02f, 0.03f, 0.92f); // Glassmorphism overlay
+    private static readonly Color TitleColor    = new Color(0.92f, 0.84f, 0.64f, 1.00f); // Dong Son bronze gold
+    private static readonly Color SubtitleColor = new Color(0.80f, 0.78f, 0.72f, 1.00f);
 
-    // Stat card
-    private static readonly Color StatBg     = new Color(0.07f, 0.06f, 0.13f, 0.97f);
-    private static readonly Color StatBorder = new Color(0.55f, 0.40f, 0.95f, 1.00f);
-    private static readonly Color StatTitle  = new Color(0.88f, 0.78f, 1.00f, 1.00f);
+    // Stat card (Sleek Cyan Tech theme)
+    private static readonly Color StatBg     = new Color(0.04f, 0.07f, 0.08f, 0.98f);
+    private static readonly Color StatBorder = new Color(0.20f, 0.75f, 0.95f, 1.00f);
+    private static readonly Color StatTitle  = new Color(0.40f, 0.85f, 1.00f, 1.00f);
 
-    // Skill card
-    private static readonly Color SkillBg     = new Color(0.13f, 0.05f, 0.03f, 0.97f);
+    // Skill card (Fiery Golden Amber theme)
+    private static readonly Color SkillBg     = new Color(0.12f, 0.07f, 0.05f, 0.98f);
     private static readonly Color SkillBorder = new Color(1.00f, 0.45f, 0.10f, 1.00f);
-    private static readonly Color SkillTitle  = new Color(1.00f, 0.72f, 0.28f, 1.00f);
+    private static readonly Color SkillTitle  = new Color(1.00f, 0.70f, 0.20f, 1.00f);
 
     private Canvas     _canvas;
     private GameObject _panel;

@@ -57,6 +57,7 @@ public class MainMenuManager : MonoBehaviour
         }
 
         ApplyMuteState();
+        SetupMapSelection();
     }
 
     private void OnDestroy()
@@ -198,8 +199,26 @@ public class MainMenuManager : MonoBehaviour
         ConfigureFullScreenLayer("VideoOverlayLayer");
         ConfigureBackground();
         ConfigureTitle();
-        ConfigureMenuButton("PLAY", new Vector2(0f, 45f), "PLAY");
-        ConfigureMenuButton("SETTINGS", new Vector2(0f, -80f), "SETTING");
+
+        // 1. Nhân bản nút SETTINGS thành MAP_SELECT nếu chưa có
+        GameObject settingsBtnGO = FindByName("SETTINGS");
+        GameObject mapBtnGO = FindByName("MAP_SELECT");
+        if (settingsBtnGO != null && mapBtnGO == null)
+        {
+            mapBtnGO = Instantiate(settingsBtnGO, settingsBtnGO.transform.parent);
+            mapBtnGO.name = "MAP_SELECT";
+            Button btn = mapBtnGO.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(OpenMapSelection);
+            }
+        }
+
+        // 2. Định vị lại 3 nút cho cân đối
+        ConfigureMenuButton("PLAY", new Vector2(0f, 130f), "PLAY");
+        ConfigureMenuButton("SETTINGS", new Vector2(0f, 10f), "SETTING");
+        ConfigureMenuButton("MAP_SELECT", new Vector2(0f, -110f), "BẢN ĐỒ");
         NormalizeSettingsPanel();
     }
 
@@ -503,5 +522,35 @@ public class MainMenuManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private MapSelectionUI _mapSelectionUI;
+
+    private void SetupMapSelection()
+    {
+        Canvas mainCanvas = FindFirstObjectByType<Canvas>();
+        if (mainCanvas != null)
+        {
+            _mapSelectionUI = mainCanvas.gameObject.AddComponent<MapSelectionUI>();
+            _mapSelectionUI.Initialize(() => {
+                if (mainMenuContainer != null)
+                {
+                    mainMenuContainer.SetActive(true);
+                }
+            });
+            _mapSelectionUI.Hide();
+        }
+    }
+
+    public void OpenMapSelection()
+    {
+        if (mainMenuContainer != null)
+        {
+            mainMenuContainer.SetActive(false);
+        }
+        if (_mapSelectionUI != null)
+        {
+            _mapSelectionUI.Show();
+        }
     }
 }

@@ -18,6 +18,7 @@ public class CameraManager : MonoBehaviour
 
         NormalizeShopLayout();
         ShowShop();
+        SetupMapSelection();
     }
 
     public void ShowShop()
@@ -47,9 +48,27 @@ public class CameraManager : MonoBehaviour
         ConfigurePanel("RightPannel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-56f, -92f), new Vector2(540f, 410f), new Vector2(1f, 1f));
         ConfigureRightPanelText();
         ConfigureBuyButton();
-        ConfigureBottomButton("BtnShop", new Vector2(-330f, 58f), "Shop");
-        ConfigureBottomButton("BtnEquipment", new Vector2(0f, 58f), "Equip");
-        ConfigureBottomButton("BtnGame", new Vector2(330f, 58f), "Play");
+
+        // 1. Nhân bản nút BtnShop thành BtnMap nếu chưa có
+        GameObject btnShopGO = FindByName("BtnShop");
+        GameObject btnMapGO = FindByName("BtnMap");
+        if (btnShopGO != null && btnMapGO == null)
+        {
+            btnMapGO = Instantiate(btnShopGO, btnShopGO.transform.parent);
+            btnMapGO.name = "BtnMap";
+            Button btn = btnMapGO.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(OpenMapSelection);
+            }
+        }
+
+        // 2. Định cấu hình và định vị lại 4 nút cho cân đối, đồng bộ kích thước và font chữ
+        ConfigureBottomButton("BtnGame", new Vector2(-450f, 58f), "PLAY");
+        ConfigureBottomButton("BtnShop", new Vector2(-150f, 58f), "SHOP");
+        ConfigureBottomButton("BtnEquipment", new Vector2(150f, 58f), "EQUIP");
+        ConfigureBottomButton("BtnMap", new Vector2(450f, 58f), "BẢN ĐỒ");
         StretchScrollView();
     }
 
@@ -281,5 +300,28 @@ public class CameraManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private MapSelectionUI _mapSelectionUI;
+
+    private void SetupMapSelection()
+    {
+        Canvas mainCanvas = FindFirstObjectByType<Canvas>();
+        if (mainCanvas != null)
+        {
+            _mapSelectionUI = mainCanvas.gameObject.AddComponent<MapSelectionUI>();
+            _mapSelectionUI.Initialize(() => {
+                // Đóng bảng chọn map
+            });
+            _mapSelectionUI.Hide();
+        }
+    }
+
+    public void OpenMapSelection()
+    {
+        if (_mapSelectionUI != null)
+        {
+            _mapSelectionUI.Show();
+        }
     }
 }
