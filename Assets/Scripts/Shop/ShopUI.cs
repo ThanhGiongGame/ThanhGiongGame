@@ -25,6 +25,7 @@ public class ShopUI : MonoBehaviour
 
     private void Start()
     {
+        NormalizeStaticText();
         BuildShop();
     }
 
@@ -77,8 +78,8 @@ public class ShopUI : MonoBehaviour
 
         itemStatus.text =
             item.IsOwned()
-                ? "Đã sở hữu"
-                : "Chưa sở hữu";
+                ? "Da so huu"
+                : "Chua so huu";
         previewManager.Show(item);
         UpdateActionButton();
     }
@@ -91,7 +92,7 @@ public class ShopUI : MonoBehaviour
         if (selectedItem.IsOwned())
         {
             actionButtonText.text =
-                "ĐÃ SỞ HỮU";
+                "DA SO HUU";
 
             actionButton.interactable =
                 false;
@@ -120,5 +121,36 @@ public class ShopUI : MonoBehaviour
                 selectedItem
             );
         }
+    }
+
+    private void NormalizeStaticText()
+    {
+        ConfigureLabel(itemName, 38f, TextAlignmentOptions.Center);
+        ConfigureLabel(itemCategory, 22f, TextAlignmentOptions.Center);
+        ConfigureLabel(itemPrice, 20f, TextAlignmentOptions.Center);
+        ConfigureLabel(itemDescription, 20f, TextAlignmentOptions.Center);
+        ConfigureLabel(itemStatus, 34f, TextAlignmentOptions.Center);
+        ConfigureLabel(actionButtonText, 30f, TextAlignmentOptions.Center);
+
+        if (itemStatus != null)
+        {
+            itemStatus.color = new Color(0.2f, 1f, 0.25f, 1f);
+        }
+    }
+
+    private static void ConfigureLabel(TMP_Text label, float fontSize, TextAlignmentOptions alignment)
+    {
+        if (label == null)
+        {
+            return;
+        }
+
+        label.fontSize = fontSize;
+        label.enableAutoSizing = false;
+        label.enableWordWrapping = false;
+        label.alignment = alignment;
+        label.margin = Vector4.zero;
+        label.raycastTarget = false;
+        label.rectTransform.localScale = Vector3.one;
     }
 }
