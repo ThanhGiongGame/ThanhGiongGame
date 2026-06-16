@@ -88,6 +88,9 @@ public class MainMenuManager : MonoBehaviour
         SetSettingsVisible(false);
         SetIntroVideoVisible(true);
 
+        introVideoPlayer.gameObject.SetActive(true);
+        introVideoPlayer.enabled = true;
+
         if (backgroundMusic != null)
         {
             backgroundMusic.Stop();
@@ -176,6 +179,12 @@ public class MainMenuManager : MonoBehaviour
         if (backgroundMusic == null)
         {
             backgroundMusic = FindFirstObjectByType<AudioSource>(FindObjectsInactive.Include);
+        }
+
+        GameObject canvasRoot = FindByName("MainMenuCanvas");
+        if (mainMenuContainer == null || mainMenuContainer == canvasRoot)
+        {
+            mainMenuContainer = FindByName("MenuLayer");
         }
     }
 

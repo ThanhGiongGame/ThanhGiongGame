@@ -2196,7 +2196,7 @@ MonoBehaviour:
   settingsPanel: {fileID: 123305949}
   introVideoPanel: {fileID: 828262319}
   introVideoPlayer: {fileID: 601621153}
-  mainMenuContainer: {fileID: 1056721457}
+  mainMenuContainer: {fileID: 1077021788}
   backgroundMusic: {fileID: 1332244253}
   muteButtonImage: {fileID: 585669697}
   soundOnSprite: {fileID: 21300000, guid: 3e9d527611c79f14a993e566f5468094, type: 3}
