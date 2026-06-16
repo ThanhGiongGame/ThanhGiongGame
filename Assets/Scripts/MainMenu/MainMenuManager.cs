@@ -182,11 +182,38 @@ public class MainMenuManager : MonoBehaviour
     private void NormalizeMenuLayout()
     {
         UiSceneNormalizer.NormalizeScene("MainMenuCanvas");
+        ConfigureFullScreenLayer("BackgroundLayer");
+        ConfigureFullScreenLayer("MenuLayer");
+        ConfigureFullScreenLayer("ModalLayer");
+        ConfigureFullScreenLayer("VideoOverlayLayer");
         ConfigureBackground();
         ConfigureTitle();
-        ConfigureMenuButton("PLAY", new Vector2(0f, 70f), "PLAY");
-        ConfigureMenuButton("SETTINGS", new Vector2(0f, -85f), "SETTING");
+        ConfigureMenuButton("PLAY", new Vector2(0f, 45f), "PLAY");
+        ConfigureMenuButton("SETTINGS", new Vector2(0f, -80f), "SETTING");
         NormalizeSettingsPanel();
+    }
+
+    private void ConfigureFullScreenLayer(string objectName)
+    {
+        GameObject layerObject = FindByName(objectName);
+        if (layerObject == null)
+        {
+            return;
+        }
+
+        RectTransform rect = layerObject.GetComponent<RectTransform>();
+        if (rect == null)
+        {
+            return;
+        }
+
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        rect.localScale = Vector3.one;
     }
 
     private void ConfigureBackground()
@@ -204,8 +231,8 @@ public class MainMenuManager : MonoBehaviour
             rect.anchorMax = Vector2.one;
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = Vector2.zero;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            rect.offsetMin = new Vector2(-120f, -80f);
+            rect.offsetMax = new Vector2(120f, 80f);
             rect.localScale = Vector3.one;
         }
 
@@ -231,7 +258,7 @@ public class MainMenuManager : MonoBehaviour
             rect.anchorMin = new Vector2(0.5f, 1f);
             rect.anchorMax = new Vector2(0.5f, 1f);
             rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = new Vector2(0f, -175f);
+            rect.anchoredPosition = new Vector2(0f, -92f);
             rect.sizeDelta = new Vector2(1480f, 220f);
             rect.localScale = Vector3.one;
         }
@@ -240,7 +267,7 @@ public class MainMenuManager : MonoBehaviour
         if (label != null)
         {
             label.text = "THANH GIONG";
-            label.fontSize = 142f;
+            label.fontSize = 118f;
             label.enableAutoSizing = false;
             label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
@@ -269,7 +296,7 @@ public class MainMenuManager : MonoBehaviour
         Image image = buttonObject.GetComponent<Image>();
         if (image != null)
         {
-            image.color = new Color(0.43f, 0.19f, 0.08f, 0.42f);
+            image.color = new Color(0.43f, 0.19f, 0.08f, 0.62f);
             image.raycastTarget = true;
         }
 
@@ -308,9 +335,75 @@ public class MainMenuManager : MonoBehaviour
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(900f, 620f);
+            rect.sizeDelta = new Vector2(760f, 500f);
             rect.localScale = Vector3.one;
         }
+
+        Image panelImage = settingsPanel.GetComponent<Image>();
+        if (panelImage != null)
+        {
+            panelImage.color = new Color(0.9f, 0.9f, 0.88f, 0.96f);
+            panelImage.raycastTarget = true;
+        }
+
+        ConfigureSettingsText("text_Title", "SETTING", new Vector2(0f, 195f), new Vector2(620f, 72f), 54f);
+        ConfigureSettingsText("SOUND", "Sound", new Vector2(-225f, 70f), new Vector2(210f, 56f), 38f);
+        ConfigureSettingsRect("Slider", new Vector2(145f, 72f), new Vector2(430f, 38f));
+        ConfigureSettingsRect("MuteButton", new Vector2(0f, -110f), new Vector2(120f, 120f));
+        ConfigureSettingsRect("CloseButton", new Vector2(340f, 210f), new Vector2(58f, 58f));
+    }
+
+    private void ConfigureSettingsText(string objectName, string text, Vector2 position, Vector2 size, float fontSize)
+    {
+        GameObject targetObject = FindChildByName(settingsPanel.transform, objectName);
+        if (targetObject == null)
+        {
+            return;
+        }
+
+        ConfigureSettingsRect(targetObject, position, size);
+
+        TMP_Text label = targetObject.GetComponent<TMP_Text>();
+        if (label == null)
+        {
+            label = targetObject.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        if (label == null)
+        {
+            return;
+        }
+
+        label.text = text;
+        label.fontSize = fontSize;
+        label.enableAutoSizing = false;
+        label.alignment = TextAlignmentOptions.Center;
+        label.raycastTarget = false;
+    }
+
+    private void ConfigureSettingsRect(string objectName, Vector2 position, Vector2 size)
+    {
+        GameObject targetObject = FindChildByName(settingsPanel.transform, objectName);
+        if (targetObject != null)
+        {
+            ConfigureSettingsRect(targetObject, position, size);
+        }
+    }
+
+    private static void ConfigureSettingsRect(GameObject targetObject, Vector2 position, Vector2 size)
+    {
+        RectTransform rect = targetObject.GetComponent<RectTransform>();
+        if (rect == null)
+        {
+            return;
+        }
+
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+        rect.localScale = Vector3.one;
     }
 
     private void SetSettingsVisible(bool visible)
@@ -355,6 +448,20 @@ public class MainMenuManager : MonoBehaviour
             FindObjectsSortMode.None
         );
 
+        foreach (Transform transform in transforms)
+        {
+            if (transform.name == objectName)
+            {
+                return transform.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private static GameObject FindChildByName(Transform root, string objectName)
+    {
+        Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
         foreach (Transform transform in transforms)
         {
             if (transform.name == objectName)
