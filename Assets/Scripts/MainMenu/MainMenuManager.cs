@@ -182,6 +182,7 @@ public class MainMenuManager : MonoBehaviour
     private void NormalizeMenuLayout()
     {
         UiSceneNormalizer.NormalizeScene("MainMenuCanvas");
+        ConfigureCanvasRoot();
         ConfigureFullScreenLayer("BackgroundLayer");
         ConfigureFullScreenLayer("MenuLayer");
         ConfigureFullScreenLayer("ModalLayer");
@@ -191,6 +192,24 @@ public class MainMenuManager : MonoBehaviour
         ConfigureMenuButton("PLAY", new Vector2(0f, 45f), "PLAY");
         ConfigureMenuButton("SETTINGS", new Vector2(0f, -80f), "SETTING");
         NormalizeSettingsPanel();
+    }
+
+    private void ConfigureCanvasRoot()
+    {
+        GameObject canvasObject = FindByName("MainMenuCanvas");
+        if (canvasObject == null)
+        {
+            return;
+        }
+
+        RectTransform rect = canvasObject.GetComponent<RectTransform>();
+        if (rect != null)
+        {
+            rect.localScale = Vector3.one;
+            rect.anchoredPosition = Vector2.zero;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
     }
 
     private void ConfigureFullScreenLayer(string objectName)
@@ -269,7 +288,9 @@ public class MainMenuManager : MonoBehaviour
             label.text = "THANH GIONG";
             label.fontSize = 118f;
             label.enableAutoSizing = false;
+            label.enableWordWrapping = false;
             label.alignment = TextAlignmentOptions.Center;
+            label.margin = Vector4.zero;
             label.raycastTarget = false;
         }
     }
