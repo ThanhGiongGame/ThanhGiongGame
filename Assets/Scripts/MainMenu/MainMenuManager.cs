@@ -367,7 +367,7 @@ public class MainMenuManager : MonoBehaviour
             panelImage.raycastTarget = true;
         }
 
-        ConfigureSettingsText("text_Title", "SETTING", new Vector2(0f, 195f), new Vector2(620f, 72f), 54f);
+        ConfigureSettingsText("text_title", "SETTING", new Vector2(0f, 195f), new Vector2(620f, 72f), 54f);
         ConfigureSettingsText("SOUND", "Sound", new Vector2(-225f, 70f), new Vector2(210f, 56f), 38f);
         ConfigureSettingsRect("Slider", new Vector2(145f, 72f), new Vector2(430f, 38f));
         ConfigureSettingsRect("MuteButton", new Vector2(0f, -110f), new Vector2(120f, 120f));
@@ -398,7 +398,9 @@ public class MainMenuManager : MonoBehaviour
         label.text = text;
         label.fontSize = fontSize;
         label.enableAutoSizing = false;
+        label.enableWordWrapping = false;
         label.alignment = TextAlignmentOptions.Center;
+        label.margin = Vector4.zero;
         label.raycastTarget = false;
     }
 
