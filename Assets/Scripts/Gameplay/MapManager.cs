@@ -47,6 +47,7 @@ public class MapManager : MonoBehaviour
     private GameObject[] _villageHouses;
     private GameObject[] _bamboos;
     private GameObject[] _grassTufts;
+    private GameObject[] _terrainRocks;
 
     // --- Cached fallback materials for procedural props ---
     private Material _matWoodPost, _matFireHolder, _matFireParticle;
@@ -230,6 +231,7 @@ public class MapManager : MonoBehaviour
         _villageHouses = LoadModelArray("MapProps", "house", "leworahang_traditional_house_indonesia");
         _bamboos = LoadModelArray("MapProps", "bamboo");
         _grassTufts = LoadModelArray("MapProps", "grass_tuft_cemetery");
+        _terrainRocks = LoadModelArray("MapProps/Terrain", "Cliff_1", "Cliff_2", "Cliff_3", "Mountain_1_LOD_Low", "Mountain_2_LOD_Low");
     }
 
     /// <summary> Load multiple models from Resources by name patterns </summary>
@@ -307,7 +309,12 @@ public class MapManager : MonoBehaviour
 
             case 1: // Ải Trâu Sơn — Đồng bằng (đá và cây, lính xâm lược đánh làng)
                 if (r < 0.35f)
-                    SpawnRockGroup(pos, parent); // Nhiều đá
+                {
+                    if (Random.value < 0.5f && _terrainRocks != null && _terrainRocks.Length > 0)
+                        SpawnFromArray(_terrainRocks, pos, parent, 1.0f, 2.5f); // Real Cliffs & Mountains!
+                    else
+                        SpawnRockGroup(pos, parent);
+                }
                 else if (r < 0.55f)
                     SpawnFromArray(_pineTrees, pos, parent, 0.8f, 1.5f);
                 else if (r < 0.70f)
