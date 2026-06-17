@@ -83,14 +83,14 @@ public class MapSelectionUI : MonoBehaviour
         }
 
         string[] mapNames = {
-            "● Ải Thạch Thất (Mặc Định)",
-            "● Ải Trâu Sơn (Chiến Trường)",
-            "● Rừng U Minh (Rừng Già)"
+            "● Trong Làng (Nhà Lá)",
+            "● Đồng Bằng (Chiến Trường)",
+            "● Rừng Tre (Bamboo Forest)"
         };
         string[] mapDescs = {
-            "Đồng quê Việt Nam xanh mướt rợp bóng tre và ruộng lúa.\nNhà gỗ, cây sồi, hoa cỏ tự nhiên — nơi khởi đầu cuộc hành trình.",
-            "Chiến trường đất đỏ hoang vắng dưới hoàng hôn cam ấm.\nTàn tích đá, cây chết khô, ngọn đuốc cháy rực trên đường tiến quân.",
-            "Rừng nhiệt đới dày rậm dưới ánh trăng xanh mát.\nCây cổ thụ rễ nổi, rêu phủ đá, đom đóm lập lòe huyền bí."
+            "Đồng quê Việt Nam mộc mạc với những mái nhà lá đơn sơ, cây cối xanh mát và ruộng vườn thanh bình.",
+            "Nơi lính ngoại xâm kéo vào đánh phá làng quê đồng bằng hiểm nguy, đầy vách đá dựng đứng, cây cối và đuốc cháy.",
+            "Rừng tre sâu thẳm rậm rạp rợp bóng tre xanh mát, phủ đầy cỏ dại rừng già cùng đom đóm huyền ảo dưới trăng."
         };
         int selectedMap = PlayerPrefs.GetInt("SelectedMap", 0);
         int playerVinhDanh = PlayerPrefs.GetInt("VinhDanhTotal", 0);
