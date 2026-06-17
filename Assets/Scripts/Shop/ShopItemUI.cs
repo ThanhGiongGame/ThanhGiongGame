@@ -7,10 +7,8 @@ public class ShopItemUI : MonoBehaviour
 {
     [SerializeField]
     private TMP_Text itemName;
-
     [SerializeField]
     private TMP_Text itemPrice;
-
     [SerializeField]
     private Button button;
 
@@ -27,7 +25,6 @@ public class ShopItemUI : MonoBehaviour
 
         itemName.text =
             data.displayName;
-
         itemPrice.text =
             data.cost + " VD";
 
@@ -49,10 +46,9 @@ public class ShopItemUI : MonoBehaviour
         }
 
         ConfigureLabel(itemName, 25f, TextAlignmentOptions.MidlineLeft);
-        ConfigureLabel(itemPrice, 22f, TextAlignmentOptions.MidlineRight);
+                ConfigureLabel(itemPrice, 22f, TextAlignmentOptions.MidlineRight);
         ConfigureChildRect(itemName, new Vector2(0f, 0f), new Vector2(0.68f, 1f), new Vector2(18f, 0f), Vector2.zero);
         ConfigureChildRect(itemPrice, new Vector2(0.68f, 0f), Vector2.one, new Vector2(-18f, 0f), Vector2.zero);
-
         if (button != null)
         {
             Image image = button.GetComponent<Image>();

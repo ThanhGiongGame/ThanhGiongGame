@@ -23,6 +23,7 @@ public class ShopUI : MonoBehaviour
     }
 
     [SerializeField] private PreviewManager previewManager;
+    [SerializeField] private EquipmentPreviewManager equipmentPreviewManager;
 
     private ShopMode currentMode = ShopMode.Shop;
     private CategoryFilter currentFilter = CategoryFilter.All;
@@ -50,10 +51,11 @@ public class ShopUI : MonoBehaviour
     private Button escButton;
     private RectTransform escMenuPanel;
 
-    private void Start()
+    private void OnEnable()
     {
         cameraManager = FindFirstObjectByType<CameraManager>(FindObjectsInactive.Include);
         previewManager ??= FindFirstObjectByType<PreviewManager>(FindObjectsInactive.Include);
+        equipmentPreviewManager ??= FindFirstObjectByType<EquipmentPreviewManager>(FindObjectsInactive.Include);
         BuildRuntimeUi();
         ShowShopMode();
     }
@@ -89,11 +91,14 @@ public class ShopUI : MonoBehaviour
     public void ShowEquipmentMode()
     {
         currentMode = ShopMode.Equipment;
+
         BuildRuntimeUi();
         titleText.text = "TRANG BỊ";
         hintText.text = "Chỉ hiện vật phẩm đã sở hữu. Chọn món để trang bị.";
         RebuildItemList();
         UpdateTabVisuals();
+        equipmentPreviewManager?.Refresh();
+
     }
 
     public void BuySelectedItem()
@@ -200,6 +205,7 @@ public class ShopUI : MonoBehaviour
         hintText = FindText(root, "PanelHint");
         currencyText = FindText(root, "CurrencyText");
         itemNameText = FindText(root, "ItemName");
+        Debug.Log($"ItemName found = {itemNameText}");
         itemMetaText = FindText(root, "ItemMeta");
         itemPriceText = FindText(root, "ItemPrice");
         itemDescriptionText = FindText(root, "ItemDesc");
@@ -443,6 +449,7 @@ public class ShopUI : MonoBehaviour
     private void SelectItem(GameItemData item)
     {
         selectedItem = item;
+        Debug.Log("Item " + item.displayName);
         itemNameText.text = item.displayName;
         itemMetaText.text = item.category.ToString();
         itemPriceText.text = currentMode == ShopMode.Shop ? item.cost + " Vinh Danh" : "Đã sở hữu";

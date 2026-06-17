@@ -32,6 +32,7 @@ public class CameraManager : MonoBehaviour
         SetCameraActive(equipmentCamera, false);
         shopUI?.ShowShopMode();
         SetTabVisuals("BtnShop");
+        
     }
 
     public void ShowEquipment()

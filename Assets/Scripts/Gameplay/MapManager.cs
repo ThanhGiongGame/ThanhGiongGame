@@ -83,7 +83,7 @@ public class MapManager : MonoBehaviour
         if (currentChunk == _lastPlayerChunk) return;
         _lastPlayerChunk = currentChunk;
 
-        // Sinh ô map mới 7x7 quanh người chơi
+        // Spawn new chunks in range
         for (int x = currentChunk.x - VIEW_RANGE; x <= currentChunk.x + VIEW_RANGE; x++)
         {
             for (int z = currentChunk.y - VIEW_RANGE; z <= currentChunk.y + VIEW_RANGE; z++)
@@ -96,7 +96,7 @@ public class MapManager : MonoBehaviour
             }
         }
 
-        // Dọn dẹp các ô quá xa
+        // Despawn distant chunks
         var toRemove = new List<Vector2Int>();
         foreach (var kvp in _activeChunks)
         {

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class InventoryManager : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class InventoryManager : MonoBehaviour
         Ultimate
     }
     public static InventoryManager Instance { get; private set; }
+    public static event Action OnEquipmentChanged;
+
 
     [Header("Kho Dữ Liệu Vật Phẩm Hệ Thống")]
     public List<GameItemData> allItems = new List<GameItemData>();
@@ -32,77 +35,7 @@ public class InventoryManager : MonoBehaviour
     // Thiết lập toàn bộ dữ liệu vật phẩm tại đây (Dễ dàng thêm mới món thứ 5, thứ 6)
     private void InitDatabase()
     {
-        //allItems.Clear();
-
-        //allItems.Add(new GameItemData
-        //{
-        //    id = "Character_Tier1",
-        //    displayName = "Kiếm Trúc",
-
-        //    description =
-        //        "+10 Sát thương",
-
-        //    category =
-        //        ItemCategory.Weapon,
-
-        //    cost = 100,
-
-        //});
-
-        //allItems.Add(new GameItemData
-        //{
-        //    id = "Character_Tier2",
-        //    displayName = "Đoản Đao Sắt",
-
-        //    description =
-        //        "+25 Sát thương",
-
-        //    category =
-        //        ItemCategory.Weapon,
-
-        //    cost = 300,
-
-        //});
-        //allItems.Add(new GameItemData
-        //{
-        //    id = "Horse_Tier1",
-        //    displayName = "Ngựa Sắt",
-
-        //    description =
-        //"+25 Sát thương",
-
-        //    category =
-        //ItemCategory.Mount,
-
-        //    cost = 300,
-
-        //});
-        //allItems.Add(new GameItemData
-        //{
-        //    id = "Horse_Tier2",
-        //    displayName = "Ngựa Bạc",
-
-        //    description =
-        //"+50 Sát thương",
-        //    category =
-        //ItemCategory.Mount,
-
-        //    cost = 300,
-
-        //});
-        //allItems.Add(new GameItemData
-        //{
-        //    id = "Ultimate_Tier1",
-        //    displayName = "Cú đá sấm sét",
-        //    description =
-        //    "Nhất kích tất sát thương",
-        //    category = ItemCategory.Ultimate,
-        //    cost = 500,
-        //});
-        }
-
-    // ---- CÁC HÀM XỬ LÝ LOGIC CORE ----
-
+    }
     public int GetCurrency() => PlayerPrefs.GetInt("VinhDanhTotal", 100000);
 
     public void AddCurrency(int amount)
@@ -113,9 +46,10 @@ public class InventoryManager : MonoBehaviour
 
     public bool BuyItem(GameItemData item)
     {
+        Debug.Log("IsOwned:" + item.IsOwned() + "\nVinhDanh:" + GetCurrency());
         if (item.IsOwned())
             return false;
-
+        
         int money = GetCurrency();
 
         if (money < item.cost)
@@ -132,13 +66,14 @@ public class InventoryManager : MonoBehaviour
         );
 
         PlayerPrefs.Save();
-
+        Debug.Log("Item is bought:" + item.IsOwned());
         return true;
     }
     public void ToggleEquip(GameItemData item)
     {
         if (!item.IsOwned())
             return;
+        OnEquipmentChanged?.Invoke();
 
         switch (item.category)
         {
