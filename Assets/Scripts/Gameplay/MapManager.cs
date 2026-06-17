@@ -43,6 +43,10 @@ public class MapManager : MonoBehaviour
     private GameObject[] _mushrooms;
     // Clouds
     private GameObject[] _clouds;
+    // GLB models
+    private GameObject[] _villageHouses;
+    private GameObject[] _bamboos;
+    private GameObject[] _grassTufts;
 
     // --- Cached fallback materials for procedural props ---
     private Material _matWoodPost, _matFireHolder, _matFireParticle;
@@ -221,6 +225,11 @@ public class MapManager : MonoBehaviour
 
         // Clouds
         _clouds = LoadModelArray("MapProps/Clouds", "Clouds_1", "Clouds_2", "Clouds_3", "Clouds_4");
+
+        // Custom GLB models
+        _villageHouses = LoadModelArray("MapProps", "house", "leworahang_traditional_house_indonesia");
+        _bamboos = LoadModelArray("MapProps", "bamboo");
+        _grassTufts = LoadModelArray("MapProps", "grass_tuft_cemetery");
     }
 
     /// <summary> Load multiple models from Resources by name patterns </summary>
@@ -279,59 +288,47 @@ public class MapManager : MonoBehaviour
         float r = Random.value;
         switch (_mapIndex)
         {
-            case 0: // Ải Thạch Thất — Đồng quê Việt Nam
-                if (r < 0.15f)
+            case 0: // Ải Thạch Thất — Trong làng (nhà lá, cây cối)
+                if (r < 0.20f)
+                    SpawnFromArray(_villageHouses, pos, parent, 1.5f, 2.5f); // GLB Houses
+                else if (r < 0.38f)
                     SpawnFromArray(_oakTrees, pos, parent, 1.0f, 2.0f);
-                else if (r < 0.28f)
-                    SpawnFromArray(_pineTrees, pos, parent, 1.0f, 1.8f);
-                else if (r < 0.40f)
-                    SpawnFromArray(_simpleTrees, pos, parent, 0.8f, 1.5f);
                 else if (r < 0.52f)
+                    SpawnFromArray(_simpleTrees, pos, parent, 0.8f, 1.5f);
+                else if (r < 0.65f)
                     SpawnFromArray(_willowTrees, pos, parent, 1.0f, 1.8f);
-                else if (r < 0.62f)
-                    SpawnFromArray(_palmTrees, pos, parent, 0.8f, 1.5f);
-                else if (r < 0.72f)
+                else if (r < 0.75f)
                     SpawnBushGroup(pos, parent);
-                else if (r < 0.82f)
+                else if (r < 0.85f)
                     SpawnRockGroup(pos, parent);
-                else if (r < 0.90f)
-                    SpawnWoodenHouse(pos, parent);
                 else
                     SpawnFromArray(_bigTrees, pos, parent, 1.0f, 2.0f);
                 break;
 
-            case 1: // Ải Trâu Sơn — Chiến trường hoang vắng
-                if (r < 0.22f)
-                    SpawnFromArray(_brokenTrees, pos, parent, 1.0f, 1.8f);
-                else if (r < 0.35f)
-                    SpawnFlamingBeacon(pos, parent);
-                else if (r < 0.48f)
-                    SpawnRockGroup(pos, parent);
-                else if (r < 0.60f)
-                    SpawnStoneRuin(pos, parent);
-                else if (r < 0.72f)
-                    SpawnFromArray(_pineTrees, pos, parent, 0.6f, 1.2f);
-                else if (r < 0.85f)
-                    SpawnBushGroup(pos, parent);
+            case 1: // Ải Trâu Sơn — Đồng bằng (đá và cây, lính xâm lược đánh làng)
+                if (r < 0.35f)
+                    SpawnRockGroup(pos, parent); // Nhiều đá
+                else if (r < 0.55f)
+                    SpawnFromArray(_pineTrees, pos, parent, 0.8f, 1.5f);
+                else if (r < 0.70f)
+                    SpawnFromArray(_simpleTrees, pos, parent, 0.6f, 1.2f);
+                else if (r < 0.80f)
+                    SpawnFromArray(_brokenTrees, pos, parent, 1.0f, 1.8f); // Cây đổ nát
+                else if (r < 0.90f)
+                    SpawnFlamingBeacon(pos, parent); // Đuốc lửa chiến trường
                 else
-                    SpawnFromArray(_simpleTrees, pos, parent, 0.5f, 1.0f);
+                    SpawnBushGroup(pos, parent);
                 break;
 
-            case 2: // Rừng U Minh — Rừng nhiệt đới rậm rạp
-                if (r < 0.18f)
-                    SpawnFromArray(_oakTrees, pos, parent, 1.2f, 2.5f);
-                else if (r < 0.32f)
-                    SpawnFromArray(_bigTrees, pos, parent, 1.5f, 2.8f);
-                else if (r < 0.44f)
-                    SpawnFromArray(_willowTrees, pos, parent, 1.2f, 2.2f);
-                else if (r < 0.55f)
-                    SpawnFromArray(_simpleTrees, pos, parent, 1.0f, 2.0f);
-                else if (r < 0.65f)
-                    SpawnBushGroup(pos, parent);
+            case 2: // Rừng U Minh — Rừng tre (nhiều tre)
+                if (r < 0.60f)
+                    SpawnFromArray(_bamboos, pos, parent, 1.5f, 2.5f); // Nhiều tre GLB!
                 else if (r < 0.75f)
-                    SpawnMossyRockGroup(pos, parent);
+                    SpawnFromArray(_willowTrees, pos, parent, 1.2f, 2.2f);
                 else if (r < 0.85f)
-                    SpawnFromArray(_palmTrees, pos, parent, 1.0f, 1.8f);
+                    SpawnBushGroup(pos, parent);
+                else if (r < 0.93f)
+                    SpawnMossyRockGroup(pos, parent);
                 else
                     SpawnFireflyCluster(pos, parent);
                 break;
@@ -344,36 +341,34 @@ public class MapManager : MonoBehaviour
         switch (_mapIndex)
         {
             case 0: // Đồng quê
-                if (r < 0.30f)
+                if (r < 0.35f)
                     SpawnFromArray(_grasses, pos, parent, 0.5f, 1.2f);
-                else if (r < 0.50f)
+                else if (r < 0.55f)
                     SpawnFromArray(_flowers, pos, parent, 0.5f, 1.0f);
-                else if (r < 0.70f)
+                else if (r < 0.75f)
                     SpawnFromArray(_rocks, pos, parent, 0.2f, 0.5f);
                 else
                     SpawnFromArray(_bushes, pos, parent, 0.3f, 0.6f);
                 break;
 
-            case 1: // Chiến trường
-                if (r < 0.35f)
+            case 1: // Chiến trường đồng bằng
+                if (r < 0.30f)
                     SpawnFromArray(_grasses, pos, parent, 0.3f, 0.8f);
-                else if (r < 0.65f)
-                    SpawnFromArray(_rocks, pos, parent, 0.3f, 0.7f);
+                else if (r < 0.70f)
+                    SpawnFromArray(_rocks, pos, parent, 0.3f, 0.7f); // Nhiều đá vụn
                 else
                     SpawnFromArray(_bushes, pos, parent, 0.2f, 0.5f);
                 break;
 
-            case 2: // Rừng rậm
-                if (r < 0.25f)
-                    SpawnFromArray(_grasses, pos, parent, 0.6f, 1.3f);
-                else if (r < 0.45f)
+            case 2: // Rừng tre
+                if (r < 0.40f)
+                    SpawnFromArray(_grassTufts, pos, parent, 1.0f, 1.8f); // Bụi cỏ rừng tre GLB!
+                else if (r < 0.60f)
                     SpawnFromArray(_mushrooms, pos, parent, 0.4f, 1.0f);
-                else if (r < 0.65f)
-                    SpawnFromArray(_flowers, pos, parent, 0.4f, 0.9f);
                 else if (r < 0.80f)
-                    SpawnFromArray(_bushes, pos, parent, 0.4f, 0.8f);
+                    SpawnFromArray(_flowers, pos, parent, 0.4f, 0.9f);
                 else
-                    SpawnFromArray(_rocks, pos, parent, 0.3f, 0.6f);
+                    SpawnFromArray(_bushes, pos, parent, 0.4f, 0.8f);
                 break;
         }
     }

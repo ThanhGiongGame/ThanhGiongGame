@@ -207,6 +207,10 @@ public class MainMenuManager : MonoBehaviour
         {
             mapBtnGO = Instantiate(settingsBtnGO, settingsBtnGO.transform.parent);
             mapBtnGO.name = "MAP_SELECT";
+        }
+
+        if (mapBtnGO != null)
+        {
             Button btn = mapBtnGO.GetComponent<Button>();
             if (btn != null)
             {
