@@ -44,6 +44,10 @@ public class GameOverManager : MonoBehaviour
             currentTotal + vinhDanhEarned
         );
 
+        // Tích lũy tổng số quái đã giết qua tất cả các ván chơi
+        int totalKills = PlayerPrefs.GetInt("TotalEnemiesKilled", 0);
+        PlayerPrefs.SetInt("TotalEnemiesKilled", totalKills + enemiesKilled);
+
         PlayerPrefs.Save();
 
         // Build UI
@@ -80,7 +84,6 @@ public class GameOverManager : MonoBehaviour
 
         scaler.referenceResolution =
             new Vector2(1920, 1080);
-        scaler.matchWidthOrHeight = 0.5f;
 
         // =========================
         // BACKGROUND
@@ -104,19 +107,13 @@ public class GameOverManager : MonoBehaviour
             new Color(0f, 0f, 0f, 0.92f);
 
         // =========================
-        // MAIN PANEL (With gold border)
+        // MAIN PANEL
         // =========================
-        GameObject panelBorder = CreatePanel(
+        GameObject panel = CreatePanel(
             bg.transform,
             Vector2.zero,
-            new Vector2(958f, 828f), // Tăng chiều cao lên 828
-            new Color(0.92f, 0.84f, 0.64f, 0.8f) // Gold outline
-        );
-        GameObject panel = CreatePanel(
-            panelBorder.transform,
-            Vector2.zero,
-            new Vector2(950f, 820f), // Tăng chiều cao lên 820
-            new Color(0.05f, 0.06f, 0.08f, 0.98f) // Deep dark background
+            new Vector2(950f, 700f),
+            new Color(0.1f, 0.11f, 0.14f)
         );
 
         // =========================
@@ -125,7 +122,7 @@ public class GameOverManager : MonoBehaviour
         CreateText(
             panel.transform,
             "☠ THẤT BẠI ☠",
-            new Vector2(0f, 310f), // Dịch lên 310
+            new Vector2(0f, 250f),
             56,
             FontStyle.Bold,
             new Color(1f, 0.25f, 0.25f)
@@ -137,7 +134,7 @@ public class GameOverManager : MonoBehaviour
         CreateText(
             panel.transform,
             "Bạn đã bị hạ gục trên chiến trường",
-            new Vector2(0f, 250f), // Dịch lên 250
+            new Vector2(0f, 190f),
             24,
             FontStyle.Italic,
             new Color(0.75f, 0.75f, 0.75f)
@@ -146,17 +143,11 @@ public class GameOverManager : MonoBehaviour
         // =========================
         // STATS PANEL
         // =========================
-        GameObject statPanelBorder = CreatePanel(
-            panel.transform,
-            new Vector2(0f, 60f), // Dịch lên 60
-            new Vector2(786f, 266f),
-            new Color(0.92f, 0.84f, 0.64f, 0.2f) // Thin border
-        );
         GameObject statPanel = CreatePanel(
-            statPanelBorder.transform,
-            Vector2.zero,
+            panel.transform,
+            new Vector2(0f, 30f),
             new Vector2(780f, 260f),
-            new Color(0.08f, 0.11f, 0.13f, 0.95f)
+            new Color(0.14f, 0.15f, 0.19f)
         );
 
         // Enemy Killed
@@ -181,7 +172,7 @@ public class GameOverManager : MonoBehaviour
             "💰 Vinh Danh nhận được",
             "+" + scoreEarned,
             new Vector2(0f, -70f),
-            new Color(0.92f, 0.84f, 0.64f)
+            new Color(1f, 0.85f, 0.2f)
         );
 
         // =========================
@@ -193,10 +184,10 @@ public class GameOverManager : MonoBehaviour
         CreateText(
             panel.transform,
             "Tổng Vinh Danh: " + total,
-            new Vector2(0f, -130f), // Dịch lên -130
+            new Vector2(0f, -150f),
             28,
             FontStyle.Bold,
-            new Color(0.92f, 0.84f, 0.64f)
+            new Color(1f, 0.9f, 0.3f)
         );
 
         // =========================
@@ -207,7 +198,7 @@ public class GameOverManager : MonoBehaviour
         CreateButton(
             panel.transform,
             "↻ CHƠI LẠI",
-            new Vector2(-170f, -220f), // Dịch lên -220
+            new Vector2(-170f, -260f),
             new Vector2(280f, 75f),
             new Color(0.2f, 0.55f, 0.95f),
             () =>
@@ -223,7 +214,7 @@ public class GameOverManager : MonoBehaviour
         CreateButton(
             panel.transform,
             "🛒 SHOP",
-            new Vector2(170f, -220f), // Dịch lên -220
+            new Vector2(170f, -260f),
             new Vector2(280f, 75f),
             new Color(0.18f, 0.7f, 0.45f),
             () =>
@@ -237,7 +228,7 @@ public class GameOverManager : MonoBehaviour
         CreateButton(
             panel.transform,
             "← MENU",
-            new Vector2(0f, -310f), // Dịch lên -310 để nằm gọn trong bảng
+            new Vector2(0f, -360f),
             new Vector2(220f, 60f),
             new Color(0.3f, 0.3f, 0.35f),
             () =>
@@ -287,26 +278,26 @@ public class GameOverManager : MonoBehaviour
         Text leftText = CreateText(
             row.transform,
             left,
-            new Vector2(-175f, 0f),
+            new Vector2(-180f, 0f),
             28,
             FontStyle.Normal,
             Color.white
         );
 
-        leftText.GetComponent<RectTransform>().sizeDelta = new Vector2(350f, 50f);
-        leftText.alignment = TextAnchor.MiddleLeft;
+        leftText.alignment =
+            TextAnchor.MiddleLeft;
 
         Text rightText = CreateText(
             row.transform,
             right,
-            new Vector2(175f, 0f),
+            new Vector2(180f, 0f),
             28,
             FontStyle.Bold,
             valueColor ?? Color.white
         );
 
-        rightText.GetComponent<RectTransform>().sizeDelta = new Vector2(350f, 50f);
-        rightText.alignment = TextAnchor.MiddleRight;
+        rightText.alignment =
+            TextAnchor.MiddleRight;
     }
 
     // =========================================================

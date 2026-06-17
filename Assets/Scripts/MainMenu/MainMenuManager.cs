@@ -3,9 +3,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem;
-#endif
 
 public class MainMenuManager : MonoBehaviour
 {
@@ -29,8 +26,6 @@ public class MainMenuManager : MonoBehaviour
     private bool isMuted;
     private float currentVolume = 1f;
     private bool isLoadingScene;
-    private bool isIntroPlaying;
-    private float introStartedAt = -1f;
 
     private void Awake()
     {
@@ -42,26 +37,8 @@ public class MainMenuManager : MonoBehaviour
 
     private void Start()
     {
-        Time.timeScale = 1f;
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
-        isLoadingScene = false;
-        isIntroPlaying = false;
-        introStartedAt = -1f;
-
-        if (mainMenuContainer != null)
-        {
-            mainMenuContainer.SetActive(true);
-        }
-
-        if (introVideoPlayer != null)
-        {
-            introVideoPlayer.Stop();
-        }
-
         SetSettingsVisible(false);
         SetIntroVideoVisible(false);
-        HookSkipButton();
 
         isMuted = PlayerPrefs.GetInt("IsMuted", 0) == 1;
         currentVolume = PlayerPrefs.GetFloat("Volume", 1f);
@@ -81,36 +58,6 @@ public class MainMenuManager : MonoBehaviour
 
         ApplyMuteState();
         SetupMapSelection();
-    }
-
-    private void Update()
-    {
-        if (!isIntroPlaying || isLoadingScene)
-        {
-            return;
-        }
-
-        if (Time.unscaledTime - introStartedAt < 0.35f)
-        {
-            return;
-        }
-
-        bool skipRequested = false;
-
-#if ENABLE_LEGACY_INPUT_MANAGER
-        skipRequested = Input.anyKeyDown || Input.GetMouseButtonDown(0);
-#endif
-
-#if ENABLE_INPUT_SYSTEM
-        skipRequested = skipRequested
-            || (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
-            || (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame);
-#endif
-
-        if (skipRequested)
-        {
-            SkipVideo();
-        }
     }
 
     private void OnDestroy()
@@ -141,8 +88,6 @@ public class MainMenuManager : MonoBehaviour
 
         SetSettingsVisible(false);
         SetIntroVideoVisible(true);
-        isIntroPlaying = true;
-        introStartedAt = Time.unscaledTime;
 
         introVideoPlayer.gameObject.SetActive(true);
         introVideoPlayer.enabled = true;
@@ -158,13 +103,6 @@ public class MainMenuManager : MonoBehaviour
 
     public void SkipVideo()
     {
-        if (isLoadingScene)
-        {
-            return;
-        }
-
-        isIntroPlaying = false;
-
         if (introVideoPlayer != null)
         {
             introVideoPlayer.Stop();
@@ -207,7 +145,6 @@ public class MainMenuManager : MonoBehaviour
         }
 
         isLoadingScene = true;
-        isIntroPlaying = false;
 
         if (!PlayerPrefs.HasKey("VinhDanhTotal"))
         {
@@ -283,7 +220,6 @@ public class MainMenuManager : MonoBehaviour
         ConfigureMenuButton("SETTINGS", new Vector2(0f, 10f), "SETTING");
         ConfigureMenuButton("MAP_SELECT", new Vector2(0f, -110f), "BẢN ĐỒ");
         NormalizeSettingsPanel();
-        NormalizeIntroVideoPanel();
     }
 
     private void ConfigureCanvasRoot()
@@ -534,150 +470,7 @@ public class MainMenuManager : MonoBehaviour
         if (introVideoPanel != null)
         {
             introVideoPanel.SetActive(visible);
-            introVideoPanel.transform.SetAsLastSibling();
         }
-    }
-
-    private void NormalizeIntroVideoPanel()
-    {
-        if (introVideoPanel == null)
-        {
-            return;
-        }
-
-        RectTransform panelRect = introVideoPanel.GetComponent<RectTransform>();
-        if (panelRect != null)
-        {
-            panelRect.anchorMin = Vector2.zero;
-            panelRect.anchorMax = Vector2.one;
-            panelRect.pivot = new Vector2(0.5f, 0.5f);
-            panelRect.anchoredPosition = Vector2.zero;
-            panelRect.offsetMin = Vector2.zero;
-            panelRect.offsetMax = Vector2.zero;
-            panelRect.localScale = Vector3.one;
-        }
-
-        Image panelImage = introVideoPanel.GetComponent<Image>();
-        if (panelImage != null)
-        {
-            panelImage.raycastTarget = false;
-        }
-
-        RawImage[] rawImages = introVideoPanel.GetComponentsInChildren<RawImage>(true);
-        foreach (RawImage rawImage in rawImages)
-        {
-            rawImage.raycastTarget = false;
-        }
-
-        Image[] images = introVideoPanel.GetComponentsInChildren<Image>(true);
-        foreach (Image image in images)
-        {
-            if (image.GetComponent<Button>() == null && image.name != "IntroSkipClickArea")
-            {
-                image.raycastTarget = false;
-            }
-        }
-
-        ConfigureIntroSkipClickArea();
-        ConfigureSkipButton();
-    }
-
-    private void ConfigureIntroSkipClickArea()
-    {
-        RectTransform clickArea = EnsureRect(introVideoPanel.transform, "IntroSkipClickArea");
-        clickArea.SetAsLastSibling();
-        clickArea.anchorMin = Vector2.zero;
-        clickArea.anchorMax = Vector2.one;
-        clickArea.pivot = new Vector2(0.5f, 0.5f);
-        clickArea.anchoredPosition = Vector2.zero;
-        clickArea.offsetMin = Vector2.zero;
-        clickArea.offsetMax = Vector2.zero;
-        clickArea.localScale = Vector3.one;
-
-        Image image = clickArea.GetComponent<Image>();
-        if (image == null)
-        {
-            image = clickArea.gameObject.AddComponent<Image>();
-        }
-
-        image.color = new Color(0f, 0f, 0f, 0.001f);
-        image.raycastTarget = true;
-
-        Button button = clickArea.GetComponent<Button>();
-        if (button == null)
-        {
-            button = clickArea.gameObject.AddComponent<Button>();
-        }
-
-        button.targetGraphic = image;
-        button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(SkipVideo);
-        button.interactable = true;
-    }
-
-    private void ConfigureSkipButton()
-    {
-        GameObject skipObject = FindByName("SkipButton");
-        if (skipObject == null)
-        {
-            return;
-        }
-
-        skipObject.transform.SetAsLastSibling();
-
-        RectTransform rect = skipObject.GetComponent<RectTransform>();
-        if (rect != null)
-        {
-            rect.anchorMin = new Vector2(1f, 0f);
-            rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot = new Vector2(1f, 0f);
-            rect.anchoredPosition = new Vector2(-32f, 28f);
-            rect.sizeDelta = new Vector2(260f, 64f);
-            rect.localScale = Vector3.one;
-        }
-
-        Image image = skipObject.GetComponent<Image>();
-        if (image != null)
-        {
-            image.color = new Color(0f, 0f, 0f, 0.62f);
-            image.raycastTarget = true;
-        }
-
-        TMP_Text label = skipObject.GetComponentInChildren<TMP_Text>(true);
-        if (label != null)
-        {
-            label.text = "SKIP";
-            label.fontSize = 30f;
-            label.enableAutoSizing = false;
-            label.alignment = TextAlignmentOptions.Center;
-            label.raycastTarget = false;
-        }
-
-        Button button = skipObject.GetComponent<Button>();
-        if (button != null)
-        {
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(SkipVideo);
-            button.interactable = true;
-        }
-    }
-
-    private static RectTransform EnsureRect(Transform parent, string objectName)
-    {
-        Transform existing = parent.Find(objectName);
-        if (existing != null && existing.TryGetComponent(out RectTransform existingRect))
-        {
-            return existingRect;
-        }
-
-        GameObject rectObject = new GameObject(objectName, typeof(RectTransform));
-        rectObject.transform.SetParent(parent, false);
-        return rectObject.GetComponent<RectTransform>();
-    }
-
-    private void HookSkipButton()
-    {
-        ConfigureSkipButton();
     }
 
     private void ApplyMuteState()
