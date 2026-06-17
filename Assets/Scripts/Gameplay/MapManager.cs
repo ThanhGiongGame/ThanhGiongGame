@@ -267,7 +267,6 @@ public class MapManager : MonoBehaviour
         return models[Random.Range(0, models.Length)];
     }
 
-    /// <summary> Instantiate a model at position with random Y rotation and scale </summary>
     private GameObject SpawnModel(GameObject prefab, Vector3 pos, Transform parent, float minScale = 0.8f, float maxScale = 1.2f)
     {
         if (prefab == null) return null;
@@ -278,6 +277,26 @@ public class MapManager : MonoBehaviour
 
         // Xóa tất cả Collider để tránh cản trở gameplay
         RemoveAllColliders(instance);
+
+        // In log chẩn đoán
+        Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+        float boundsSize = 0f;
+        string rendererInfo = "";
+        if (renderers.Length > 0)
+        {
+            Bounds b = renderers[0].bounds;
+            for (int j = 1; j < renderers.Length; j++)
+            {
+                b.Encapsulate(renderers[j].bounds);
+            }
+            boundsSize = b.size.magnitude;
+            rendererInfo = $"{renderers.Length} renderers, first material: {renderers[0].sharedMaterial?.name}, shader: {renderers[0].sharedMaterial?.shader?.name}";
+        }
+        else
+        {
+            rendererInfo = "No renderers found!";
+        }
+        Debug.Log($"[MapManager] Spawning {prefab.name} at {pos} with scale {scale}. Bounds size: {boundsSize}. Info: {rendererInfo}");
 
         return instance;
     }
