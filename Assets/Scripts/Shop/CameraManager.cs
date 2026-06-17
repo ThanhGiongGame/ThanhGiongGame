@@ -20,26 +20,26 @@ public class CameraManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         CleanupGameplayPauseUi();
 
+        ResolveSceneCameras();
         shopUI = FindFirstObjectByType<ShopUI>(FindObjectsInactive.Include);
-        NormalizeShopLayout();
         SetupMapSelection();
         ShowShop();
     }
 
     public void ShowShop()
     {
+        ResolveSceneCameras();
         SetCameraActive(shopCamera, true);
         SetCameraActive(equipmentCamera, false);
-        shopUI?.ShowShopMode();
         SetTabVisuals("BtnShop");
         
     }
 
     public void ShowEquipment()
     {
+        ResolveSceneCameras();
         SetCameraActive(shopCamera, false);
         SetCameraActive(equipmentCamera, true);
-        shopUI?.ShowEquipmentMode();
         SetTabVisuals("BtnEquipment");
     }
 
@@ -519,11 +519,38 @@ public class CameraManager : MonoBehaviour
         rect.localScale = Vector3.one;
     }
 
+    private void ResolveSceneCameras()
+    {
+        shopCamera ??= FindCameraByName("ShopCamera");
+        equipmentCamera ??= FindCameraByName("EquipmentCamera");
+    }
+
+    private static Camera FindCameraByName(string objectName)
+    {
+        Camera[] cameras = FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (Camera camera in cameras)
+        {
+            if (camera.name == objectName)
+            {
+                return camera;
+            }
+        }
+
+        return null;
+    }
+
     private static void SetCameraActive(Camera targetCamera, bool active)
     {
         if (targetCamera != null)
         {
             targetCamera.gameObject.SetActive(active);
+            targetCamera.enabled = active;
+
+            AudioListener listener = targetCamera.GetComponent<AudioListener>();
+            if (listener != null)
+            {
+                listener.enabled = active;
+            }
         }
     }
 

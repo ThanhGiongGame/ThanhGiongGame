@@ -50,13 +50,17 @@ public class ShopUI : MonoBehaviour
     private Button ultimateFilterButton;
     private Button escButton;
     private RectTransform escMenuPanel;
+    private bool hasBuiltRuntimeUi;
 
     private void OnEnable()
     {
+        hasBuiltRuntimeUi = false;
+        currentMode = ShopMode.Shop;
+        currentFilter = CategoryFilter.All;
+        selectedItem = null;
         cameraManager = FindFirstObjectByType<CameraManager>(FindObjectsInactive.Include);
         previewManager ??= FindFirstObjectByType<PreviewManager>(FindObjectsInactive.Include);
         equipmentPreviewManager ??= FindFirstObjectByType<EquipmentPreviewManager>(FindObjectsInactive.Include);
-        BuildRuntimeUi();
         ShowShopMode();
     }
 
@@ -81,7 +85,11 @@ public class ShopUI : MonoBehaviour
     public void ShowShopMode()
     {
         currentMode = ShopMode.Shop;
+        ResolveSceneRefs();
         BuildRuntimeUi();
+        equipmentPreviewManager?.SetPreviewVisible(false);
+        EquipmentPreviewManager.HideAllEquipmentPreviews();
+        cameraManager?.ShowShop();
         titleText.text = "CỬA HÀNG";
         hintText.text = "Mua vật phẩm. Trang bị sẽ được đổi ở tab TRANG BỊ.";
         RebuildItemList();
@@ -91,12 +99,16 @@ public class ShopUI : MonoBehaviour
     public void ShowEquipmentMode()
     {
         currentMode = ShopMode.Equipment;
+        ResolveSceneRefs();
 
         BuildRuntimeUi();
+        previewManager?.Clear();
+        cameraManager?.ShowEquipment();
         titleText.text = "TRANG BỊ";
         hintText.text = "Chỉ hiện vật phẩm đã sở hữu. Chọn món để trang bị.";
         RebuildItemList();
         UpdateTabVisuals();
+        equipmentPreviewManager?.SetPreviewVisible(true);
         equipmentPreviewManager?.Refresh();
 
     }
@@ -106,8 +118,20 @@ public class ShopUI : MonoBehaviour
         PerformSelectedAction();
     }
 
+    private void OnShopTabClicked()
+    {
+        ShowShopMode();
+    }
+
+    private void OnEquipmentTabClicked()
+    {
+        ShowEquipmentMode();
+    }
+
     private void BuildRuntimeUi()
     {
+        UiSceneNormalizer.NormalizeScene("ShopCanvas");
+
         Canvas canvas = FindShopCanvas();
         if (canvas == null)
         {
@@ -117,18 +141,38 @@ public class ShopUI : MonoBehaviour
         HideLegacyUi();
 
         Transform existing = canvas.transform.Find("CleanShopRoot");
+        if (!hasBuiltRuntimeUi)
+        {
+            while (existing != null)
+            {
+                DestroyImmediate(existing.gameObject);
+                existing = canvas.transform.Find("CleanShopRoot");
+            }
+        }
+
         if (existing != null)
         {
+            if (!IsRuntimeRootComplete(existing))
+            {
+                Destroy(existing.gameObject);
+            }
+            else
+            {
             root = existing.GetComponent<RectTransform>();
             root.gameObject.SetActive(true);
+            SetRuntimeRootVisible(root);
             root.SetAsLastSibling();
             CacheRuntimeRefs();
+            EnsureRuntimeRefs();
             ApplyResponsiveLayout();
             UpdateCurrency();
+            hasBuiltRuntimeUi = true;
             return;
+            }
         }
 
         root = CreateRect(canvas.transform, "CleanShopRoot");
+        root.gameObject.SetActive(true);
         Stretch(root, 0f, 0f, 0f, 0f);
         root.SetAsLastSibling();
 
@@ -175,22 +219,94 @@ public class ShopUI : MonoBehaviour
         scroll.vertical = true;
 
         itemNameText = CreateText(rightPanel, "ItemName", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(440f, 54f), new Vector2(0.5f, 1f), 34f, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
-        itemMetaText = CreateText(rightPanel, "ItemMeta", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-110f, -128f), new Vector2(180f, 34f), new Vector2(0.5f, 1f), 20f, new Color(0.82f, 0.9f, 1f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+        itemMetaText = CreateText(rightPanel, "ItemCategory", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-110f, -128f), new Vector2(180f, 34f), new Vector2(0.5f, 1f), 20f, new Color(0.82f, 0.9f, 1f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
         itemPriceText = CreateText(rightPanel, "ItemPrice", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(110f, -128f), new Vector2(200f, 34f), new Vector2(0.5f, 1f), 20f, new Color(1f, 0.84f, 0.22f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
-        itemDescriptionText = CreateText(rightPanel, "ItemDesc", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -194f), new Vector2(430f, 90f), new Vector2(0.5f, 1f), 22f, Color.white, FontStyles.Normal, TextAlignmentOptions.Center);
+        itemDescriptionText = CreateText(rightPanel, "ItemDescription", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -194f), new Vector2(430f, 90f), new Vector2(0.5f, 1f), 22f, Color.white, FontStyles.Normal, TextAlignmentOptions.Center);
         itemStatusText = CreateText(rightPanel, "ItemStatus", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -305f), new Vector2(430f, 56f), new Vector2(0.5f, 1f), 28f, new Color(0.38f, 1f, 0.42f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
         actionButton = CreateLargeButton(rightPanel, "ActionButton", "MUA", new Vector2(0f, 42f), PerformSelectedAction);
         actionButtonText = actionButton.GetComponentInChildren<TMP_Text>();
 
         RectTransform bottom = CreatePanel(root, "BottomNav", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(1040f, 76f), new Vector2(0.5f, 0f), new Color(0.02f, 0.02f, 0.02f, 0.58f));
-        shopTabButton = CreateNavButton(bottom, "ShopTab", "CỬA HÀNG", new Vector2(-350f, 8f), () => cameraManager?.ShowShop());
-        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(0f, 8f), () => cameraManager?.ShowEquipment());
+        shopTabButton = CreateNavButton(bottom, "ShopTab", "CỬA HÀNG", new Vector2(-350f, 8f), OnShopTabClicked);
+        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(0f, 8f), OnEquipmentTabClicked);
         CreateNavButton(bottom, "PlayTab", "VÀO TRẬN", new Vector2(350f, 8f), () => cameraManager?.ChangeGameplayScene());
         BuildEscMenu();
 
         CacheRuntimeRefs();
+        EnsureRuntimeRefs();
         ApplyResponsiveLayout();
         UpdateCurrency();
+        hasBuiltRuntimeUi = true;
+    }
+
+    private void ResolveSceneRefs()
+    {
+        cameraManager ??= FindFirstObjectByType<CameraManager>(FindObjectsInactive.Include);
+        previewManager ??= FindFirstObjectByType<PreviewManager>(FindObjectsInactive.Include);
+        equipmentPreviewManager ??= FindFirstObjectByType<EquipmentPreviewManager>(FindObjectsInactive.Include);
+    }
+
+    private static bool IsRuntimeRootComplete(Transform candidateRoot)
+    {
+        if (candidateRoot == null)
+        {
+            return false;
+        }
+
+        string[] requiredChildren =
+        {
+            "CleanLeftPanel",
+            "CleanRightPanel",
+            "BottomNav",
+            "ListContent",
+            "PanelTitle",
+            "PanelHint",
+            "CurrencyText",
+            "ItemName",
+            "ItemCategory",
+            "ItemPrice",
+            "ItemDescription",
+            "ItemStatus",
+            "ActionButton",
+            "ShopTab",
+            "EquipmentTab",
+            "PlayTab",
+            "EscButton"
+        };
+
+        foreach (string childName in requiredChildren)
+        {
+            if (FindChild(candidateRoot, childName) == null)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static void SetRuntimeRootVisible(Transform candidateRoot)
+    {
+        if (candidateRoot == null)
+        {
+            return;
+        }
+
+        Transform[] children = candidateRoot.GetComponentsInChildren<Transform>(true);
+        foreach (Transform child in children)
+        {
+            if (child == candidateRoot)
+            {
+                continue;
+            }
+
+            if (child.name == "EscMenuPanel")
+            {
+                continue;
+            }
+
+            child.gameObject.SetActive(true);
+        }
     }
 
     private void CacheRuntimeRefs()
@@ -205,10 +321,9 @@ public class ShopUI : MonoBehaviour
         hintText = FindText(root, "PanelHint");
         currencyText = FindText(root, "CurrencyText");
         itemNameText = FindText(root, "ItemName");
-        Debug.Log($"ItemName found = {itemNameText}");
-        itemMetaText = FindText(root, "ItemMeta");
+        itemMetaText = FindText(root, "ItemCategory") ?? FindText(root, "ItemMeta");
         itemPriceText = FindText(root, "ItemPrice");
-        itemDescriptionText = FindText(root, "ItemDesc");
+        itemDescriptionText = FindText(root, "ItemDescription") ?? FindText(root, "ItemDesc");
         itemStatusText = FindText(root, "ItemStatus");
         actionButton = FindButton(root, "ActionButton");
         actionButtonText = actionButton != null ? actionButton.GetComponentInChildren<TMP_Text>(true) : null;
@@ -220,6 +335,41 @@ public class ShopUI : MonoBehaviour
         ultimateFilterButton = FindButton(root, "UltimateFilter");
         escButton = FindButton(root, "EscButton");
         escMenuPanel = FindRect(root, "EscMenuPanel");
+    }
+
+    private void EnsureRuntimeRefs()
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        RectTransform leftPanel = FindRect(root, "CleanLeftPanel");
+        RectTransform rightPanel = FindRect(root, "CleanRightPanel");
+
+        currencyText ??= CreateText(root, "CurrencyText", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -28f), new Vector2(520f, 44f), new Vector2(0f, 1f), 28f, new Color(1f, 0.86f, 0.18f, 1f), FontStyles.Bold, TextAlignmentOptions.Left);
+
+        if (leftPanel != null)
+        {
+            titleText ??= CreateText(leftPanel, "PanelTitle", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -38f), new Vector2(500f, 46f), new Vector2(0.5f, 1f), 34f, new Color(1f, 0.93f, 0.62f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+            hintText ??= CreateText(leftPanel, "PanelHint", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -82f), new Vector2(500f, 34f), new Vector2(0.5f, 1f), 18f, new Color(0.86f, 0.9f, 0.88f, 1f), FontStyles.Normal, TextAlignmentOptions.Center);
+        }
+
+        if (rightPanel != null)
+        {
+            itemNameText ??= CreateText(rightPanel, "ItemName", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(440f, 54f), new Vector2(0.5f, 1f), 34f, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
+            itemMetaText ??= CreateText(rightPanel, "ItemCategory", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-110f, -128f), new Vector2(180f, 34f), new Vector2(0.5f, 1f), 20f, new Color(0.82f, 0.9f, 1f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+            itemPriceText ??= CreateText(rightPanel, "ItemPrice", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(110f, -128f), new Vector2(200f, 34f), new Vector2(0.5f, 1f), 20f, new Color(1f, 0.84f, 0.22f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+            itemDescriptionText ??= CreateText(rightPanel, "ItemDescription", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -194f), new Vector2(430f, 90f), new Vector2(0.5f, 1f), 22f, Color.white, FontStyles.Normal, TextAlignmentOptions.Center);
+            itemStatusText ??= CreateText(rightPanel, "ItemStatus", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -305f), new Vector2(430f, 56f), new Vector2(0.5f, 1f), 28f, new Color(0.38f, 1f, 0.42f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+
+            if (actionButton == null)
+            {
+                actionButton = CreateLargeButton(rightPanel, "ActionButton", "MUA", new Vector2(0f, 42f), PerformSelectedAction);
+            }
+        }
+
+        actionButtonText ??= actionButton != null ? actionButton.GetComponentInChildren<TMP_Text>(true) : null;
     }
 
     private void ApplyResponsiveLayout()
@@ -282,12 +432,20 @@ public class ShopUI : MonoBehaviour
 
         if (itemMetaText != null)
         {
-            SetAnchorBox(itemMetaText.rectTransform, new Vector2(0.08f, 0.72f), new Vector2(0.46f, 0.80f), Vector2.zero, Vector2.zero);
+            SetAnchorBox(itemMetaText.rectTransform, new Vector2(0.08f, 0.72f), new Vector2(0.42f, 0.80f), Vector2.zero, Vector2.zero);
+            itemMetaText.enableAutoSizing = true;
+            itemMetaText.fontSizeMin = 11f;
+            itemMetaText.fontSizeMax = 17f;
+            itemMetaText.overflowMode = TextOverflowModes.Ellipsis;
         }
 
         if (itemPriceText != null)
         {
-            SetAnchorBox(itemPriceText.rectTransform, new Vector2(0.54f, 0.72f), new Vector2(0.92f, 0.80f), Vector2.zero, Vector2.zero);
+            SetAnchorBox(itemPriceText.rectTransform, new Vector2(0.46f, 0.72f), new Vector2(0.92f, 0.80f), Vector2.zero, Vector2.zero);
+            itemPriceText.enableAutoSizing = true;
+            itemPriceText.fontSizeMin = 11f;
+            itemPriceText.fontSizeMax = 17f;
+            itemPriceText.overflowMode = TextOverflowModes.Ellipsis;
         }
 
         if (itemDescriptionText != null)
@@ -325,7 +483,16 @@ public class ShopUI : MonoBehaviour
 
         float min = index * 0.25f;
         float max = min + 0.25f;
-        SetAnchorBox(button.GetComponent<RectTransform>(), new Vector2(min, 0f), new Vector2(max, 1f), new Vector2(5f, 4f), new Vector2(-5f, -4f));
+        SetAnchorBox(button.GetComponent<RectTransform>(), new Vector2(min, 0f), new Vector2(max, 1f), new Vector2(3f, 4f), new Vector2(-3f, -4f));
+
+        TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
+        if (label != null)
+        {
+            label.enableAutoSizing = true;
+            label.fontSizeMin = 8f;
+            label.fontSizeMax = 10f;
+            label.overflowMode = TextOverflowModes.Ellipsis;
+        }
     }
 
     private static void LayoutBottomButton(Button button, int index)
@@ -441,13 +608,28 @@ public class ShopUI : MonoBehaviour
 
         TMP_Text name = CreateText(row.transform, "Name", new Vector2(0f, 0f), new Vector2(0.68f, 1f), new Vector2(12f, 0f), Vector2.zero, new Vector2(0f, 0.5f), 20f, new Color(0.08f, 0.07f, 0.04f, 1f), FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
         name.text = item.displayName;
+        SetAnchorBox(name.rectTransform, new Vector2(0f, 0f), new Vector2(0.62f, 1f), new Vector2(12f, 0f), Vector2.zero);
+        name.enableAutoSizing = true;
+        name.fontSizeMin = 12f;
+        name.fontSizeMax = 18f;
+        name.overflowMode = TextOverflowModes.Ellipsis;
 
         TMP_Text price = CreateText(row.transform, "Price", new Vector2(0.68f, 0f), Vector2.one, new Vector2(-12f, 0f), Vector2.zero, new Vector2(1f, 0.5f), 16f, new Color(0.08f, 0.07f, 0.04f, 1f), FontStyles.Bold, TextAlignmentOptions.MidlineRight);
         price.text = currentMode == ShopMode.Equipment || item.IsOwned() ? "ĐÃ CÓ" : item.cost + " VD";
+        SetAnchorBox(price.rectTransform, new Vector2(0.62f, 0f), Vector2.one, Vector2.zero, new Vector2(-12f, 0f));
+        price.enableAutoSizing = true;
+        price.fontSizeMin = 10f;
+        price.fontSizeMax = 14f;
+        price.overflowMode = TextOverflowModes.Ellipsis;
     }
 
     private void SelectItem(GameItemData item)
     {
+        if (!EnsureDetailRefsReady())
+        {
+            return;
+        }
+
         selectedItem = item;
         Debug.Log("Item " + item.displayName);
         itemNameText.text = item.displayName;
@@ -456,9 +638,13 @@ public class ShopUI : MonoBehaviour
         itemDescriptionText.text = item.description;
         itemStatusText.text = GetStatusText(item);
 
-        if (previewManager != null)
+        if (currentMode == ShopMode.Shop && previewManager != null)
         {
             previewManager.Show(item);
+        }
+        else if (currentMode == ShopMode.Equipment)
+        {
+            previewManager?.Clear();
         }
 
         UpdateActionButton();
@@ -466,6 +652,11 @@ public class ShopUI : MonoBehaviour
 
     private void ShowEmptyState()
     {
+        if (!EnsureDetailRefsReady())
+        {
+            return;
+        }
+
         selectedItem = null;
         itemNameText.text = "CHƯA CÓ ĐỒ";
         itemMetaText.text = "";
@@ -504,6 +695,16 @@ public class ShopUI : MonoBehaviour
 
     private void UpdateActionButton()
     {
+        if (actionButton == null || actionButtonText == null)
+        {
+            BuildRuntimeUi();
+        }
+
+        if (actionButton == null || actionButtonText == null)
+        {
+            return;
+        }
+
         if (selectedItem == null)
         {
             actionButton.interactable = false;
@@ -520,6 +721,27 @@ public class ShopUI : MonoBehaviour
 
         actionButtonText.text = selectedItem.IsEquipped() ? "ĐANG DÙNG" : "TRANG BỊ";
         actionButton.interactable = selectedItem.IsOwned() && !selectedItem.IsEquipped();
+    }
+
+    private bool EnsureDetailRefsReady()
+    {
+        if (
+            itemNameText != null
+            && itemMetaText != null
+            && itemPriceText != null
+            && itemDescriptionText != null
+            && itemStatusText != null
+        )
+        {
+            return true;
+        }
+
+        BuildRuntimeUi();
+        return itemNameText != null
+            && itemMetaText != null
+            && itemPriceText != null
+            && itemDescriptionText != null
+            && itemStatusText != null;
     }
 
     private string GetStatusText(GameItemData item)

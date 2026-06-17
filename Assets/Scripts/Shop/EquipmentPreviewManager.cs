@@ -22,29 +22,98 @@ public class EquipmentPreviewManager : MonoBehaviour
     }
     public void Refresh()
     {
+        SetPreviewVisible(true);
         Clear();
+
+        if (InventoryManager.Instance == null)
+        {
+            return;
+        }
 
         SpawnWeapon();
         SpawnHorse();
         SpawnUltimate();
     }
-    private void Clear()
+
+    public void Clear()
     {
         if (currentWeapon != null)
+        {
+            currentWeapon.SetActive(false);
             Destroy(currentWeapon);
+        }
 
         if (currentHorse != null)
+        {
+            currentHorse.SetActive(false);
             Destroy(currentHorse);
+        }
 
         if (currentUltimate != null)
+        {
+            currentUltimate.SetActive(false);
             Destroy(currentUltimate);
+        }
 
         currentWeapon = null;
         currentHorse = null;
         currentUltimate = null;
     }
+
+    public void SetPreviewVisible(bool visible)
+    {
+        GameObject root = FindByName("EquipmentRoot");
+        if (root != null)
+        {
+            root.SetActive(visible);
+            return;
+        }
+
+        SetAnchorVisible(weaponAnchor, visible);
+        SetAnchorVisible(horseAnchor, visible);
+        SetAnchorVisible(ultimateAnchor, visible);
+    }
+
+    public static void HideAllEquipmentPreviews()
+    {
+        GameObject root = FindByName("EquipmentRoot");
+        if (root != null)
+        {
+            root.SetActive(false);
+        }
+    }
+
+    private static void SetAnchorVisible(Transform anchor, bool visible)
+    {
+        if (anchor == null)
+        {
+            return;
+        }
+
+        anchor.gameObject.SetActive(visible);
+    }
+
+    private static GameObject FindByName(string objectName)
+    {
+        Transform[] transforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (Transform transform in transforms)
+        {
+            if (transform.name == objectName)
+            {
+                return transform.gameObject;
+            }
+        }
+
+        return null;
+    }
+
     private void SpawnWeapon()
     {
+        if (weaponAnchor == null)
+        {
+            return;
+        }
+
         string weaponId =
             EquipmentManager.EquippedWeapon;
         
@@ -52,25 +121,32 @@ public class EquipmentPreviewManager : MonoBehaviour
             InventoryManager.Instance
                 .allItems
                 .Find(x => x.id == weaponId);
-        Debug.Log("Item id:" +  weaponId);
-        Debug.Log("weaponPrefab" + weaponPrefabs[0]);
         if (weapon == null)
             return;
-        if (weapon.id == "Character_Tier1")
-        currentWeapon =
-            Instantiate(
-                weaponPrefabs[0],
-                weaponAnchor
-            );
-        if (weapon.id == "Character_Tier2")
+
+        if (weapon.id == "Character_Tier1" && weaponPrefabs.Length > 0 && weaponPrefabs[0] != null)
+        {
+            currentWeapon =
+                Instantiate(
+                    weaponPrefabs[0],
+                    weaponAnchor
+                );
+        }
+
+        if (weapon.id == "Character_Tier2" && weaponPrefabs.Length > 1 && weaponPrefabs[1] != null)
+        {
             currentWeapon =
                 Instantiate(
                     weaponPrefabs[1],
                     weaponAnchor
                 );
+        }
 
-        currentWeapon.transform.localPosition =
-            Vector3.zero;
+        if (currentWeapon != null)
+        {
+            currentWeapon.transform.localPosition =
+                Vector3.zero;
+        }
     }
     private void SpawnHorse()
     {
@@ -83,6 +159,8 @@ public class EquipmentPreviewManager : MonoBehaviour
                 .Find(x => x.id == weaponId);
 
         if (weapon == null)
+            return;
+        if (weapon.prefab == null || horseAnchor == null)
             return;
 
         currentHorse =
@@ -105,6 +183,8 @@ public class EquipmentPreviewManager : MonoBehaviour
                 .Find(x => x.id == weaponId);
 
         if (weapon == null)
+            return;
+        if (weapon.prefab == null || ultimateAnchor == null)
             return;
 
         currentUltimate =

@@ -29,13 +29,22 @@ public class EquipmentUI : MonoBehaviour
     [SerializeField] private Button ultimateButton;
     private void OnEnable()
     {
+        if (FindFirstObjectByType<ShopUI>(FindObjectsInactive.Include) != null)
+        {
+            enabled = false;
+            return;
+        }
+
         if (InventoryManager.Instance == null)
             return;
         BuildEquipment();
-        previewManager.Refresh();
+        previewManager?.Refresh();
     }
     private void UpdateTabVisual()
     {
+        if (!enabled)
+            return;
+
         SetTab(
             weaponButton,
             currentCategory == InventoryManager.ItemCategory.Weapon
@@ -54,6 +63,9 @@ public class EquipmentUI : MonoBehaviour
 
     private void SetTab(Button btn, bool selected)
     {
+        if (btn == null)
+            return;
+
         btn.transform.localScale =
             selected
                 ? Vector3.one * 1.1f
@@ -70,6 +82,9 @@ public class EquipmentUI : MonoBehaviour
     }
     public void ShowWeapons()
     {
+        if (!enabled)
+            return;
+
         currentCategory =
             InventoryManager.ItemCategory.Weapon;
         UpdateTabVisual();
@@ -78,6 +93,9 @@ public class EquipmentUI : MonoBehaviour
 
     public void ShowMounts()
     {
+        if (!enabled)
+            return;
+
         currentCategory =
             InventoryManager.ItemCategory.Mount;
         UpdateTabVisual();
@@ -86,6 +104,9 @@ public class EquipmentUI : MonoBehaviour
 
     public void ShowUltimates()
     {
+        if (!enabled)
+            return;
+
         currentCategory =
             InventoryManager.ItemCategory.Ultimate;
         UpdateTabVisual();
@@ -93,6 +114,9 @@ public class EquipmentUI : MonoBehaviour
     }
     private void BuildEquipment()
     {
+        if (contentRoot == null || itemPrefab == null || InventoryManager.Instance == null)
+            return;
+
         foreach (Transform child in contentRoot)
         {
             Destroy(child.gameObject);
@@ -120,6 +144,9 @@ public class EquipmentUI : MonoBehaviour
 
     private void OnItemSelected(GameItemData item)
     {
+        if (!enabled)
+            return;
+
         Debug.Log("SELECTED: " + item.displayName);
 
         selectedItem = item;
@@ -144,13 +171,16 @@ public class EquipmentUI : MonoBehaviour
 
     public void EquipSelectedItem()
     {
+        if (!enabled)
+            return;
+
         if (selectedItem == null)
             return;
 
         InventoryManager.Instance
             .ToggleEquip(selectedItem);
 
-        previewManager.Refresh();
+        previewManager?.Refresh();
 
         OnItemSelected(selectedItem);
     }

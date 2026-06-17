@@ -17,6 +17,9 @@ public class PreviewManager : MonoBehaviour
         if (item.prefab == null)
             return;
 
+        if (previewRoot == null)
+            return;
+
         currentPreview =
             Instantiate(
                 item.prefab,
@@ -39,7 +42,10 @@ public class PreviewManager : MonoBehaviour
     {
         if (currentPreview != null)
         {
+            currentPreview.SetActive(false);
             Destroy(currentPreview);
         }
+
+        currentPreview = null;
     }
 }
