@@ -267,13 +267,32 @@ public class MapManager : MonoBehaviour
         return models[Random.Range(0, models.Length)];
     }
 
+    private float GetScaleMultiplier(string prefabName)
+    {
+        string lower = prefabName.ToLower();
+        if (lower.Contains("house"))
+        {
+            if (lower.Contains("leworahang")) return 0.4f; // scale down since it's naturally huge (45m)
+            return 3.5f; // house.glb needs to be scaled up
+        }
+        if (lower.Contains("bamboo")) return 3.0f; // scale bamboo up to make it tall
+        if (lower.Contains("grass_tuft")) return 25.0f; // grass tuft
+        if (lower.Contains("cliff") || lower.Contains("mountain")) return 1.0f; // terrain rocks are already scaled properly
+        if (lower.Contains("tree")) return 45.0f; // all trees
+        if (lower.Contains("bush")) return 45.0f; // all bushes
+        if (lower.Contains("rock")) return 250.0f; // all rocks (except terrain rocks)
+        if (lower.Contains("flower") || lower.Contains("mushroom") || lower.Contains("grass")) return 50.0f;
+        return 1.0f;
+    }
+
     private GameObject SpawnModel(GameObject prefab, Vector3 pos, Transform parent, float minScale = 0.8f, float maxScale = 1.2f)
     {
         if (prefab == null) return null;
 
         GameObject instance = Instantiate(prefab, pos, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f), parent);
         float scale = Random.Range(minScale, maxScale);
-        instance.transform.localScale = Vector3.one * scale;
+        float mult = GetScaleMultiplier(prefab.name);
+        instance.transform.localScale = Vector3.one * (scale * mult);
 
         // Xóa tất cả Collider để tránh cản trở gameplay
         RemoveAllColliders(instance);
@@ -281,6 +300,7 @@ public class MapManager : MonoBehaviour
         // In log chẩn đoán
         Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
         float boundsSize = 0f;
+        Vector3 boundsCenter = Vector3.zero;
         string rendererInfo = "";
         if (renderers.Length > 0)
         {
@@ -290,13 +310,14 @@ public class MapManager : MonoBehaviour
                 b.Encapsulate(renderers[j].bounds);
             }
             boundsSize = b.size.magnitude;
+            boundsCenter = b.center;
             rendererInfo = $"{renderers.Length} renderers, first material: {renderers[0].sharedMaterial?.name}, shader: {renderers[0].sharedMaterial?.shader?.name}";
         }
         else
         {
             rendererInfo = "No renderers found!";
         }
-        Debug.Log($"[MapManager] Spawning {prefab.name} at {pos} with scale {scale}. Bounds size: {boundsSize}. Info: {rendererInfo}");
+        Debug.Log($"[MapManager] Spawning {prefab.name} at {pos} with baseScale={scale}, mult={mult}, finalScale={scale*mult}. Bounds size: {boundsSize}, center: {boundsCenter}. Info: {rendererInfo}");
 
         return instance;
     }
