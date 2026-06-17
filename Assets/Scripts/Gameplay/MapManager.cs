@@ -97,7 +97,11 @@ public class MapManager : MonoBehaviour
                 var pc = FindObjectOfType<PlayerController>();
                 if (pc != null) playerGO = pc.gameObject;
             }
-            if (playerGO != null) _player = playerGO.transform;
+            if (playerGO != null)
+            {
+                _player = playerGO.transform;
+                Debug.Log($"[MapManager] Found Player: {playerGO.name} at {_player.position}");
+            }
             else return;
         }
 
@@ -146,6 +150,7 @@ public class MapManager : MonoBehaviour
 
     private GameObject GenerateChunk(Vector2Int chunkCoord)
     {
+        Debug.Log($"[MapManager] Generating chunk at coordinate {chunkCoord}");
         GameObject chunk = new GameObject($"Chunk_{chunkCoord.x}_{chunkCoord.y}");
         chunk.transform.SetParent(_propsRoot);
 
@@ -232,6 +237,11 @@ public class MapManager : MonoBehaviour
         _bamboos = LoadModelArray("MapProps", "bamboo");
         _grassTufts = LoadModelArray("MapProps", "grass_tuft_cemetery");
         _terrainRocks = LoadModelArray("MapProps/Terrain", "Cliff_1", "Cliff_2", "Cliff_3", "Mountain_1_LOD_Low", "Mountain_2_LOD_Low");
+
+        Debug.Log($"[MapManager] Loaded props for mapIndex {mapIndex}: " +
+                  $"Houses={_villageHouses.Length}, Bamboos={_bamboos.Length}, " +
+                  $"GrassTufts={_grassTufts.Length}, TerrainRocks={_terrainRocks.Length}, " +
+                  $"OakTrees={_oakTrees.Length}, Bushes={_bushes.Length}, Rocks={_rocks.Length}");
     }
 
     /// <summary> Load multiple models from Resources by name patterns </summary>
