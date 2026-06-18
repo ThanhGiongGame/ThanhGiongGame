@@ -65,6 +65,36 @@ public class Enemy : MonoBehaviour
             attackRange = 8f;
             attackCooldown = 2.5f;
             moveSpeed = 2f;
+
+            // Fix visual for EnemyC to use EnemyB's soldier mesh
+            WaveSpawner spawner = FindObjectOfType<WaveSpawner>();
+            if (spawner != null)
+            {
+                GameObject enemyBPrefab = spawner.FindEnemyBPrefab();
+                if (enemyBPrefab != null)
+                {
+                    Transform cylinder = transform.Find("Cylinder");
+                    if (cylinder != null)
+                    {
+                        cylinder.gameObject.SetActive(false);
+                    }
+
+                    Transform bCylinder = enemyBPrefab.transform.Find("Cylinder");
+                    if (bCylinder != null)
+                    {
+                        GameObject visual = Instantiate(bCylinder.gameObject, transform);
+                        visual.name = "Visual";
+                        visual.transform.localPosition = Vector3.zero;
+                        visual.transform.localRotation = Quaternion.identity;
+                        visual.transform.localScale = new Vector3(3f, 3f, 3f);
+
+                        foreach (Collider col in visual.GetComponentsInChildren<Collider>())
+                        {
+                            col.enabled = false;
+                        }
+                    }
+                }
+            }
         }
 
         // Map 2 Armored Horse swap

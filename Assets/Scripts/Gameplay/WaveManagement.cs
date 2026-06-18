@@ -115,7 +115,7 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
-    private GameObject FindEnemyBPrefab()
+    public GameObject FindEnemyBPrefab()
     {
         if (waves != null)
         {
