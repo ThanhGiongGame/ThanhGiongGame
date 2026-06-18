@@ -47,41 +47,7 @@ public class PlayerEquipmentLoader : MonoBehaviour
 
     void LoadHorse()
     {
-        string equipped =
-            PlayerPrefs.GetString(
-                "EquippedHorse",
-                "Horse_Tier1"
-            );
-
-        GameObject prefab = horseTier1;
-
-        switch (equipped)
-        {
-            case "Horse_Tier1":
-                prefab = horseTier1;
-                break;
-            case "Horse_Tier2":
-                prefab = horseTier2;
-                break;
-        }
-        Debug.Log(
-    "EquippedHorse = " +
-    PlayerPrefs.GetString(
-        "EquippedHorse"
-    )
-);
-        Instantiate(
-            prefab,
-            horseRoot
-        );
-        if (equipped == "Horse_Tier2")
-        {
-            Vector3 pos = characterRoot.localPosition;
-            pos.y = 1f;
-            characterRoot.localPosition = pos;
-            Vector3 posChild = characterRoot.GetChild(0).position;
-            Debug.Log("posChild = " + posChild);
-        }
-
+        // "xóa con ngựa đi!" — Ngựa đã bị xóa theo yêu cầu của người dùng.
+        Debug.Log("LoadHorse: Horse disabled by user request.");
     }
 }

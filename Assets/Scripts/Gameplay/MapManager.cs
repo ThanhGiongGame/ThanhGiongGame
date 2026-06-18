@@ -289,7 +289,8 @@ public class MapManager : MonoBehaviour
     {
         if (prefab == null) return null;
 
-        GameObject instance = Instantiate(prefab, pos, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f), parent);
+        GameObject instance = Instantiate(prefab, pos, prefab.transform.rotation, parent);
+        instance.transform.Rotate(Vector3.up, Random.Range(0f, 360f), Space.Self);
         float scale = Random.Range(minScale, maxScale);
         float mult = GetScaleMultiplier(prefab.name);
         instance.transform.localScale = Vector3.one * (scale * mult);
@@ -357,36 +358,36 @@ public class MapManager : MonoBehaviour
                     SpawnFromArray(_bigTrees, pos, parent, 1.0f, 2.0f);
                 break;
 
-            case 1: // Ải Trâu Sơn — Đồng bằng (đá và cây, lính xâm lược đánh làng)
-                if (r < 0.35f)
+            case 1: // Ải Trâu Sơn — Đồng bằng (Nhiều đá, ít cây)
+                if (r < 0.65f) // Nhiều đá hơn (65%)
                 {
                     if (Random.value < 0.5f && _terrainRocks != null && _terrainRocks.Length > 0)
                         SpawnFromArray(_terrainRocks, pos, parent, 1.0f, 2.5f); // Real Cliffs & Mountains!
                     else
                         SpawnRockGroup(pos, parent);
                 }
-                else if (r < 0.55f)
+                else if (r < 0.70f) // Ít cây (5% Pine Trees)
                     SpawnFromArray(_pineTrees, pos, parent, 0.8f, 1.5f);
-                else if (r < 0.70f)
+                else if (r < 0.75f) // (5% Simple Trees)
                     SpawnFromArray(_simpleTrees, pos, parent, 0.6f, 1.2f);
-                else if (r < 0.80f)
-                    SpawnFromArray(_brokenTrees, pos, parent, 1.0f, 1.8f); // Cây đổ nát
-                else if (r < 0.90f)
-                    SpawnFlamingBeacon(pos, parent); // Đuốc lửa chiến trường
-                else
+                else if (r < 0.80f) // (5% Broken Trees)
+                    SpawnFromArray(_brokenTrees, pos, parent, 1.0f, 1.8f);
+                else if (r < 0.90f) // (10% Flaming Beacon)
+                    SpawnFlamingBeacon(pos, parent);
+                else // (10% Bushes)
                     SpawnBushGroup(pos, parent);
                 break;
 
-            case 2: // Rừng U Minh — Rừng tre (nhiều tre)
-                if (r < 0.60f)
-                    SpawnFromArray(_bamboos, pos, parent, 1.5f, 2.5f); // Nhiều tre GLB!
-                else if (r < 0.75f)
-                    SpawnFromArray(_willowTrees, pos, parent, 1.2f, 2.2f);
-                else if (r < 0.85f)
+            case 2: // Rừng U Minh — Rừng tre (Spam tre và bụi cây)
+                if (r < 0.75f) // 75% tre!
+                    SpawnFromArray(_bamboos, pos, parent, 1.5f, 2.5f);
+                else if (r < 0.90f) // 15% bụi cây!
                     SpawnBushGroup(pos, parent);
-                else if (r < 0.93f)
+                else if (r < 0.94f) // 4% cây willow
+                    SpawnFromArray(_willowTrees, pos, parent, 1.2f, 2.2f);
+                else if (r < 0.98f) // 4% đá rêu
                     SpawnMossyRockGroup(pos, parent);
-                else
+                else // 2% đom đóm
                     SpawnFireflyCluster(pos, parent);
                 break;
         }
@@ -408,24 +409,24 @@ public class MapManager : MonoBehaviour
                     SpawnFromArray(_bushes, pos, parent, 0.3f, 0.6f);
                 break;
 
-            case 1: // Chiến trường đồng bằng
-                if (r < 0.30f)
+            case 1: // Chiến trường đồng bằng (Nhiều đá vụn)
+                if (r < 0.15f)
                     SpawnFromArray(_grasses, pos, parent, 0.3f, 0.8f);
-                else if (r < 0.70f)
-                    SpawnFromArray(_rocks, pos, parent, 0.3f, 0.7f); // Nhiều đá vụn
+                else if (r < 0.85f) // 70% đá vụn!
+                    SpawnFromArray(_rocks, pos, parent, 0.3f, 0.7f);
                 else
                     SpawnFromArray(_bushes, pos, parent, 0.2f, 0.5f);
                 break;
 
-            case 2: // Rừng tre
-                if (r < 0.40f)
-                    SpawnFromArray(_grassTufts, pos, parent, 1.0f, 1.8f); // Bụi cỏ rừng tre GLB!
-                else if (r < 0.60f)
-                    SpawnFromArray(_mushrooms, pos, parent, 0.4f, 1.0f);
-                else if (r < 0.80f)
-                    SpawnFromArray(_flowers, pos, parent, 0.4f, 0.9f);
-                else
+            case 2: // Rừng tre (Spam bụi cỏ và bụi cây)
+                if (r < 0.60f) // 60% cỏ rừng tre GLB!
+                    SpawnFromArray(_grassTufts, pos, parent, 1.0f, 1.8f);
+                else if (r < 0.80f) // 20% bụi cây!
                     SpawnFromArray(_bushes, pos, parent, 0.4f, 0.8f);
+                else if (r < 0.90f)
+                    SpawnFromArray(_mushrooms, pos, parent, 0.4f, 1.0f);
+                else
+                    SpawnFromArray(_flowers, pos, parent, 0.4f, 0.9f);
                 break;
         }
     }
@@ -729,13 +730,13 @@ public class MapManager : MonoBehaviour
                 ambientColor = new Color(0.30f, 0.22f, 0.18f);
                 break;
 
-            case 2: // Rừng U Minh
-                groundColor = new Color(0.10f, 0.18f, 0.12f);
-                sunColor = new Color(0.55f, 0.62f, 0.75f);
-                sunIntensity = 0.55f;
-                fogColor = new Color(0.08f, 0.12f, 0.10f);
-                fogDensity = 0.010f;
-                ambientColor = new Color(0.08f, 0.12f, 0.10f);
+            case 2: // Rừng U Minh (Dùng tone màu ấm của map 1 theo yêu cầu)
+                groundColor = new Color(0.38f, 0.40f, 0.25f); // Nền đất rừng có cỏ xanh úa/nâu ấm
+                sunColor = new Color(1.0f, 0.78f, 0.55f);     // Ánh nắng hoàng hôn ấm
+                sunIntensity = 0.95f;
+                fogColor = new Color(0.55f, 0.40f, 0.30f);    // Sương mù hoàng hôn ấm áp dã ngoại
+                fogDensity = 0.007f;
+                ambientColor = new Color(0.30f, 0.22f, 0.18f);
                 break;
 
             default: // Ải Thạch Thất
