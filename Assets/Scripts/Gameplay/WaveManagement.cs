@@ -81,9 +81,18 @@ public class WaveSpawner : MonoBehaviour
     {
         List<GameObject> enemiesToSpawn = new List<GameObject>();
 
-        // Add all enemies into one list
+        // Add all enemies into one list (filtering out non-standard enemies)
         foreach (EnemySpawnInfo enemyInfo in wave.enemies)
         {
+            if (enemyInfo.enemyPrefab == null) continue;
+            string prefabName = enemyInfo.enemyPrefab.name;
+
+            // Only allow standard enemy types: EnemyA, EnemyB, EnemyC, chicken
+            // Skip villagers, minions (they have broken visuals / sink below ground)
+            if (prefabName != "EnemyA" && prefabName != "EnemyB" && prefabName != "EnemyC" && prefabName != "chicken")
+            {
+                continue;
+            }
             for (int i = 0; i < enemyInfo.count; i++)
             {
                 enemiesToSpawn.Add(enemyInfo.enemyPrefab);
@@ -103,24 +112,132 @@ public class WaveSpawner : MonoBehaviour
         // Spawn one by one with random delay
         foreach (GameObject enemyPrefab in enemiesToSpawn)
         {
-            while (true)
+            while (PauseSpawn)
             {
+                yield return new WaitForSeconds(0.5f);
+            }
 
-                if (!PauseSpawn)
+            SpawnEnemy(enemyPrefab);
+
+            float randomDelay = Random.Range(0.5f, 2f);
+            yield return new WaitForSeconds(randomDelay);
+        }
+    }
+
+    public GameObject FindEnemyBPrefab()
+    {
+        if (waves != null)
+        {
+            foreach (var w in waves)
+            {
+                if (w.enemies != null)
                 {
-                    SpawnEnemy(enemyPrefab);
+                    foreach (var info in w.enemies)
+                    {
+                        if (info.enemyPrefab != null && info.enemyPrefab.name == "EnemyB")
+                        {
+                            return info.enemyPrefab;
+                        }
+                    }
                 }
-
-                float randomDelay = Random.Range(0.5f, 2f);
-
-                yield return new WaitForSeconds(randomDelay);
             }
         }
+        return null;
+    }
+
+    private GameObject FindEnemyCPrefab()
+    {
+        if (waves != null)
+        {
+            foreach (var w in waves)
+            {
+                if (w.enemies != null)
+                {
+                    foreach (var info in w.enemies)
+                    {
+                        if (info.enemyPrefab != null && info.enemyPrefab.name == "EnemyC")
+                        {
+                            return info.enemyPrefab;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private GameObject FindChickenPrefab()
+    {
+        if (waves != null)
+        {
+            foreach (var w in waves)
+            {
+                if (w.enemies != null)
+                {
+                    foreach (var info in w.enemies)
+                    {
+                        if (info.enemyPrefab != null && info.enemyPrefab.name == "chicken")
+                        {
+                            return info.enemyPrefab;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private void SpawnEnemy(GameObject enemyPrefab)
     {
-        if (player == null) return;
+        if (player == null || enemyPrefab == null) return;
+        // Only allow standard enemy types (including chicken)
+        if (enemyPrefab.name != "EnemyA" && enemyPrefab.name != "EnemyB" && enemyPrefab.name != "EnemyC" && enemyPrefab.name != "chicken") return;
+
+        // "xóa cái con ngựa của địch á, nó xuất hiện trong map 1 á"
+        // Nếu bản đồ đang chọn là Map 1 (index 0) và địch là EnemyA (ngựa), đổi sang EnemyB (đi bộ)
+        if (PlayerPrefs.GetInt("SelectedMap", 0) == 0 && enemyPrefab != null && enemyPrefab.name == "EnemyA")
+        {
+            GameObject enemyB = FindEnemyBPrefab();
+            if (enemyB != null)
+            {
+                enemyPrefab = enemyB;
+            }
+        }
+
+        // Map 2: 35% chance to swap EnemyA or EnemyB with EnemyC (javelin thrower)
+        if (PlayerPrefs.GetInt("SelectedMap", 0) == 1 && enemyPrefab != null && (enemyPrefab.name == "EnemyA" || enemyPrefab.name == "EnemyB"))
+        {
+            if (Random.value < 0.35f)
+            {
+                GameObject enemyC = FindEnemyCPrefab();
+                if (enemyC != null)
+                {
+                    enemyPrefab = enemyC;
+                }
+            }
+        }
+
+        // Map 3: Chỉ cho phép quái gà (chicken) và lính đi bộ (EnemyB).
+        // Đổi EnemyA (ngựa) thành chicken, đổi EnemyC (ném lao) thành EnemyB.
+        if (PlayerPrefs.GetInt("SelectedMap", 0) == 2)
+        {
+            if (enemyPrefab != null && enemyPrefab.name == "EnemyA")
+            {
+                GameObject chicken = FindChickenPrefab();
+                if (chicken != null)
+                {
+                    enemyPrefab = chicken;
+                }
+            }
+            else if (enemyPrefab != null && enemyPrefab.name == "EnemyC")
+            {
+                GameObject enemyB = FindEnemyBPrefab();
+                if (enemyB != null)
+                {
+                    enemyPrefab = enemyB;
+                }
+            }
+        }
 
         Vector2 randomCircle =
             Random.insideUnitCircle.normalized * spawnRadius;

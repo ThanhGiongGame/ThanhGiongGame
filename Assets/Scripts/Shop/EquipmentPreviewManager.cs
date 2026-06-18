@@ -5,12 +5,15 @@ public class EquipmentPreviewManager : MonoBehaviour
     [SerializeField] private Transform playerAnchor;
     [SerializeField] private Transform weaponAnchor;
     [SerializeField] private Transform horseAnchor;
-    [SerializeField] private Transform ultimateAnchor;
+    [SerializeField]
+    private GameObject[] characterPrefabs;
+    [SerializeField]
+    private GameObject[] horsePrefabs;
     [SerializeField]
     private GameObject[] weaponPrefabs;
     private GameObject currentWeapon;
     private GameObject currentHorse;
-    private GameObject currentUltimate;
+    private GameObject currentCharacter;
     private void OnEnable()
     {
         InventoryManager.OnEquipmentChanged += Refresh;
@@ -30,9 +33,9 @@ public class EquipmentPreviewManager : MonoBehaviour
             return;
         }
 
-        SpawnWeapon();
+        SpawnCharacter();
         SpawnHorse();
-        SpawnUltimate();
+        SpawnWeapon();
     }
 
     public void Clear()
@@ -49,15 +52,12 @@ public class EquipmentPreviewManager : MonoBehaviour
             Destroy(currentHorse);
         }
 
-        if (currentUltimate != null)
-        {
-            currentUltimate.SetActive(false);
-            Destroy(currentUltimate);
-        }
+        if (currentCharacter != null)
+            Destroy(currentCharacter);
 
         currentWeapon = null;
         currentHorse = null;
-        currentUltimate = null;
+        currentCharacter = null;
     }
 
     public void SetPreviewVisible(bool visible)
@@ -71,7 +71,7 @@ public class EquipmentPreviewManager : MonoBehaviour
 
         SetAnchorVisible(weaponAnchor, visible);
         SetAnchorVisible(horseAnchor, visible);
-        SetAnchorVisible(ultimateAnchor, visible);
+        SetAnchorVisible(playerAnchor, visible);
     }
 
     public static void HideAllEquipmentPreviews()
@@ -107,93 +107,93 @@ public class EquipmentPreviewManager : MonoBehaviour
         return null;
     }
 
-    private void SpawnWeapon()
+    private void SpawnCharacter()
     {
-        if (weaponAnchor == null)
-        {
+        string equipped =
+            PlayerPrefs.GetString(
+                "EquippedCharacter",
+                "Character_Tier1"
+            );
+
+        if (equipped == null)
             return;
-        }
-
-        string weaponId =
-            EquipmentManager.EquippedWeapon;
-        
-        GameItemData weapon =
-            InventoryManager.Instance
-                .allItems
-                .Find(x => x.id == weaponId);
-        if (weapon == null)
-            return;
-
-        if (weapon.id == "Character_Tier1" && weaponPrefabs.Length > 0 && weaponPrefabs[0] != null)
+        switch (equipped)
         {
-            currentWeapon =
-                Instantiate(
-                    weaponPrefabs[0],
-                    weaponAnchor
-                );
-        }
+            case "Character_Tier1":
+                currentCharacter =
+    Instantiate(
+        characterPrefabs[0],
+        playerAnchor
+    );
+                break;
+            case "Character_Tier2":
+                currentCharacter =
+    Instantiate(
+        characterPrefabs[1],
+        playerAnchor
+    );
+                break;
+            case "Character_Tier3":
+                currentCharacter = Instantiate(characterPrefabs[2], playerAnchor);
+                break;
+            case "Character_Tier4":
+                currentCharacter = Instantiate(characterPrefabs[3], playerAnchor);
+                break;
 
-        if (weapon.id == "Character_Tier2" && weaponPrefabs.Length > 1 && weaponPrefabs[1] != null)
-        {
-            currentWeapon =
-                Instantiate(
-                    weaponPrefabs[1],
-                    weaponAnchor
-                );
         }
-
-        if (currentWeapon != null)
-        {
-            currentWeapon.transform.localPosition =
-                Vector3.zero;
-        }
+        currentCharacter.transform.localPosition = Vector3.zero;
     }
     private void SpawnHorse()
     {
-        string weaponId =
-            EquipmentManager.EquippedHorse;
-
-        GameItemData weapon =
-            InventoryManager.Instance
-                .allItems
-                .Find(x => x.id == weaponId);
-
-        if (weapon == null)
-            return;
-        if (weapon.prefab == null || horseAnchor == null)
-            return;
-
-        currentHorse =
-            Instantiate(
-                weapon.prefab,
-                horseAnchor
+        string equipped =
+            PlayerPrefs.GetString(
+                "EquippedHorse",
+                "Horse_Tier1"
             );
+
+        switch (equipped)
+        {
+            case "Horse_Tier1":
+                currentHorse = Instantiate(horsePrefabs[0], horseAnchor);
+                break;
+            case "Horse_Tier2":
+                currentHorse = Instantiate(horsePrefabs[1], horseAnchor);
+                break;
+            case "Horse_Tier3":
+                currentHorse = Instantiate(horsePrefabs[2], horseAnchor);
+                break;
+            case "Horse_Tier4":
+                currentHorse = Instantiate(horsePrefabs[3], horseAnchor);
+                break;
+
+        }
 
         currentHorse.transform.localPosition =
             Vector3.zero;
     }
-    private void SpawnUltimate()
+    private void SpawnWeapon()
     {
-        string weaponId =
-            EquipmentManager.EquippedUltimate;
-
-        GameItemData weapon =
-            InventoryManager.Instance
-                .allItems
-                .Find(x => x.id == weaponId);
-
-        if (weapon == null)
-            return;
-        if (weapon.prefab == null || ultimateAnchor == null)
-            return;
-
-        currentUltimate =
-            Instantiate(
-                weapon.prefab,
-                ultimateAnchor
+        string equipped =
+            PlayerPrefs.GetString(
+                "EquippedWeapon",
+                "Weapon_Tier1"
             );
 
-        currentUltimate.transform.localPosition =
+        switch (equipped)
+        {
+            case "Weapon_Tier1":
+                currentWeapon = Instantiate(weaponPrefabs[0], weaponAnchor);
+                break;
+            case "Weapon_Tier2":
+                currentWeapon = Instantiate(weaponPrefabs[1], weaponAnchor);
+                break;
+            case "Weapon_Tier3":
+                currentWeapon = Instantiate(weaponPrefabs[2], weaponAnchor);
+                break;
+
+        }
+
+        currentWeapon.transform.localPosition =
             Vector3.zero;
     }
 }

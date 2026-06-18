@@ -8,7 +8,6 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
-
     [HideInInspector]
     public float slashDamageMultiplier = 1.0f; // Defaults to 100% damage base
     [Header("Attack")]
@@ -16,6 +15,8 @@ public class PlayerController : MonoBehaviour
     public Transform attackSpawnPoint;
     public float attackInterval = 1.2f;   // 0.2s wind-up + 1.0s swing
     public float attackWindUp = 0.2f;   // delay before slash spawns
+
+    public Boolean Tutorial = false;
 
     // ---- Private references ----
     private CharacterController controller;
@@ -67,7 +68,20 @@ public class PlayerController : MonoBehaviour
         playerHealth = GetComponent<PlayerHealth>();
         ultimateController = GetComponent<UltimateController>();
         IsInvulnerable = false;
+        float baseDamage = 20f;
+        float baseMaxHealth = 100f;
+        float baseSpeed = 5f;
+        if (Tutorial != true)
+        {
+            baseDamage += equipmentLoader.bonusDamage;
+            baseMaxHealth += equipmentLoader.bonusHealth;
+            baseSpeed += equipmentLoader.bonusSpeed;
 
+        }
+
+        moveSpeed = baseSpeed;
+        playerHealth.maxHealth = baseMaxHealth;
+        slashDamageMultiplier = baseDamage / 20f;
         // Always find the camera first so combat functions even if visuals are missing
         mainCamera = Camera.main;
         if (mainCamera == null)
@@ -76,7 +90,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // --- Safe Initialization for the Horse Animator ---
-        if ( equipmentLoader == null)
+        if ( equipmentLoader == null && Tutorial != true)
         {
             equipmentLoader = GetComponent<PlayerEquipmentLoader>();
             if (equipmentLoader == null)
@@ -90,15 +104,11 @@ public class PlayerController : MonoBehaviour
 
         }
         attackTimer = attackInterval;
-        float baseDamage = 20f;
-        float baseMaxHealth = 100f;
-        float baseSpeed = 8f;
 
         // --- Đọc dữ liệu Loadout từ Shop Menu ---
         if (PlayerPrefs.GetInt("Item_DamageBuff", 0) == 2)
         {
             baseDamage += 15f;
-            Debug.Log("Đã kích hoạt: +15 Sát thương từ trang bị Hotbar!");
         }
 
         if (PlayerPrefs.GetInt("Item_HealthBuff", 0) == 2)
@@ -138,7 +148,7 @@ public class PlayerController : MonoBehaviour
                 "EquippedUltimate",
                 ""
             );
-        Debug.Log("Using Ultimate: " + equippedUltimate);
+
         switch (equippedUltimate)
         {
             case "Ultimate_Tier1":
@@ -185,7 +195,7 @@ public class PlayerController : MonoBehaviour
         }
         if (horseAnimator != null)
         {
-            Debug.Log("Updating horse animation. Knockback: " + isKnockedBack + ", Move Velocity: " + moveVelocity + ", Object" + horseAnimator);
+
             if (isKnockedBack)
             {
                 horseAnimator.SetBool("isWalking", false);
@@ -196,7 +206,7 @@ public class PlayerController : MonoBehaviour
                 bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
                 if (hasHorizontalMovement) {
                     walkTimer += Time.deltaTime;
-                    Debug.Log("Player is moving. Walk timer: " + walkTimer);
+
                 }
                 else
                 {
@@ -270,7 +280,7 @@ public class PlayerController : MonoBehaviour
         if (attackTimer <= 0f)
         {
             StartCoroutine(AttackCoroutine());
-            attackTimer = attackInterval;   // reset immediately so interval is consistent
+            attackTimer = attackInterval;   
         }
     }
 
