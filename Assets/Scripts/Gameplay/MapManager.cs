@@ -109,6 +109,16 @@ public class MapManager : MonoBehaviour
         if (currentChunk == _lastPlayerChunk) return;
         _lastPlayerChunk = currentChunk;
 
+        // Giữ Ground Plane luôn bao quanh người chơi để không bao giờ bị đi ra ngoài rìa bản đồ
+        var plane = GameObject.Find("Plane");
+        if (plane != null)
+        {
+            float snap = 100f;
+            float targetX = Mathf.Round(_player.position.x / snap) * snap;
+            float targetZ = Mathf.Round(_player.position.z / snap) * snap;
+            plane.transform.position = new Vector3(targetX, plane.transform.position.y, targetZ);
+        }
+
         for (int x = currentChunk.x - VIEW_RANGE; x <= currentChunk.x + VIEW_RANGE; x++)
         {
             for (int z = currentChunk.y - VIEW_RANGE; z <= currentChunk.y + VIEW_RANGE; z++)
@@ -275,7 +285,7 @@ public class MapManager : MonoBehaviour
             if (lower.Contains("leworahang")) return 0.4f; // scale down since it's naturally huge (45m)
             return 3.5f; // house.glb needs to be scaled up
         }
-        if (lower.Contains("bamboo")) return 3.0f; // scale bamboo up to make it tall
+        if (lower.Contains("bamboo")) return 0.4f; // bamboo GLB model (small scale to not block camera)
         if (lower.Contains("grass_tuft")) return 25.0f; // grass tuft
         if (lower.Contains("cliff") || lower.Contains("mountain")) return 1.0f; // terrain rocks are already scaled properly
         if (lower.Contains("tree")) return 45.0f; // all trees
@@ -378,17 +388,19 @@ public class MapManager : MonoBehaviour
                     SpawnBushGroup(pos, parent);
                 break;
 
-            case 2: // Rừng U Minh — Rừng tre (Spam tre và bụi cây)
-                if (r < 0.75f) // 75% tre!
-                    SpawnFromArray(_bamboos, pos, parent, 1.5f, 2.5f);
-                else if (r < 0.90f) // 15% bụi cây!
+            case 2: // Rừng U Minh — Rừng tre (tre nhỏ, không che camera)
+                if (r < 0.55f) // 55% tre nhỏ
+                    SpawnFromArray(_bamboos, pos, parent, 0.8f, 1.5f);
+                else if (r < 0.70f) // 15% bụi cây
                     SpawnBushGroup(pos, parent);
-                else if (r < 0.94f) // 4% cây willow
-                    SpawnFromArray(_willowTrees, pos, parent, 1.2f, 2.2f);
-                else if (r < 0.98f) // 4% đá rêu
+                else if (r < 0.80f) // 10% cây willow nhỏ
+                    SpawnFromArray(_willowTrees, pos, parent, 0.3f, 0.5f);
+                else if (r < 0.88f) // 8% đá rêu
                     SpawnMossyRockGroup(pos, parent);
-                else // 2% đom đóm
+                else if (r < 0.94f) // 6% đom đóm
                     SpawnFireflyCluster(pos, parent);
+                else // 6% nấm
+                    SpawnFromArray(_mushrooms, pos, parent, 0.5f, 1.0f);
                 break;
         }
     }
@@ -418,15 +430,15 @@ public class MapManager : MonoBehaviour
                     SpawnFromArray(_bushes, pos, parent, 0.2f, 0.5f);
                 break;
 
-            case 2: // Rừng tre (Spam bụi cỏ và bụi cây)
-                if (r < 0.60f) // 60% cỏ rừng tre GLB!
-                    SpawnFromArray(_grassTufts, pos, parent, 1.0f, 1.8f);
-                else if (r < 0.80f) // 20% bụi cây!
-                    SpawnFromArray(_bushes, pos, parent, 0.4f, 0.8f);
+            case 2: // Rừng tre
+                if (r < 0.60f) // 60% cỏ rừng tre GLB
+                    SpawnFromArray(_grassTufts, pos, parent, 0.6f, 1.2f);
+                else if (r < 0.80f) // 20% bụi cây
+                    SpawnFromArray(_bushes, pos, parent, 0.2f, 0.5f);
                 else if (r < 0.90f)
-                    SpawnFromArray(_mushrooms, pos, parent, 0.4f, 1.0f);
+                    SpawnFromArray(_mushrooms, pos, parent, 0.4f, 0.8f);
                 else
-                    SpawnFromArray(_flowers, pos, parent, 0.4f, 0.9f);
+                    SpawnFromArray(_flowers, pos, parent, 0.4f, 0.8f);
                 break;
         }
     }
@@ -730,13 +742,13 @@ public class MapManager : MonoBehaviour
                 ambientColor = new Color(0.30f, 0.22f, 0.18f);
                 break;
 
-            case 2: // Rừng U Minh (Dùng tone màu ấm của map 1 theo yêu cầu)
-                groundColor = new Color(0.38f, 0.40f, 0.25f); // Nền đất rừng có cỏ xanh úa/nâu ấm
-                sunColor = new Color(1.0f, 0.78f, 0.55f);     // Ánh nắng hoàng hôn ấm
-                sunIntensity = 0.95f;
-                fogColor = new Color(0.55f, 0.40f, 0.30f);    // Sương mù hoàng hôn ấm áp dã ngoại
-                fogDensity = 0.007f;
-                ambientColor = new Color(0.30f, 0.22f, 0.18f);
+            case 2: // Rừng U Minh — Rừng tre (dùng nền và ánh sáng sáng rõ của Map 1 theo yêu cầu)
+                groundColor = new Color(0.28f, 0.48f, 0.22f); // Nền xanh sáng như Map 1
+                sunColor = new Color(1.0f, 0.95f, 0.88f);     // Ánh nắng sáng như Map 1
+                sunIntensity = 1.1f;
+                fogColor = new Color(0.65f, 0.72f, 0.60f);    // Sương mù sáng như Map 1
+                fogDensity = 0.004f;
+                ambientColor = new Color(0.30f, 0.32f, 0.28f);
                 break;
 
             default: // Ải Thạch Thất
@@ -781,6 +793,14 @@ public class MapManager : MonoBehaviour
         RenderSettings.fogDensity = fogDensity;
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
         RenderSettings.ambientLight = ambientColor;
+
+        // Đồng bộ màu nền của camera với sương mù để tạo cảm giác không gian vô tận không bị lộ viền xanh
+        var mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            mainCam.clearFlags = CameraClearFlags.SolidColor;
+            mainCam.backgroundColor = fogColor;
+        }
     }
 
     // ================================================================

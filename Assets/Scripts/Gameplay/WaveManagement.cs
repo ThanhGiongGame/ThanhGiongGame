@@ -81,9 +81,18 @@ public class WaveSpawner : MonoBehaviour
     {
         List<GameObject> enemiesToSpawn = new List<GameObject>();
 
-        // Add all enemies into one list
+        // Add all enemies into one list (filtering out non-standard enemies)
         foreach (EnemySpawnInfo enemyInfo in wave.enemies)
         {
+            if (enemyInfo.enemyPrefab == null) continue;
+            string prefabName = enemyInfo.enemyPrefab.name;
+
+            // Only allow standard enemy types: EnemyA, EnemyB, EnemyC, chicken
+            // Skip villagers, minions (they have broken visuals / sink below ground)
+            if (prefabName != "EnemyA" && prefabName != "EnemyB" && prefabName != "EnemyC" && prefabName != "chicken")
+            {
+                continue;
+            }
             for (int i = 0; i < enemyInfo.count; i++)
             {
                 enemiesToSpawn.Add(enemyInfo.enemyPrefab);
@@ -159,7 +168,9 @@ public class WaveSpawner : MonoBehaviour
 
     private void SpawnEnemy(GameObject enemyPrefab)
     {
-        if (player == null) return;
+        if (player == null || enemyPrefab == null) return;
+        // Only allow standard enemy types (including chicken)
+        if (enemyPrefab.name != "EnemyA" && enemyPrefab.name != "EnemyB" && enemyPrefab.name != "EnemyC" && enemyPrefab.name != "chicken") return;
 
         // "xóa cái con ngựa của địch á, nó xuất hiện trong map 1 á"
         // Nếu bản đồ đang chọn là Map 1 (index 0) và địch là EnemyA (ngựa), đổi sang EnemyB (đi bộ)
