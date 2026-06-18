@@ -109,6 +109,9 @@ public class MapSelectionUI : MonoBehaviour
     private bool IsMapUnlocked(int mapIndex, int vinhDanh, int totalKills)
     {
         if (mapIndex == 0) return true; // Map mặc định
+#if UNITY_EDITOR
+        return true; // Tự động mở khóa tất cả bản đồ trong Editor để kiểm tra/test dễ dàng!
+#endif
         return vinhDanh >= REQUIRED_VINHDAN[mapIndex] || totalKills >= REQUIRED_KILLS[mapIndex];
     }
 
