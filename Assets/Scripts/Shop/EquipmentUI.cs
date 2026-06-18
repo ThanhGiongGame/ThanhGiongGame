@@ -26,7 +26,7 @@ public class EquipmentUI : MonoBehaviour
     [Header("Button")]
     [SerializeField] private Button weaponButton;
     [SerializeField] private Button mountButton;
-    [SerializeField] private Button ultimateButton;
+    [SerializeField] private Button characterButton;
     private void OnEnable()
     {
         if (FindFirstObjectByType<ShopUI>(FindObjectsInactive.Include) != null)
@@ -56,8 +56,8 @@ public class EquipmentUI : MonoBehaviour
         );
 
         SetTab(
-            ultimateButton,
-            currentCategory == InventoryManager.ItemCategory.Ultimate
+            characterButton,
+            currentCategory == InventoryManager.ItemCategory.Character
         );
     }
 
@@ -108,7 +108,7 @@ public class EquipmentUI : MonoBehaviour
             return;
 
         currentCategory =
-            InventoryManager.ItemCategory.Ultimate;
+            InventoryManager.ItemCategory.Character;
         UpdateTabVisual();
         BuildEquipment();
     }

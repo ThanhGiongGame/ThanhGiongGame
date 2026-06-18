@@ -8,7 +8,7 @@ public class InventoryManager : MonoBehaviour
     {
         Weapon,
         Mount,
-        Ultimate
+        Character
     }
     public static InventoryManager Instance { get; private set; }
     public static event Action OnEquipmentChanged;
@@ -43,7 +43,7 @@ public class InventoryManager : MonoBehaviour
     private void InitDatabase()
     {
     }
-    public int GetCurrency() => PlayerPrefs.GetInt("VinhDanhTotal", 100000);
+    public int GetCurrency() => PlayerPrefs.GetInt("VinhDanhTotal", 100000000);
 
     public void AddCurrency(int amount)
     {
@@ -80,11 +80,10 @@ public class InventoryManager : MonoBehaviour
     {
         if (!item.IsOwned())
             return;
-        OnEquipmentChanged?.Invoke();
 
         switch (item.category)
         {
-            case ItemCategory.Weapon:
+            case ItemCategory.Character:
 
                 PlayerPrefs.SetString(
                     "EquippedCharacter",
@@ -100,15 +99,17 @@ public class InventoryManager : MonoBehaviour
                 );
                 break;
 
-            case ItemCategory.Ultimate:
+            case ItemCategory.Weapon:
 
                 PlayerPrefs.SetString(
-                    "EquippedUltimate",
+                    "EquippedWeapon",
                     item.id
                 );
                 break;
         }
 
         PlayerPrefs.Save();
+        OnEquipmentChanged?.Invoke();
+
     }
 }

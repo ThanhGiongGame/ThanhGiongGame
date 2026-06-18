@@ -19,7 +19,7 @@ public class ShopUI : MonoBehaviour
         All,
         Weapon,
         Mount,
-        Ultimate
+        Character
     }
 
     [SerializeField] private PreviewManager previewManager;
@@ -47,7 +47,7 @@ public class ShopUI : MonoBehaviour
     private Button allFilterButton;
     private Button weaponFilterButton;
     private Button mountFilterButton;
-    private Button ultimateFilterButton;
+    private Button characterFilterButton;
     private Button escButton;
     private RectTransform escMenuPanel;
     private bool hasBuiltRuntimeUi;
@@ -191,7 +191,7 @@ public class ShopUI : MonoBehaviour
         allFilterButton = CreateSmallButton(filterBar, "AllFilter", "TẤT CẢ", new Vector2(-187.5f, 0f), () => SelectFilter(CategoryFilter.All));
         weaponFilterButton = CreateSmallButton(filterBar, "WeaponFilter", "WEAPON", new Vector2(-62.5f, 0f), () => SelectFilter(CategoryFilter.Weapon));
         mountFilterButton = CreateSmallButton(filterBar, "MountFilter", "MOUNT", new Vector2(62.5f, 0f), () => SelectFilter(CategoryFilter.Mount));
-        ultimateFilterButton = CreateSmallButton(filterBar, "UltimateFilter", "ULT", new Vector2(187.5f, 0f), () => SelectFilter(CategoryFilter.Ultimate));
+        characterFilterButton = CreateSmallButton(filterBar, "CharacterFilter", "CHARACTER", new Vector2(187.5f, 0f), () => SelectFilter(CategoryFilter.Character));
 
         RectTransform listViewport = CreatePanel(leftPanel, "ListViewport", new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), new Color(0f, 0f, 0f, 0.22f));
         Stretch(listViewport, 24f, 198f, 24f, 24f);
@@ -332,7 +332,7 @@ public class ShopUI : MonoBehaviour
         allFilterButton = FindButton(root, "AllFilter");
         weaponFilterButton = FindButton(root, "WeaponFilter");
         mountFilterButton = FindButton(root, "MountFilter");
-        ultimateFilterButton = FindButton(root, "UltimateFilter");
+        characterFilterButton = FindButton(root, "CharacterFilter");
         escButton = FindButton(root, "EscButton");
         escMenuPanel = FindRect(root, "EscMenuPanel");
     }
@@ -420,7 +420,7 @@ public class ShopUI : MonoBehaviour
         LayoutFilterButton(allFilterButton, 0);
         LayoutFilterButton(weaponFilterButton, 1);
         LayoutFilterButton(mountFilterButton, 2);
-        LayoutFilterButton(ultimateFilterButton, 3);
+        LayoutFilterButton(characterFilterButton, 3);
 
         SetAnchorBox(listViewport, new Vector2(0.06f, 0.06f), new Vector2(0.94f, 0.66f), Vector2.zero, Vector2.zero);
 
@@ -596,7 +596,7 @@ public class ShopUI : MonoBehaviour
         return currentFilter == CategoryFilter.All
             || (currentFilter == CategoryFilter.Weapon && item.category == InventoryManager.ItemCategory.Weapon)
             || (currentFilter == CategoryFilter.Mount && item.category == InventoryManager.ItemCategory.Mount)
-            || (currentFilter == CategoryFilter.Ultimate && item.category == InventoryManager.ItemCategory.Ultimate);
+            || (currentFilter == CategoryFilter.Character && item.category == InventoryManager.ItemCategory.Character);
     }
 
     private void CreateItemRow(GameItemData item)
@@ -818,7 +818,7 @@ public class ShopUI : MonoBehaviour
         SetButtonColor(allFilterButton, currentFilter == CategoryFilter.All, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
         SetButtonColor(weaponFilterButton, currentFilter == CategoryFilter.Weapon, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
         SetButtonColor(mountFilterButton, currentFilter == CategoryFilter.Mount, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
-        SetButtonColor(ultimateFilterButton, currentFilter == CategoryFilter.Ultimate, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
+        SetButtonColor(characterFilterButton, currentFilter == CategoryFilter.Character, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
     }
 
     private static RectTransform CreatePanel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size, Vector2 pivot)

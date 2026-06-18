@@ -417,19 +417,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 66085660}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.6192552, z: -0, w: 0.7851898}
+  m_LocalRotation: {x: 0, y: 0.86602545, z: 0, w: 0.49999994}
   m_LocalPosition: {x: 1.29, y: 0, z: 0.6}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 66810965}
+  m_Children: []
   m_Father: {fileID: 1658905721}
-  m_LocalEulerAnglesHint: {x: 0, y: 76.524, z: 0}
---- !u!4 &66810965 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-  m_PrefabInstance: {fileID: 2067045474}
-  m_PrefabAsset: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 120, z: 0}
 --- !u!1 &190947118
 GameObject:
   m_ObjectHideFlags: 0
@@ -876,6 +870,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 333260524}
   m_CullTransparentMesh: 1
+--- !u!1 &335094986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 335094987}
+  m_Layer: 0
+  m_Name: WeaponAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &335094987
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 335094986}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.122787856, y: 0.122787856, z: 0.6963643, w: 0.6963643}
+  m_LocalPosition: {x: -0.748, y: 0.683, z: 0.87}
+  m_LocalScale: {x: 0.003, y: 0.003, z: 0.003}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1658905721}
+  m_LocalEulerAnglesHint: {x: -20, y: 0, z: 90}
 --- !u!1 &356589813
 GameObject:
   m_ObjectHideFlags: 0
@@ -1647,7 +1672,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -819.23047, y: 534.2001}
+  m_AnchoredPosition: {x: -819.29944, y: 534.19977}
   m_SizeDelta: {x: 1638, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &656462540
@@ -1848,8 +1873,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 956278772}
   m_HandleRect: {fileID: 956278771}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.9999978
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2993,15 +3018,58 @@ MonoBehaviour:
   - id: Character_Tier1
     displayName: "N\xF4ng D\xE2n"
     description: "B\xECnh th\u01B0\u1EDDng"
-    category: 0
+    category: 2
     cost: 100
     prefab: {fileID: 781970391091174967, guid: 23459a5b659945b43a747f26521c31a2, type: 3}
   - id: Character_Tier2
     displayName: "L\xEDnh c\u01A1 b\u1EA3n"
     description: "B\xECnh th\u01B0\u1EDDng"
-    category: 0
+    category: 2
     cost: 200
     prefab: {fileID: 3421364616178249779, guid: bc11815aa798409419bf738380714adf, type: 3}
+  - id: Horse_Tier1
+    displayName: "Ng\u1EF1a c\u01A1 b\u1EA3n"
+    description: "Ng\u1EF1a b\xECnh th\u01B0\u1EDDng nh\u1EA5t"
+    category: 1
+    cost: 200
+    prefab: {fileID: 2509007373314399612, guid: 1b2214c23c073ae43813b1fd901ef7e9, type: 3}
+  - id: Horse_Tier2
+    displayName: "Ng\u1EF1a nh\u1ECF"
+    description: "D\xE2n gian lu\xF4n n\xF3i, nh\u1ECF m\xE0 c\xF3 v\xF5"
+    category: 1
+    cost: 300
+    prefab: {fileID: 6971327475350281801, guid: b4d1f4b17fc44014cbe4e8c5510cc97a, type: 3}
+  - id: Horse_Tier3
+    displayName: "Ng\u1EF1a l\u1EEDa"
+    description: "Kh\xF4ng c\xF3 l\u1EEDa th\xEC sao c\xF3 kh\xF3i"
+    category: 1
+    cost: 500
+    prefab: {fileID: 9056600945002159126, guid: 90f4a8a6a6b862a4884299d6f751a22e, type: 3}
+  - id: Horse_Tier4
+    displayName: "Ng\u1EF1a s\u1EAFt"
+    description: "\u0110\xE2y c\xF3 v\u1EBB l\xE0 con ng\u1EF1a m\u1EA1nh nh\u1EA5t,
+      ki\xEAn c\u01B0\u1EDDng, kh\u1ECFe m\u1EA1nh."
+    category: 1
+    cost: 1000
+    prefab: {fileID: 3968897697879102497, guid: 08549e7454f193f4d8ff6387dfdb5d6f, type: 3}
+  - id: Character_Tier4
+    displayName: "Th\xE1nh Gi\xF3ng"
+    description: "H\xECnh th\xE1i t\u1ED1i th\u01B0\u1EE3ng"
+    category: 2
+    cost: 1000
+    prefab: {fileID: 6024861819228953855, guid: 76a08068aca8a0b4b8ee6d28e206b3bb, type: 3}
+  - id: Weapon_Tier1
+    displayName: "Ki\u1EBFm Th\u01B0\u1EDDng"
+    description: "M\u1ED9t c\xE2y ki\u1EBFm \u0111\u1EC3 ch\xE9m k\u1EBB \u0111\u1ECBch"
+    category: 0
+    cost: 100
+    prefab: {fileID: 8693844333337119980, guid: e1eb184e65991c04cb472dd6a1d7c96d, type: 3}
+  - id: Weapon_Tier2
+    displayName: "Thanh \u0110ao"
+    description: "M\u1ED9t c\xE2y \u0111ao \u0111\u1EC3 ch\xE9m k\u1EBB \u0111\u1ECBch"
+    category: 0
+    cost: 300
+    prefab: {fileID: 4005225249148235920, guid: c17494c50ebc8b34887586635f6cb1f2, type: 3}
 --- !u!4 &1483957560
 Transform:
   m_ObjectHideFlags: 0
@@ -3031,8 +3099,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraManager
   shopCamera: {fileID: 1767077631}
   equipmentCamera: {fileID: 406851932}
-  shopCanva: {fileID: 2024942651}
-  equipmentCanva: {fileID: 0}
 --- !u!114 &1483957562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3059,12 +3125,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentPreviewManager
   playerAnchor: {fileID: 1534023750}
-  weaponAnchor: {fileID: 1534023750}
+  weaponAnchor: {fileID: 335094987}
   horseAnchor: {fileID: 66085661}
-  ultimateAnchor: {fileID: 0}
-  weaponPrefabs:
+  characterPrefabs:
   - {fileID: 5913312537555986661, guid: bc2a3d7378941a14693fbd1fcbc00359, type: 3}
   - {fileID: 4546870302424741488, guid: 50c07a9c58f81b8408dc196d09979478, type: 3}
+  - {fileID: 6024861819228953855, guid: a7dc887778819a44a9baf195bea910cd, type: 3}
+  - {fileID: 6024861819228953855, guid: a7dc887778819a44a9baf195bea910cd, type: 3}
+  horsePrefabs:
+  - {fileID: 2509007373314399612, guid: 03a857eff65d5244f868119b3643d232, type: 3}
+  - {fileID: 6971327475350281801, guid: 8f14ec3083bd9d647a0c8b339b3e4299, type: 3}
+  - {fileID: 9056600945002159126, guid: dcafcc10797f0234ea7b02413e22a09d, type: 3}
+  - {fileID: 3968897697879102497, guid: 852c98d7af3562244a4fe5bffa3f9eb8, type: 3}
+  weaponPrefabs:
+  - {fileID: 8693844333337119980, guid: e1eb184e65991c04cb472dd6a1d7c96d, type: 3}
+  - {fileID: 4005225249148235920, guid: c17494c50ebc8b34887586635f6cb1f2, type: 3}
 --- !u!1 &1534023749
 GameObject:
   m_ObjectHideFlags: 0
@@ -3323,6 +3398,7 @@ Transform:
   m_Children:
   - {fileID: 1534023750}
   - {fileID: 66085661}
+  - {fileID: 335094987}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1707254088
@@ -3942,7 +4018,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1628753036}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0.99994034
+  m_Size: 0.9999978
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -4240,76 +4316,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShopUI
   previewManager: {fileID: 1483957562}
-  equipmentPreviewManager: {fileID: 0}
---- !u!1001 &2067045474
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 66085661}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.94850594
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.3167594
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 36.934
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 3f685be65680164498bc418168fb51ed, type: 3}
-      propertyPath: m_Name
-      value: Horse Running
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 3f685be65680164498bc418168fb51ed, type: 3}
+  equipmentPreviewManager: {fileID: 1483957563}
 --- !u!1 &2124715501
 GameObject:
   m_ObjectHideFlags: 0

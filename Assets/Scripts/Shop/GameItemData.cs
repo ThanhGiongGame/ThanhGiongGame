@@ -27,14 +27,14 @@ public class GameItemData
     {
         switch (category)
         {
-            case ItemCategory.Weapon:
+            case ItemCategory.Character:
                 return PlayerPrefs.GetString("EquippedCharacter") == id;
 
             case ItemCategory.Mount:
                 return PlayerPrefs.GetString("EquippedHorse") == id;
 
-            case ItemCategory.Ultimate:
-                return PlayerPrefs.GetString("EquippedUltimate") == id;
+            case ItemCategory.Weapon:
+                return PlayerPrefs.GetString("EquippedWeapon") == id;
         }
 
         return false;
