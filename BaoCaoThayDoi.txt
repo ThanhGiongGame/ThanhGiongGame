@@ -1,0 +1,50 @@
+BÁO CÁO CẬP NHẬT VÀ TỐI ƯU HÓA HỆ THỐNG MÔI TRƯỜNG & WAVE QUÁI - GAME THANH GIÓNG
+=============================================================================
+
+Kính gửi: Giáo viên hướng dẫn
+Sinh viên thực hiện: [Tên của bạn]
+Dự án: Game 3D Thanh Gióng (Unity 6.3 LTS - URP)
+
+Dưới đây là chi tiết các nội dung cập nhật, sửa lỗi và tối ưu hóa hệ thống bản đồ (Map 1, Map 3) cùng cơ chế sinh quái vật đã được triển khai thành công vào dự án:
+
+1. KHẮC PHỤC LỖI TRÙNG LẮP VẬT THỂ (Xử lý chồng lấn Nhà & Cây xanh)
+------------------------------------------------------------------
+- Triệu chứng lỗi: Các ngôi nhà lá và cây xanh lớn sinh ngẫu nhiên (procedural spawn) thường xuyên bị đè lên nhau, dính sát vào nhau làm mất tính thẩm mỹ và cản trở di chuyển của nhân vật.
+- Giải pháp kỹ thuật:
+  + Cập nhật thuật toán sinh vật thể trong hàm `GenerateChunk()` của lớp `MapManager`.
+  + Triển khai cơ chế kiểm tra khoảng cách Euclidean tự động trước khi đặt vật thể (Spawn-position Validation):
+    * Đối với vật thể lớn (Nhà lá, Cây sồi, Cây liễu...): Thiết lập khoảng cách an toàn tối thiểu giữa các tâm là 6.0 mét. Nếu vị trí mới nằm trong bán kính 6.0m của bất kỳ vật thể nào đã tồn tại, game sẽ tự động tính toán lại vị trí (Thử tối đa 10 lần) để tách biệt hoàn toàn.
+    * Đối với vật thể nhỏ phủ nền (Cỏ dại, Hoa dại, Đá nhỏ): Thiết lập khoảng cách an toàn tối thiểu 1.0 mét để thảm cỏ phân bố đều, đẹp mắt mà không bị dính cục.
+- Kết quả: Nhà lá và cây cối trên bản đồ (đặc biệt là Map 1) phân bố thoáng đãng, tự nhiên và chuyên nghiệp.
+
+2. THIẾT KẾ LẠI VÀ TỐI ƯU HÓA TOÀN DIỆN MAP 3 (BẢN ĐỒ RỪNG TRE)
+--------------------------------------------------------------
+- Các lỗi đã xử lý trên Map 3 cũ:
+  1. Lỗi bị màn hình xanh lá cây che toàn bộ tầm nhìn: Do khóm cỏ cemetery mọc ở kích thước scale quá lớn che khuất camera.
+  2. Lỗi hiển thị vật thể màu hồng/tím (Shader Error): Do mô hình GLB (bamboo, house) sử dụng shader glTF cũ không tương thích với Universal Render Pipeline (URP).
+- Các cải tiến mới:
+  + Loại bỏ hoàn toàn nhà lá: Xóa bỏ nhà lá ở Map 3 để tạo không gian rừng tre hoang sơ, đậm chất tự nhiên.
+  + Thiết lập cơ chế mọc tre theo khóm (Bamboo Groves): 
+    * Xây dựng hàm `SpawnBambooGroup()` để sinh từ 2 đến 4 bụi tre mọc cụm lại với nhau thay vì mọc đơn lẻ, tạo nên các rặng tre sinh động.
+    * Cân chỉnh tỉ lệ kích thước tre về mức hợp lý (Scale Multiplier = 0.5f) giúp tre cao lớn, hùng vĩ nhưng hoàn toàn không che camera.
+  + Xen kẽ cây xanh tự nhiên: Cấu hình tỷ lệ 16% xuất hiện các cây xanh lá (cây liễu, cây thông) đan xen với tre để khu rừng trông tươi mát và đa dạng thực vật.
+  + Tăng mật độ cỏ xanh phủ nền: 
+    * Tăng mật độ cỏ nền phủ đất lên gấp gần 3 lần (38 cụm cỏ/chunk thay vì 14 cụm mặc định).
+    * Phóng to nhẹ cỏ dại (scale 0.8 - 1.5) và bụi cây nhỏ (scale 0.5 - 1.0) cho lớp phủ xanh cực dày, mềm mại và đẹp mắt.
+  + Khắc phục triệt để lỗi hồng/tím bằng Shader Converter:
+    * Viết đoạn mã chuyển đổi vật liệu tự động tại runtime trong hàm `SpawnModel()`. Nếu phát hiện vật thể GLB dùng shader lỗi hoặc Standard, game tự động chuyển sang shader `Universal Render Pipeline/Lit` chuẩn của URP, đồng thời giữ nguyên màu sắc gốc và texture chính của mô hình.
+
+3. ĐIỀU CHỈNH CƠ CHẾ SINH QUÁI ĐẶC TRƯNG CHO MAP 3
+---------------------------------------------------
+- Yêu cầu: Map 3 (Rừng Tre) chỉ được phép xuất hiện 2 loại quái vật đặc thù là Quái Gà (chicken) và Lính đi bộ (EnemyB).
+- Giải pháp kỹ thuật:
+  + Cập nhật cơ chế chuyển đổi quái trong lớp `WaveSpawner` tại hàm `SpawnEnemy()`.
+  + Khi bản đồ đang chơi là Map 3 (SelectedMap = 2), hệ thống sẽ lọc và tự động chuyển đổi:
+    * Chuyển tất cả lính cưỡi ngựa (EnemyA) thành Quái Gà (chicken).
+    * Chuyển tất cả lính ném lao (EnemyC) thành Lính đi bộ (EnemyB).
+    * Giữ nguyên lính đi bộ (EnemyB) và quái gà (chicken) mặc định của đợt quái.
+- Kết quả: Đảm bảo độ khó của màn chơi không đổi nhưng các loại quái xuất hiện hoàn toàn phù hợp với bối cảnh Rừng Tre hoang dã.
+
+=============================================================================
+File báo cáo này được tạo tự động bởi Antigravity AI trợ lý phát triển game.
+Trạng thái mã nguồn: Đã được cập nhật thành công, sạch lỗi biên dịch và đã push lên Git.
