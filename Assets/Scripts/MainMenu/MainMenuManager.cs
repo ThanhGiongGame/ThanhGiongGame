@@ -10,6 +10,7 @@ using UnityEngine.InputSystem;
 public class MainMenuManager : MonoBehaviour
 {
     private const string ShopSceneName = "GameShopScene";
+    private const string TutorialSceneName = "TutorialScene";
 
     [Header("UI Panels")]
     public GameObject settingsPanel;
@@ -215,7 +216,11 @@ public class MainMenuManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        SceneManager.LoadScene(ShopSceneName);
+        string nextScene = PlayerPrefs.GetInt("TutorialComplete", 0) == 1
+            ? ShopSceneName
+            : TutorialSceneName;
+
+        SceneManager.LoadScene(nextScene);
     }
 
     private void ResolveReferences()
