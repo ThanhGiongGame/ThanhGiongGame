@@ -118,6 +118,7 @@ public class Enemy : MonoBehaviour
                 {
                     col.enabled = false;
                 }
+            }
         }
 
         // Auto-align visuals to stand on the ground based on CapsuleCollider
