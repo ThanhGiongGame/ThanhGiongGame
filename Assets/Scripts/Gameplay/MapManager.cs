@@ -290,7 +290,7 @@ public class MapManager : MonoBehaviour
         if (prefab == null) return null;
 
         GameObject instance = Instantiate(prefab, pos, prefab.transform.rotation, parent);
-        instance.transform.Rotate(Vector3.up, Random.Range(0f, 360f), Space.Self);
+        instance.transform.Rotate(Vector3.up, Random.Range(0f, 360f), Space.World);
         float scale = Random.Range(minScale, maxScale);
         float mult = GetScaleMultiplier(prefab.name);
         instance.transform.localScale = Vector3.one * (scale * mult);
