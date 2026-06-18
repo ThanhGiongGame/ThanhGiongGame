@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,6 +12,9 @@ public class MainMenuManager : MonoBehaviour
 {
     private const string ShopSceneName = "GameShopScene";
     private const string TutorialSceneName = "TutorialScene";
+    private const string TutorialCompleteKey = "TutorialComplete";
+    private const string HasSeenIntroKey = "HasSeenIntro";
+    private const string VinhDanhTotalKey = "VinhDanhTotal";
 
     [Header("UI Panels")]
     public GameObject settingsPanel;
@@ -32,6 +36,7 @@ public class MainMenuManager : MonoBehaviour
     private bool isLoadingScene;
     private bool isIntroPlaying;
     private float introStartedAt = -1f;
+    private Coroutine loadSceneCoroutine;
 
     private void Awake()
     {
@@ -157,6 +162,31 @@ public class MainMenuManager : MonoBehaviour
         introVideoPlayer.Play();
     }
 
+    public void ContinueGame()
+    {
+        if (isLoadingScene)
+        {
+            return;
+        }
+
+        isLoadingScene = true;
+        isIntroPlaying = false;
+        SetSettingsVisible(false);
+        SetIntroVideoVisible(false);
+
+        if (introVideoPlayer != null)
+        {
+            introVideoPlayer.Stop();
+        }
+
+        if (mainMenuContainer != null)
+        {
+            mainMenuContainer.SetActive(false);
+        }
+
+        StartCoroutine(LoadContinueSceneAfterUiEvent());
+    }
+
     public void SkipVideo()
     {
         if (isLoadingScene)
@@ -164,14 +194,22 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
 
+        BeginIntroTransition();
+        StartDeferredLoadNextScene();
+    }
+
+    private void BeginIntroTransition()
+    {
         isIntroPlaying = false;
+        isLoadingScene = true;
 
         if (introVideoPlayer != null)
         {
+            introVideoPlayer.loopPointReached -= OnIntroVideoFinished;
             introVideoPlayer.Stop();
         }
 
-        LoadNextScene();
+        SetIntroVideoVisible(false);
     }
 
     public void ToggleSettings()
@@ -197,7 +235,13 @@ public class MainMenuManager : MonoBehaviour
 
     private void OnIntroVideoFinished(VideoPlayer videoPlayer)
     {
-        LoadNextScene();
+        if (isLoadingScene)
+        {
+            return;
+        }
+
+        BeginIntroTransition();
+        StartDeferredLoadNextScene();
     }
 
     private void LoadNextScene()
@@ -207,16 +251,52 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
 
-        isLoadingScene = true;
-        isIntroPlaying = false;
+        BeginIntroTransition();
+        StartDeferredLoadNextScene();
+    }
 
-        if (!PlayerPrefs.HasKey("VinhDanhTotal"))
+    private void StartDeferredLoadNextScene()
+    {
+        if (loadSceneCoroutine != null)
         {
-            PlayerPrefs.SetInt("VinhDanhTotal", 0);
+            return;
+        }
+
+        loadSceneCoroutine = StartCoroutine(LoadNextSceneAfterUiEvent());
+    }
+
+    private IEnumerator LoadNextSceneAfterUiEvent()
+    {
+        yield return null;
+
+        if (!PlayerPrefs.HasKey(VinhDanhTotalKey))
+        {
+            PlayerPrefs.SetInt(VinhDanhTotalKey, 0);
+        }
+
+        PlayerPrefs.SetInt(HasSeenIntroKey, 1);
+        PlayerPrefs.Save();
+
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(TutorialSceneName);
+    }
+
+    private IEnumerator LoadContinueSceneAfterUiEvent()
+    {
+        yield return null;
+
+        if (!PlayerPrefs.HasKey(VinhDanhTotalKey))
+        {
+            PlayerPrefs.SetInt(VinhDanhTotalKey, 0);
             PlayerPrefs.Save();
         }
 
-        SceneManager.LoadScene(TutorialSceneName);
+        Time.timeScale = 1f;
+        bool hasProgress = PlayerPrefs.GetInt(TutorialCompleteKey, 0) == 1
+            || PlayerPrefs.GetInt(HasSeenIntroKey, 0) == 1
+            || PlayerPrefs.GetInt(VinhDanhTotalKey, 0) > 0;
+
+        SceneManager.LoadScene(hasProgress ? ShopSceneName : TutorialSceneName);
     }
 
     private void ResolveReferences()
@@ -264,27 +344,40 @@ public class MainMenuManager : MonoBehaviour
         ConfigureBackground();
         ConfigureTitle();
 
-        // 1. Nhân bản nút SETTINGS thành MAP_SELECT nếu chưa có
+        // 1. Nhân bản nút SETTINGS thành các nút phụ nếu chưa có
         GameObject settingsBtnGO = FindByName("SETTINGS");
-        GameObject mapBtnGO = FindByName("MAP_SELECT");
-        if (settingsBtnGO != null && mapBtnGO == null)
+        if (settingsBtnGO != null)
         {
-            mapBtnGO = Instantiate(settingsBtnGO, settingsBtnGO.transform.parent);
-            mapBtnGO.name = "MAP_SELECT";
-            Button btn = mapBtnGO.GetComponent<Button>();
-            if (btn != null)
-            {
-                btn.onClick.RemoveAllListeners();
-                btn.onClick.AddListener(OpenMapSelection);
-            }
+            EnsureMenuButtonClone(settingsBtnGO, "CONTINUE", ContinueGame);
+            EnsureMenuButtonClone(settingsBtnGO, "MAP_SELECT", OpenMapSelection);
         }
 
-        // 2. Định vị lại 3 nút cho cân đối
-        ConfigureMenuButton("PLAY", new Vector2(0f, 130f), "PLAY");
-        ConfigureMenuButton("SETTINGS", new Vector2(0f, 10f), "SETTING");
-        ConfigureMenuButton("MAP_SELECT", new Vector2(0f, -110f), "BẢN ĐỒ");
+        // 2. Định vị lại menu chính cho flow rõ hơn.
+        ConfigureMenuButton("PLAY", new Vector2(0f, 150f), "BẮT ĐẦU HÀNH TRÌNH");
+        ConfigureMenuButton("CONTINUE", new Vector2(0f, 42f), "TIẾP TỤC");
+        ConfigureMenuButton("MAP_SELECT", new Vector2(0f, -66f), "BẢN ĐỒ");
+        ConfigureMenuButton("SETTINGS", new Vector2(0f, -174f), "CÀI ĐẶT");
         NormalizeSettingsPanel();
         NormalizeIntroVideoPanel();
+    }
+
+    private static GameObject EnsureMenuButtonClone(GameObject template, string objectName, UnityEngine.Events.UnityAction onClick)
+    {
+        GameObject buttonObject = FindByName(objectName);
+        if (buttonObject == null)
+        {
+            buttonObject = Instantiate(template, template.transform.parent);
+            buttonObject.name = objectName;
+        }
+
+        Button button = buttonObject.GetComponent<Button>();
+        if (button != null)
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(onClick);
+        }
+
+        return buttonObject;
     }
 
     private void ConfigureCanvasRoot()
@@ -403,7 +496,7 @@ public class MainMenuManager : MonoBehaviour
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = position;
-            rect.sizeDelta = new Vector2(560f, 96f);
+            rect.sizeDelta = new Vector2(560f, 86f);
             rect.localScale = Vector3.one;
         }
 
@@ -418,8 +511,10 @@ public class MainMenuManager : MonoBehaviour
         if (label != null)
         {
             label.text = labelText;
-            label.fontSize = 54f;
-            label.enableAutoSizing = false;
+            label.fontSize = 44f;
+            label.enableAutoSizing = true;
+            label.fontSizeMin = 30f;
+            label.fontSizeMax = 44f;
             label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
 

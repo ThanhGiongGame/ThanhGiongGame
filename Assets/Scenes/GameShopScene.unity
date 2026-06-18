@@ -2993,13 +2993,13 @@ MonoBehaviour:
   - id: Character_Tier1
     displayName: "N\xF4ng D\xE2n"
     description: "B\xECnh th\u01B0\u1EDDng"
-    category: 0
+    category: 2
     cost: 100
     prefab: {fileID: 781970391091174967, guid: 23459a5b659945b43a747f26521c31a2, type: 3}
   - id: Character_Tier2
     displayName: "L\xEDnh c\u01A1 b\u1EA3n"
     description: "B\xECnh th\u01B0\u1EDDng"
-    category: 0
+    category: 2
     cost: 200
     prefab: {fileID: 3421364616178249779, guid: bc11815aa798409419bf738380714adf, type: 3}
 --- !u!4 &1483957560

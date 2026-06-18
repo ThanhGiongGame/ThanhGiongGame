@@ -20,7 +20,7 @@ public class EquipmentUI : MonoBehaviour
     [Header("Preview")]
     [SerializeField] private EquipmentPreviewManager previewManager;
     private InventoryManager.ItemCategory currentCategory =
-    InventoryManager.ItemCategory.Weapon;
+    InventoryManager.ItemCategory.Character;
     private GameItemData selectedItem;
 
     [Header("Button")]
