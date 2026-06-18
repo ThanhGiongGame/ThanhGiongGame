@@ -190,9 +190,9 @@ public class ShopUI : MonoBehaviour
         RectTransform filterBar = CreateRect(leftPanel, "FilterBar");
         SetRect(filterBar, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -135f), new Vector2(500f, 44f), new Vector2(0.5f, 1f));
         allFilterButton = CreateSmallButton(filterBar, "AllFilter", "TẤT CẢ", new Vector2(-187.5f, 0f), () => SelectFilter(CategoryFilter.All));
-        weaponFilterButton = CreateSmallButton(filterBar, "WeaponFilter", "WEAPON", new Vector2(-62.5f, 0f), () => SelectFilter(CategoryFilter.Weapon));
-        mountFilterButton = CreateSmallButton(filterBar, "MountFilter", "MOUNT", new Vector2(62.5f, 0f), () => SelectFilter(CategoryFilter.Mount));
-        characterFilterButton = CreateSmallButton(filterBar, "CharacterFilter", "CHARACTER", new Vector2(187.5f, 0f), () => SelectFilter(CategoryFilter.Character));
+        characterFilterButton = CreateSmallButton(filterBar, "CharacterFilter", "NHÂN VẬT", new Vector2(-62.5f, 0f), () => SelectFilter(CategoryFilter.Character));
+        mountFilterButton = CreateSmallButton(filterBar, "MountFilter", "THÚ CƯỠI", new Vector2(62.5f, 0f), () => SelectFilter(CategoryFilter.Mount));
+        weaponFilterButton = CreateSmallButton(filterBar, "WeaponFilter", "VŨ KHÍ", new Vector2(187.5f, 0f), () => SelectFilter(CategoryFilter.Weapon));
 
         RectTransform listViewport = CreatePanel(leftPanel, "ListViewport", new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), new Color(0f, 0f, 0f, 0.22f));
         Stretch(listViewport, 24f, 198f, 24f, 24f);
@@ -549,6 +549,11 @@ public class ShopUI : MonoBehaviour
 
     private void SelectFilter(CategoryFilter filter)
     {
+        if (filter != CategoryFilter.All && !HasItemsForFilter(filter))
+        {
+            return;
+        }
+
         currentFilter = filter;
         RebuildItemList();
         UpdateFilterVisuals();
@@ -638,7 +643,7 @@ public class ShopUI : MonoBehaviour
         selectedItem = item;
         Debug.Log("Item " + item.displayName);
         itemNameText.text = item.displayName;
-        itemMetaText.text = item.category.ToString();
+        itemMetaText.text = GetCategoryLabel(item.category);
         itemPriceText.text = currentMode == ShopMode.Shop ? item.cost + " Vinh Danh" : "Đã sở hữu";
         itemDescriptionText.text = item.description;
         itemStatusText.text = GetStatusText(item);
@@ -821,10 +826,70 @@ public class ShopUI : MonoBehaviour
 
     private void UpdateFilterVisuals()
     {
-        SetButtonColor(allFilterButton, currentFilter == CategoryFilter.All, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
-        SetButtonColor(weaponFilterButton, currentFilter == CategoryFilter.Weapon, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
-        SetButtonColor(mountFilterButton, currentFilter == CategoryFilter.Mount, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
-        SetButtonColor(characterFilterButton, currentFilter == CategoryFilter.Character, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.9f, 0.82f, 0.58f, 0.98f));
+        SetFilterButtonState(allFilterButton, true, currentFilter == CategoryFilter.All);
+        SetFilterButtonState(characterFilterButton, HasItemsForFilter(CategoryFilter.Character), currentFilter == CategoryFilter.Character);
+        SetFilterButtonState(mountFilterButton, HasItemsForFilter(CategoryFilter.Mount), currentFilter == CategoryFilter.Mount);
+        SetFilterButtonState(weaponFilterButton, HasItemsForFilter(CategoryFilter.Weapon), currentFilter == CategoryFilter.Weapon);
+    }
+
+    private bool HasItemsForFilter(CategoryFilter filter)
+    {
+        if (InventoryManager.Instance == null)
+        {
+            return false;
+        }
+
+        foreach (GameItemData item in InventoryManager.Instance.allItems)
+        {
+            if (filter == CategoryFilter.Character && item.category == InventoryManager.ItemCategory.Character)
+            {
+                return true;
+            }
+
+            if (filter == CategoryFilter.Mount && item.category == InventoryManager.ItemCategory.Mount)
+            {
+                return true;
+            }
+
+            if (filter == CategoryFilter.Weapon && item.category == InventoryManager.ItemCategory.Weapon)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string GetCategoryLabel(InventoryManager.ItemCategory category)
+    {
+        return category switch
+        {
+            InventoryManager.ItemCategory.Character => "Nhân vật",
+            InventoryManager.ItemCategory.Mount => "Thú cưỡi",
+            InventoryManager.ItemCategory.Weapon => "Vũ khí",
+            _ => category.ToString()
+        };
+    }
+
+    private static void SetFilterButtonState(Button button, bool available, bool active)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        button.interactable = available;
+
+        Color activeColor = new Color(1f, 0.72f, 0.14f, 0.98f);
+        Color inactiveColor = new Color(0.9f, 0.82f, 0.58f, 0.98f);
+        Color unavailableColor = new Color(0.38f, 0.35f, 0.26f, 0.72f);
+        SetButtonColor(button, active, activeColor, available ? inactiveColor : unavailableColor);
+
+        TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
+        if (label != null)
+        {
+            label.color = available ? new Color(0.08f, 0.07f, 0.04f, 1f) : new Color(0.72f, 0.68f, 0.56f, 0.9f);
+        }
     }
 
     private static RectTransform CreatePanel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size, Vector2 pivot)

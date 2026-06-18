@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// MapManager v3 — Realistic chunk-based prop spawning using real 3D models.
@@ -15,6 +16,11 @@ public class MapManager : MonoBehaviour
     private const int DESPAWN_RANGE = 5;
     private const int PROPS_PER_CHUNK = 10;
     private const int GROUND_COVER_PER_CHUNK = 14;
+    private const int MAP3_VIEW_RANGE = 1;
+    private const int MAP3_DESPAWN_RANGE = 2;
+    private const int MAP3_PROPS_PER_CHUNK = 4;
+    private const int MAP3_GROUND_COVER_PER_CHUNK = 6;
+    private static readonly bool VERBOSE_SPAWN_LOGS = false;
 
     // --- State ---
     private Transform _player;
@@ -119,9 +125,10 @@ public class MapManager : MonoBehaviour
             plane.transform.position = new Vector3(targetX, plane.transform.position.y, targetZ);
         }
 
-        for (int x = currentChunk.x - VIEW_RANGE; x <= currentChunk.x + VIEW_RANGE; x++)
+        int viewRange = GetViewRange();
+        for (int x = currentChunk.x - viewRange; x <= currentChunk.x + viewRange; x++)
         {
-            for (int z = currentChunk.y - VIEW_RANGE; z <= currentChunk.y + VIEW_RANGE; z++)
+            for (int z = currentChunk.y - viewRange; z <= currentChunk.y + viewRange; z++)
             {
                 Vector2Int key = new Vector2Int(x, z);
                 if (!_activeChunks.ContainsKey(key))
@@ -138,10 +145,11 @@ public class MapManager : MonoBehaviour
         }
 
         var toRemove = new List<Vector2Int>();
+        int despawnRange = GetDespawnRange();
         foreach (var kvp in _activeChunks)
         {
             int dist = Mathf.Max(Mathf.Abs(kvp.Key.x - currentChunk.x), Mathf.Abs(kvp.Key.y - currentChunk.y));
-            if (dist > DESPAWN_RANGE)
+            if (dist > despawnRange)
             {
                 Destroy(kvp.Value);
                 toRemove.Add(kvp.Key);
@@ -158,9 +166,29 @@ public class MapManager : MonoBehaviour
         );
     }
 
+    private int GetViewRange()
+    {
+        return _mapIndex == 2 ? MAP3_VIEW_RANGE : VIEW_RANGE;
+    }
+
+    private int GetDespawnRange()
+    {
+        return _mapIndex == 2 ? MAP3_DESPAWN_RANGE : DESPAWN_RANGE;
+    }
+
+    private int GetPropsPerChunk()
+    {
+        return _mapIndex == 2 ? MAP3_PROPS_PER_CHUNK : PROPS_PER_CHUNK;
+    }
+
+    private int GetGroundCoverPerChunk()
+    {
+        return _mapIndex == 2 ? MAP3_GROUND_COVER_PER_CHUNK : GROUND_COVER_PER_CHUNK;
+    }
+
     private GameObject GenerateChunk(Vector2Int chunkCoord)
     {
-        Debug.Log($"[MapManager] Generating chunk at coordinate {chunkCoord}");
+        if (VERBOSE_SPAWN_LOGS) Debug.Log($"[MapManager] Generating chunk at coordinate {chunkCoord}");
         GameObject chunk = new GameObject($"Chunk_{chunkCoord.x}_{chunkCoord.y}");
         chunk.transform.SetParent(_propsRoot);
 
@@ -171,7 +199,8 @@ public class MapManager : MonoBehaviour
 
         List<Vector3> spawnedPropPositions = new List<Vector3>();
 
-        for (int i = 0; i < PROPS_PER_CHUNK; i++)
+        int propsPerChunk = GetPropsPerChunk();
+        for (int i = 0; i < propsPerChunk; i++)
         {
             Vector3 pos = Vector3.zero;
             bool valid = false;
@@ -212,7 +241,7 @@ public class MapManager : MonoBehaviour
         }
 
         List<Vector3> spawnedCoverPositions = new List<Vector3>();
-        int groundCoverCount = _mapIndex == 2 ? 38 : GROUND_COVER_PER_CHUNK; // Tăng mật độ cỏ phủ của Rừng Tre lên 38 cụm per chunk!
+        int groundCoverCount = GetGroundCoverPerChunk();
 
         for (int i = 0; i < groundCoverCount; i++)
         {
@@ -377,6 +406,8 @@ public class MapManager : MonoBehaviour
         Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
         foreach (var r in renderers)
         {
+            DisableExpensiveRendererFeatures(r);
+
             if (r.sharedMaterial != null)
             {
                 Shader s = r.sharedMaterial.shader;
@@ -421,9 +452,20 @@ public class MapManager : MonoBehaviour
         {
             rendererInfo = "No renderers found!";
         }
-        Debug.Log($"[MapManager] Spawning {prefab.name} at {pos} with baseScale={scale}, mult={mult}, finalScale={scale*mult}. Bounds size: {boundsSize}, center: {boundsCenter}. Info: {rendererInfo}");
+        if (VERBOSE_SPAWN_LOGS)
+        {
+            Debug.Log($"[MapManager] Spawning {prefab.name} at {pos} with baseScale={scale}, mult={mult}, finalScale={scale*mult}. Bounds size: {boundsSize}, center: {boundsCenter}. Info: {rendererInfo}");
+        }
 
         return instance;
+    }
+
+    private static void DisableExpensiveRendererFeatures(Renderer renderer)
+    {
+        renderer.shadowCastingMode = ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+        renderer.lightProbeUsage = LightProbeUsage.Off;
+        renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
     }
 
     private void RemoveAllColliders(GameObject go)
@@ -564,7 +606,7 @@ public class MapManager : MonoBehaviour
 
     private void SpawnBambooGroup(Vector3 pos, Transform parent)
     {
-        int count = Random.Range(2, 5); // Tạo thành các khóm tre gồm 2 đến 4 bụi mọc sát nhau
+        int count = _mapIndex == 2 ? Random.Range(1, 3) : Random.Range(2, 5); // Map 3 dùng model tre nặng, giữ cụm nhỏ để tránh tụt FPS.
         for (int i = 0; i < count; i++)
         {
             Vector3 offset = new Vector3(Random.Range(-2.5f, 2.5f), 0f, Random.Range(-2.5f, 2.5f));
