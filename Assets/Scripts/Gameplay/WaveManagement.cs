@@ -103,18 +103,15 @@ public class WaveSpawner : MonoBehaviour
         // Spawn one by one with random delay
         foreach (GameObject enemyPrefab in enemiesToSpawn)
         {
-            while (true)
+            while (PauseSpawn)
             {
-
-                if (!PauseSpawn)
-                {
-                    SpawnEnemy(enemyPrefab);
-                }
-
-                float randomDelay = Random.Range(0.5f, 2f);
-
-                yield return new WaitForSeconds(randomDelay);
+                yield return new WaitForSeconds(0.5f);
             }
+
+            SpawnEnemy(enemyPrefab);
+
+            float randomDelay = Random.Range(0.5f, 2f);
+            yield return new WaitForSeconds(randomDelay);
         }
     }
 
@@ -139,6 +136,27 @@ public class WaveSpawner : MonoBehaviour
         return null;
     }
 
+    private GameObject FindEnemyCPrefab()
+    {
+        if (waves != null)
+        {
+            foreach (var w in waves)
+            {
+                if (w.enemies != null)
+                {
+                    foreach (var info in w.enemies)
+                    {
+                        if (info.enemyPrefab != null && info.enemyPrefab.name == "EnemyC")
+                        {
+                            return info.enemyPrefab;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private void SpawnEnemy(GameObject enemyPrefab)
     {
         if (player == null) return;
@@ -151,6 +169,19 @@ public class WaveSpawner : MonoBehaviour
             if (enemyB != null)
             {
                 enemyPrefab = enemyB;
+            }
+        }
+
+        // Map 2: 35% chance to swap EnemyA or EnemyB with EnemyC (javelin thrower)
+        if (PlayerPrefs.GetInt("SelectedMap", 0) == 1 && enemyPrefab != null && (enemyPrefab.name == "EnemyA" || enemyPrefab.name == "EnemyB"))
+        {
+            if (Random.value < 0.35f)
+            {
+                GameObject enemyC = FindEnemyCPrefab();
+                if (enemyC != null)
+                {
+                    enemyPrefab = enemyC;
+                }
             }
         }
 

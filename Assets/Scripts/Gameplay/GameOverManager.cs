@@ -121,7 +121,7 @@ public class GameOverManager : MonoBehaviour
         // =========================
         CreateText(
             panel.transform,
-            "☠ THẤT BẠI ☠",
+            "THẤT BẠI",
             new Vector2(0f, 250f),
             56,
             FontStyle.Bold,
@@ -153,7 +153,7 @@ public class GameOverManager : MonoBehaviour
         // Enemy Killed
         CreateStatRow(
             statPanel.transform,
-            "⚔ Quái đã tiêu diệt",
+            "Quái đã tiêu diệt",
             enemiesKilled.ToString(),
             new Vector2(0f, 70f)
         );
@@ -161,7 +161,7 @@ public class GameOverManager : MonoBehaviour
         // Time survived
         CreateStatRow(
             statPanel.transform,
-            "⏱ Thời gian sống sót",
+            "Thời gian sống sót",
             timeSurvived.ToString("F0") + " giây",
             new Vector2(0f, 0f)
         );
@@ -169,7 +169,7 @@ public class GameOverManager : MonoBehaviour
         // Score
         CreateStatRow(
             statPanel.transform,
-            "💰 Vinh Danh nhận được",
+            "Vinh Danh nhận được",
             "+" + scoreEarned,
             new Vector2(0f, -70f),
             new Color(1f, 0.85f, 0.2f)
@@ -197,7 +197,7 @@ public class GameOverManager : MonoBehaviour
         // Retry
         CreateButton(
             panel.transform,
-            "↻ CHƠI LẠI",
+            "CHƠI LẠI",
             new Vector2(-170f, -260f),
             new Vector2(280f, 75f),
             new Color(0.2f, 0.55f, 0.95f),
@@ -213,7 +213,7 @@ public class GameOverManager : MonoBehaviour
         // Shop
         CreateButton(
             panel.transform,
-            "🛒 SHOP",
+            "SHOP",
             new Vector2(170f, -260f),
             new Vector2(280f, 75f),
             new Color(0.18f, 0.7f, 0.45f),
@@ -227,7 +227,7 @@ public class GameOverManager : MonoBehaviour
         // Menu
         CreateButton(
             panel.transform,
-            "← MENU",
+            "MENU",
             new Vector2(0f, -360f),
             new Vector2(220f, 60f),
             new Color(0.3f, 0.3f, 0.35f),
@@ -278,10 +278,11 @@ public class GameOverManager : MonoBehaviour
         Text leftText = CreateText(
             row.transform,
             left,
-            new Vector2(-180f, 0f),
+            new Vector2(-165f, 0f),
             28,
             FontStyle.Normal,
-            Color.white
+            Color.white,
+            new Vector2(330f, 50f)
         );
 
         leftText.alignment =
@@ -290,10 +291,11 @@ public class GameOverManager : MonoBehaviour
         Text rightText = CreateText(
             row.transform,
             right,
-            new Vector2(180f, 0f),
+            new Vector2(165f, 0f),
             28,
             FontStyle.Bold,
-            valueColor ?? Color.white
+            valueColor ?? Color.white,
+            new Vector2(330f, 50f)
         );
 
         rightText.alignment =
@@ -343,7 +345,8 @@ public class GameOverManager : MonoBehaviour
         Vector2 pos,
         int fontSize,
         FontStyle style,
-        Color color
+        Color color,
+        Vector2? customSize = null
     )
     {
         GameObject go =
@@ -352,7 +355,7 @@ public class GameOverManager : MonoBehaviour
         RectTransform rt =
             go.AddComponent<RectTransform>();
 
-        rt.sizeDelta = new Vector2(800f, 80f);
+        rt.sizeDelta = customSize ?? new Vector2(800f, 80f);
         rt.anchoredPosition = pos;
 
         Text txt = go.AddComponent<Text>();
