@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
     public float attackInterval = 1.2f;   // 0.2s wind-up + 1.0s swing
     public float attackWindUp = 0.2f;   // delay before slash spawns
 
+    public Boolean Tutorial = false;
+
     // ---- Private references ----
     private CharacterController controller;
     private PlayerHealth playerHealth;
@@ -69,10 +71,13 @@ public class PlayerController : MonoBehaviour
         float baseDamage = 20f;
         float baseMaxHealth = 100f;
         float baseSpeed = 5f;
+        if (Tutorial != true)
+        {
+            baseDamage += equipmentLoader.bonusDamage;
+            baseMaxHealth += equipmentLoader.bonusHealth;
+            baseSpeed += equipmentLoader.bonusSpeed;
 
-        baseDamage += equipmentLoader.bonusDamage;
-        baseMaxHealth += equipmentLoader.bonusHealth;
-        baseSpeed += equipmentLoader.bonusSpeed;
+        }
 
         moveSpeed = baseSpeed;
         playerHealth.maxHealth = baseMaxHealth;
@@ -85,7 +90,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // --- Safe Initialization for the Horse Animator ---
-        if ( equipmentLoader == null)
+        if ( equipmentLoader == null && Tutorial != true)
         {
             equipmentLoader = GetComponent<PlayerEquipmentLoader>();
             if (equipmentLoader == null)
@@ -275,7 +280,7 @@ public class PlayerController : MonoBehaviour
         if (attackTimer <= 0f)
         {
             StartCoroutine(AttackCoroutine());
-            attackTimer = attackInterval;   // reset immediately so interval is consistent
+            attackTimer = attackInterval;   
         }
     }
 

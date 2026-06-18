@@ -389,7 +389,7 @@ Transform:
   m_GameObject: {fileID: 666081250}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.47, z: 0}
+  m_LocalPosition: {x: 0, y: 0.47, z: 1.47}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1001,10 +1001,10 @@ MonoBehaviour:
   characterRoot: {fileID: 666081251}
   horseRoot: {fileID: 1316441235}
   weaponRoot: {fileID: 1207967657}
-  characterTier1: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
-  characterTier2: {fileID: 460888558947869650, guid: 5b966e8d87c776c42af48c875a658a82, type: 3}
-  characterTier3: {fileID: 0}
-  characterTier4: {fileID: 4512170588583290856, guid: 5cc627f53b76227409e8d63a049009b5, type: 3}
+  characterTier1: {fileID: 5810981235641027063, guid: 6c3a01e0c218f804e8904e9bd219a6b0, type: 3}
+  characterTier2: {fileID: 5335100030709257915, guid: 56f7ca89516d6104f9e4b35120e7e954, type: 3}
+  characterTier3: {fileID: 2744189008267092339, guid: f69053e060e26a74db1a2c0e1f559503, type: 3}
+  characterTier4: {fileID: 198213724827679966, guid: 883568315039e474fbcd3d120b774891, type: 3}
   horseTier1: {fileID: 2509007373314399612, guid: 03a857eff65d5244f868119b3643d232, type: 3}
   horseTier2: {fileID: 6971327475350281801, guid: 8f14ec3083bd9d647a0c8b339b3e4299, type: 3}
   horseTier3: {fileID: 9056600945002159126, guid: dcafcc10797f0234ea7b02413e22a09d, type: 3}
@@ -1057,6 +1057,7 @@ MonoBehaviour:
   attackSpawnPoint: {fileID: 0}
   attackInterval: 1.667
   attackWindUp: 0.417
+  Tutorial: 0
   equipmentLoader: {fileID: 1500706631}
 --- !u!114 &1500706637
 MonoBehaviour:

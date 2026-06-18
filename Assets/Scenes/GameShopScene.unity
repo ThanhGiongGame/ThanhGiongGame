@@ -1672,7 +1672,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -819.29944, y: 534.19977}
+  m_AnchoredPosition: {x: -854.9015, y: 534.2001}
   m_SizeDelta: {x: 1638, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &656462540
@@ -1873,8 +1873,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 956278772}
   m_HandleRect: {fileID: 956278771}
   m_Direction: 2
-  m_Value: 1
-  m_Size: 0.9999978
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3027,6 +3027,18 @@ MonoBehaviour:
     category: 2
     cost: 200
     prefab: {fileID: 3421364616178249779, guid: bc11815aa798409419bf738380714adf, type: 3}
+  - id: Character_Tier3
+    displayName: "L\xEDnh cao c\u1EA5p"
+    description: "\u0110\xE3 mang vinh danh v\u1EC1 cho l\xE0ng"
+    category: 2
+    cost: 300
+    prefab: {fileID: 7034946541306784703, guid: 698a873d3bf539540b3a7d2feaeb1ecd, type: 3}
+  - id: Character_Tier4
+    displayName: "Th\xE1nh Gi\xF3ng"
+    description: "H\xECnh th\xE1i t\u1ED1i th\u01B0\u1EE3ng"
+    category: 2
+    cost: 1000
+    prefab: {fileID: 6024861819228953855, guid: 76a08068aca8a0b4b8ee6d28e206b3bb, type: 3}
   - id: Horse_Tier1
     displayName: "Ng\u1EF1a c\u01A1 b\u1EA3n"
     description: "Ng\u1EF1a b\xECnh th\u01B0\u1EDDng nh\u1EA5t"
@@ -3052,12 +3064,6 @@ MonoBehaviour:
     category: 1
     cost: 1000
     prefab: {fileID: 3968897697879102497, guid: 08549e7454f193f4d8ff6387dfdb5d6f, type: 3}
-  - id: Character_Tier4
-    displayName: "Th\xE1nh Gi\xF3ng"
-    description: "H\xECnh th\xE1i t\u1ED1i th\u01B0\u1EE3ng"
-    category: 2
-    cost: 1000
-    prefab: {fileID: 6024861819228953855, guid: 76a08068aca8a0b4b8ee6d28e206b3bb, type: 3}
   - id: Weapon_Tier1
     displayName: "Ki\u1EBFm Th\u01B0\u1EDDng"
     description: "M\u1ED9t c\xE2y ki\u1EBFm \u0111\u1EC3 ch\xE9m k\u1EBB \u0111\u1ECBch"
@@ -3130,7 +3136,7 @@ MonoBehaviour:
   characterPrefabs:
   - {fileID: 5913312537555986661, guid: bc2a3d7378941a14693fbd1fcbc00359, type: 3}
   - {fileID: 4546870302424741488, guid: 50c07a9c58f81b8408dc196d09979478, type: 3}
-  - {fileID: 6024861819228953855, guid: a7dc887778819a44a9baf195bea910cd, type: 3}
+  - {fileID: 7034946541306784703, guid: cd50112c27734924f802be5391d09acc, type: 3}
   - {fileID: 6024861819228953855, guid: a7dc887778819a44a9baf195bea910cd, type: 3}
   horsePrefabs:
   - {fileID: 2509007373314399612, guid: 03a857eff65d5244f868119b3643d232, type: 3}
@@ -4017,8 +4023,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1628753037}
   m_HandleRect: {fileID: 1628753036}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 0.9999978
+  m_Value: 1
+  m_Size: 0.5003661
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

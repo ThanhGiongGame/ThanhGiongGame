@@ -215,8 +215,16 @@ public class MainMenuManager : MonoBehaviour
             PlayerPrefs.SetInt("VinhDanhTotal", 0);
             PlayerPrefs.Save();
         }
-
-        SceneManager.LoadScene(TutorialSceneName);
+        int isTutorial = PlayerPrefs.GetInt("TutorialComplete", 0);
+        switch (isTutorial)
+        {
+            case 0:
+                SceneManager.LoadScene(TutorialSceneName);
+                break;
+            case 1:
+                SceneManager.LoadScene(ShopSceneName);
+                break;
+        }
     }
 
     private void ResolveReferences()
