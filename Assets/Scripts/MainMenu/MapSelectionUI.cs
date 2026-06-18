@@ -10,8 +10,8 @@ public class MapSelectionUI : MonoBehaviour
     private TMP_FontAsset _customFont;
 
     // Unlock conditions
-    private static readonly int[] REQUIRED_VINHDAN = { 0, 500, 1500 };
-    private static readonly int[] REQUIRED_KILLS = { 0, 50, 150 };
+    private static readonly int[] REQUIRED_VINHDAN = { 0, 100, 200 };
+    private static readonly int[] REQUIRED_KILLS = { 0, 10, 20 };
 
     public void Initialize(Action onClose)
     {
