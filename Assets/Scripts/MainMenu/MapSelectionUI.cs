@@ -32,6 +32,7 @@ public class MapSelectionUI : MonoBehaviour
         if (_panelInstance != null)
         {
             _panelInstance.SetActive(true);
+            _panelInstance.transform.SetAsLastSibling();
             RefreshPage();
         }
     }
@@ -64,7 +65,7 @@ public class MapSelectionUI : MonoBehaviour
         RefreshPage();
 
         // 4. Nút Đóng / Quay Lại
-        CreateButton(_panelInstance.transform, "↩  QUAY LẠI", new Vector2(0f, -280f), new Vector2(250f, 55f), new Color(0.22f, 0.24f, 0.28f), () =>
+        CreateButton(_panelInstance.transform, "QUAY LẠI", new Vector2(0f, -280f), new Vector2(250f, 55f), new Color(0.22f, 0.24f, 0.28f), () =>
         {
             Hide();
             _onCloseCallback?.Invoke();
@@ -83,9 +84,9 @@ public class MapSelectionUI : MonoBehaviour
         }
 
         string[] mapNames = {
-            "● Trong Làng (Nhà Lá)",
-            "● Đồng Bằng (Chiến Trường)",
-            "● Rừng Tre (Bamboo Forest)"
+            "- Trong Làng (Nhà Lá)",
+            "- Đồng Bằng (Chiến Trường)",
+            "- Rừng Tre (Bamboo Forest)"
         };
         string[] mapDescs = {
             "Đồng quê Việt Nam mộc mạc với những mái nhà lá đơn sơ, cây cối xanh mát và ruộng vườn thanh bình.",
@@ -114,11 +115,11 @@ public class MapSelectionUI : MonoBehaviour
     private string GetUnlockText(int mapIndex, int vinhDanh, int totalKills)
     {
         if (mapIndex == 0) return "";
-        if (IsMapUnlocked(mapIndex, vinhDanh, totalKills)) return "✅ ĐÃ MỞ KHÓA";
+        if (IsMapUnlocked(mapIndex, vinhDanh, totalKills)) return "ĐÃ MỞ KHÓA";
 
         int reqVD = REQUIRED_VINHDAN[mapIndex];
         int reqKill = REQUIRED_KILLS[mapIndex];
-        return $"🔒 Cần {vinhDanh}/{reqVD} Vinh Danh  hoặc  {totalKills}/{reqKill} Quái";
+        return $"Cần {vinhDanh}/{reqVD} Vinh Danh  hoặc  {totalKills}/{reqKill} Quái";
     }
 
     private void CreateMapRow(int index, string mapName, string mapDesc, bool isSelected, bool isUnlocked, string unlockInfo, Vector2 pos)
@@ -183,7 +184,7 @@ public class MapSelectionUI : MonoBehaviour
         // Nút bấm
         if (isUnlocked)
         {
-            string btnLabel = isSelected ? "⚡ ĐÃ CHỌN" : "CHỌN ẢI";
+            string btnLabel = isSelected ? "ĐÃ CHỌN" : "CHỌN ẢI";
             Button btn = CreateButton(row.transform, btnLabel, new Vector2(370f, 0f), new Vector2(180f, 50f), Color.gray, null);
             TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>();
             Image btnImg = btn.GetComponent<Image>();
@@ -210,7 +211,7 @@ public class MapSelectionUI : MonoBehaviour
         else
         {
             // Map bị khóa
-            Button btn = CreateButton(row.transform, "🔒 CHƯA MỞ", new Vector2(370f, 0f), new Vector2(180f, 50f), Color.gray, null);
+            Button btn = CreateButton(row.transform, "CHƯA MỞ", new Vector2(370f, 0f), new Vector2(180f, 50f), Color.gray, null);
             TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>();
             Image btnImg = btn.GetComponent<Image>();
             if (btnText != null) btnText.color = new Color(0.50f, 0.45f, 0.40f, 1f);

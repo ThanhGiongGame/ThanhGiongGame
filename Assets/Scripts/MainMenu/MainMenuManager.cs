@@ -211,11 +211,18 @@ public class MainMenuManager : MonoBehaviour
 
         if (mapBtnGO != null)
         {
-            Button btn = mapBtnGO.GetComponent<Button>();
-            if (btn != null)
+            Button oldBtn = mapBtnGO.GetComponent<Button>();
+            if (oldBtn != null)
             {
-                btn.onClick.RemoveAllListeners();
-                btn.onClick.AddListener(OpenMapSelection);
+                ColorBlock colors = oldBtn.colors;
+                UnityEngine.UI.Graphic targetGraphic = oldBtn.targetGraphic;
+                
+                DestroyImmediate(oldBtn);
+                
+                Button newBtn = mapBtnGO.AddComponent<Button>();
+                newBtn.colors = colors;
+                newBtn.targetGraphic = targetGraphic;
+                newBtn.onClick.AddListener(OpenMapSelection);
             }
         }
 
