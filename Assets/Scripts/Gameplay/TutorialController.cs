@@ -49,6 +49,8 @@ public class TutorialController : MonoBehaviour
     private bool playerControlEnabled = true;
     private bool routineRunning;
     private bool skillOneWaveActive;
+    private bool wave2Active;
+    private bool wave3Active;
     private Vector3 playerStart;
     private float phaseStartedAt;
 
@@ -105,6 +107,20 @@ public class TutorialController : MonoBehaviour
             case 4:
                 CleanupDeadWaveEnemies();
                 if (skillOneWaveActive && activeWave.Count == 0)
+                {
+                    StartCoroutine(Wave1ClearSequence());
+                }
+                break;
+            case 5:
+                CleanupDeadWaveEnemies();
+                if (wave2Active && activeWave.Count == 0)
+                {
+                    StartCoroutine(Wave2ClearSequence());
+                }
+                break;
+            case 6:
+                CleanupDeadWaveEnemies();
+                if (wave3Active && activeWave.Count == 0)
                 {
                     StartCoroutine(EndingSequence());
                 }
@@ -241,25 +257,108 @@ public class TutorialController : MonoBehaviour
         routineRunning = false;
     }
 
-    private IEnumerator EndingSequence()
+    private IEnumerator Wave1ClearSequence()
     {
         routineRunning = true;
-        phase = 6;
+        phase = 5;
         SetPlayerControl(false);
         SetGameplayHudVisible(false);
-        SetMarkerVisible(fightMarker, false);
-        SetMarkerVisible(gateMarker, true);
-        SetObjective("Theo mẹ và xứ giả ra cổng làng.");
+        HideObjective();
+
+        // Camera zoom vào Gióng + Sứ giả
+        if (cameraController != null && player != null)
+        {
+            cameraController.target = player;
+            cameraController.SetCinematicView(new Vector3(0f, 4.2f, -5f), 38f);
+        }
+        if (player != null && messenger != null)
+            LookAtFlat(player, messenger.position);
+        if (messenger != null && player != null)
+            LookAtFlat(messenger, player.position);
+
+        yield return new WaitForSecondsRealtime(0.6f);
+
+        yield return ShowDialogue("Gióng", "Con làm được rồi đó!");
+        yield return ShowDialogue("Xứ giả", "Tốt! Nhưng chưa đủ. Hãy thử với đàn này xem sao!");
 
         if (cameraController != null && player != null)
         {
+            cameraController.target = player;
+            cameraController.ResetView();
+        }
+
+        SetPlayerControl(true);
+        SetGameplayHudVisible(true);
+
+        int spawned = SpawnChickenWave(20);
+        wave2Active = spawned > 0;
+        SetObjective(spawned > 0
+            ? "20 con gà tràn vào! Hạ tất cả chúng!"
+            : "Không tìm thấy mẫu gà.");
+        routineRunning = false;
+    }
+
+    private IEnumerator Wave2ClearSequence()
+    {
+        routineRunning = true;
+        phase = 6;
+
+        int spawned = SpawnChickenWave(30);
+        wave3Active = spawned > 0;
+        SetObjective(spawned > 0
+            ? "30 con gà! Đây là thử thách cuối — hạ tất cả!"
+            : "Không tìm thấy mẫu gà.");
+        routineRunning = false;
+        yield break;
+    }
+
+    private IEnumerator EndingSequence()
+    {
+        routineRunning = true;
+        phase = 9;
+        SetPlayerControl(false);
+        SetGameplayHudVisible(false);
+        SetMarkerVisible(fightMarker, false);
+        SetMarkerVisible(gateMarker, false);
+        HideObjective();
+
+        // Camera zoom vào Sứ giả đang think
+        if (cameraController != null && messenger != null)
+        {
+            cameraController.target = messenger;
+            cameraController.SetCinematicView(new Vector3(0f, 3.2f, -4f), 35f);
+        }
+        if (messenger != null && player != null) LookAtFlat(messenger, player.position);
+        if (player != null && messenger != null) LookAtFlat(player, messenger.position);
+        if (mother != null && player != null) LookAtFlat(mother, player.position);
+
+        yield return new WaitForSecondsRealtime(2.2f);
+
+        yield return ShowDialogue("Xứ giả", "...");
+        yield return ShowDialogue("Xứ giả", "Ta đã thấy đủ rồi. Sức mạnh ấy... không phải của người thường.");
+        yield return ShowDialogue("Gióng", "Thưa sứ giả, con có thể ra trận không?");
+        yield return ShowDialogue("Xứ giả", "Không chỉ ra trận — ngươi sẽ dẫn đầu. Hãy theo ta vào yết kiến Đức Vua!");
+        yield return ShowDialogue("Mẹ Gióng", "Con... hãy đi đi. Mẹ tin con sẽ trở về.");
+
+        if (cameraController != null && player != null)
+        {
+            cameraController.target = player;
             cameraController.SetCinematicView(new Vector3(0f, 5.8f, -6.8f), 40f);
         }
 
-        Coroutine playerWalk = StartCoroutine(AutoWalk(player, new Vector3(0f, 0f, 14f), 2.7f));
+        if (messenger != null) LookAtFlat(messenger, new Vector3(0f, 0f, 14f));
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        if (messenger != null) StartCoroutine(AutoWalk(messenger, new Vector3(1.7f, 0f, 13f), 2.0f));
+        yield return new WaitForSecondsRealtime(0.4f);
         if (mother != null) StartCoroutine(AutoWalk(mother, new Vector3(-1.8f, 0f, 12.5f), 2.5f));
-        if (messenger != null) StartCoroutine(AutoWalk(messenger, new Vector3(1.7f, 0f, 13f), 2.2f));
+        yield return new WaitForSecondsRealtime(0.3f);
+
+        Coroutine playerWalk = StartCoroutine(AutoWalk(player, new Vector3(0f, 0f, 14f), 2.7f));
         yield return playerWalk;
+
+        SetMarkerVisible(gateMarker, true);
+        yield return new WaitForSecondsRealtime(0.8f);
 
         yield return FadeToWhite();
         PlayerPrefs.SetInt("TutorialComplete", 1);
