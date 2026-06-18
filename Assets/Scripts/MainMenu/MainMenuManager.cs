@@ -3,6 +3,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 public class MainMenuManager : MonoBehaviour
 {
@@ -58,9 +61,26 @@ public class MainMenuManager : MonoBehaviour
 
         ApplyMuteState();
         SetupMapSelection();
+     }
+ 
+    private void Update()
+    {
+        if (introVideoPanel != null && introVideoPanel.activeSelf)
+        {
+            bool skipPressed = false;
+#if ENABLE_LEGACY_INPUT_MANAGER
+            skipPressed = Input.anyKeyDown || Input.GetMouseButtonDown(0);
+#endif
+#if ENABLE_INPUT_SYSTEM
+            skipPressed = skipPressed || (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame) || (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame);
+#endif
+            if (skipPressed)
+            {
+                SkipVideo();
+            }
+        }
     }
-
-    private void OnDestroy()
+     private void OnDestroy()
     {
         if (introVideoPlayer != null)
         {

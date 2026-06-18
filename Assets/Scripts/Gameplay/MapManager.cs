@@ -169,21 +169,86 @@ public class MapManager : MonoBehaviour
         Random.State savedState = Random.state;
         Random.InitState(chunkCoord.x * 73856093 ^ chunkCoord.y * 19349663);
 
+        List<Vector3> spawnedPropPositions = new List<Vector3>();
+
         for (int i = 0; i < PROPS_PER_CHUNK; i++)
         {
-            Vector3 pos = chunkOrigin + new Vector3(
-                Random.Range(1f, CHUNK_SIZE - 1f), 0f, Random.Range(1f, CHUNK_SIZE - 1f)
-            );
-            if (pos.magnitude < 8f) continue;
-            SpawnProp(pos, chunk.transform);
+            Vector3 pos = Vector3.zero;
+            bool valid = false;
+            
+            // Thử tìm vị trí tối đa 10 lần để tránh bị dính/chồng lấp vật thể
+            for (int attempt = 0; attempt < 10; attempt++)
+            {
+                Vector3 candidate = chunkOrigin + new Vector3(
+                    Random.Range(2.0f, CHUNK_SIZE - 2.0f), 0f, Random.Range(2.0f, CHUNK_SIZE - 2.0f)
+                );
+                
+                if (candidate.magnitude < 8f) continue; // Tránh khu vực spawn của người chơi ở tâm bản đồ
+                
+                // Kiểm tra khoảng cách để không bị dính vào các vật thể đã sinh ra trước đó
+                bool tooClose = false;
+                foreach (Vector3 existingPos in spawnedPropPositions)
+                {
+                    if (Vector3.Distance(candidate, existingPos) < 6.0f) // Giữ khoảng cách tối thiểu 6m để tránh dính nhà/cây
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                
+                if (!tooClose)
+                {
+                    pos = candidate;
+                    valid = true;
+                    break;
+                }
+            }
+            
+            if (valid)
+            {
+                spawnedPropPositions.Add(pos);
+                SpawnProp(pos, chunk.transform);
+            }
         }
 
-        for (int i = 0; i < GROUND_COVER_PER_CHUNK; i++)
+        List<Vector3> spawnedCoverPositions = new List<Vector3>();
+        int groundCoverCount = _mapIndex == 2 ? 38 : GROUND_COVER_PER_CHUNK; // Tăng mật độ cỏ phủ của Rừng Tre lên 38 cụm per chunk!
+
+        for (int i = 0; i < groundCoverCount; i++)
         {
-            Vector3 pos = chunkOrigin + new Vector3(
-                Random.Range(0.5f, CHUNK_SIZE - 0.5f), 0f, Random.Range(0.5f, CHUNK_SIZE - 0.5f)
-            );
-            SpawnGroundCover(pos, chunk.transform);
+            Vector3 pos = Vector3.zero;
+            bool valid = false;
+            
+            for (int attempt = 0; attempt < 10; attempt++)
+            {
+                Vector3 candidate = chunkOrigin + new Vector3(
+                    Random.Range(1.0f, CHUNK_SIZE - 1.0f), 0f, Random.Range(1.0f, CHUNK_SIZE - 1.0f)
+                );
+                
+                bool tooClose = false;
+                // Tránh đặt đè sát sạt lên nhau (1.0m khoảng cách check cho 38 cụm)
+                foreach (Vector3 existingPos in spawnedCoverPositions)
+                {
+                    if (Vector3.Distance(candidate, existingPos) < 1.0f)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                
+                if (!tooClose)
+                {
+                    pos = candidate;
+                    valid = true;
+                    break;
+                }
+            }
+            
+            if (valid)
+            {
+                spawnedCoverPositions.Add(pos);
+                SpawnGroundCover(pos, chunk.transform);
+            }
         }
 
         Random.state = savedState;
@@ -285,7 +350,7 @@ public class MapManager : MonoBehaviour
             if (lower.Contains("leworahang")) return 0.4f; // scale down since it's naturally huge (45m)
             return 3.5f; // house.glb needs to be scaled up
         }
-        if (lower.Contains("bamboo")) return 0.4f; // bamboo GLB model (small scale to not block camera)
+        if (lower.Contains("bamboo")) return 0.5f; // bamboo GLB model (scaled up to be clearly visible as a forest)
         if (lower.Contains("grass_tuft")) return 25.0f; // grass tuft
         if (lower.Contains("cliff") || lower.Contains("mountain")) return 1.0f; // terrain rocks are already scaled properly
         if (lower.Contains("tree")) return 45.0f; // all trees
@@ -308,8 +373,36 @@ public class MapManager : MonoBehaviour
         // Xóa tất cả Collider để tránh cản trở gameplay
         RemoveAllColliders(instance);
 
-        // In log chẩn đoán
+        // --- Tự động chuyển đổi shader cho các model GLB để tránh bị lỗi hiển thị màu hồng (pink/purple error shader) ---
         Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+        foreach (var r in renderers)
+        {
+            if (r.sharedMaterial != null)
+            {
+                Shader s = r.sharedMaterial.shader;
+                if (s == null || s.name.Contains("Error") || s.name.Contains("glTF") || s.name.Contains("Standard"))
+                {
+                    Shader urpLit = Shader.Find("Universal Render Pipeline/Lit");
+                    if (urpLit != null)
+                    {
+                        Material newMat = new Material(urpLit);
+                        if (r.sharedMaterial.HasProperty("_BaseColor"))
+                            newMat.SetColor("_BaseColor", r.sharedMaterial.GetColor("_BaseColor"));
+                        else if (r.sharedMaterial.HasProperty("_Color"))
+                            newMat.SetColor("_BaseColor", r.sharedMaterial.GetColor("_Color"));
+
+                        if (r.sharedMaterial.HasProperty("_BaseMap"))
+                            newMat.SetTexture("_BaseMap", r.sharedMaterial.GetTexture("_BaseMap"));
+                        else if (r.sharedMaterial.HasProperty("_MainTex"))
+                            newMat.SetTexture("_BaseMap", r.sharedMaterial.GetTexture("_MainTex"));
+
+                        r.material = newMat;
+                    }
+                }
+            }
+        }
+
+        // In log chẩn đoán
         float boundsSize = 0f;
         Vector3 boundsCenter = Vector3.zero;
         string rendererInfo = "";
@@ -388,19 +481,22 @@ public class MapManager : MonoBehaviour
                     SpawnBushGroup(pos, parent);
                 break;
 
-            case 2: // Rừng U Minh — Rừng tre (tre nhỏ, không che camera)
-                if (r < 0.55f) // 55% tre nhỏ
-                    SpawnFromArray(_bamboos, pos, parent, 0.8f, 1.5f);
-                else if (r < 0.70f) // 15% bụi cây
+            case 2: // Rừng U Minh — Rừng tre (Không có nhà lá, nhiều tre mọc thành cụm xen lẫn một ít cây xanh to vừa và bụi cây cỏ)
+                if (r < 0.55f) // 55% là các khóm tre mọc thành cụm (rừng tre chủ đạo)
+                    SpawnBambooGroup(pos, parent);
+                else if (r < 0.73f) // 18% là cây xanh lá (liễu/cây đơn giản xanh mát, scale to vừa phải)
+                {
+                    if (Random.value < 0.5f)
+                        SpawnFromArray(_willowTrees, pos, parent, 1.0f, 1.5f);
+                    else
+                        SpawnFromArray(_simpleTrees, pos, parent, 0.9f, 1.4f);
+                }
+                else if (r < 0.88f) // 15% là bụi cây cỏ xanh
                     SpawnBushGroup(pos, parent);
-                else if (r < 0.80f) // 10% cây willow nhỏ
-                    SpawnFromArray(_willowTrees, pos, parent, 0.3f, 0.5f);
-                else if (r < 0.88f) // 8% đá rêu
-                    SpawnMossyRockGroup(pos, parent);
-                else if (r < 0.94f) // 6% đom đóm
-                    SpawnFireflyCluster(pos, parent);
-                else // 6% nấm
-                    SpawnFromArray(_mushrooms, pos, parent, 0.5f, 1.0f);
+                else if (r < 0.94f) // 6% là đá tự nhiên
+                    SpawnRockGroup(pos, parent);
+                else // 6% là cây xanh lớn (scale to vừa phải)
+                    SpawnFromArray(_bigTrees, pos, parent, 1.0f, 1.6f);
                 break;
         }
     }
@@ -430,15 +526,15 @@ public class MapManager : MonoBehaviour
                     SpawnFromArray(_bushes, pos, parent, 0.2f, 0.5f);
                 break;
 
-            case 2: // Rừng tre
-                if (r < 0.60f) // 60% cỏ rừng tre GLB
-                    SpawnFromArray(_grassTufts, pos, parent, 0.6f, 1.2f);
-                else if (r < 0.80f) // 20% bụi cây
-                    SpawnFromArray(_bushes, pos, parent, 0.2f, 0.5f);
-                else if (r < 0.90f)
-                    SpawnFromArray(_mushrooms, pos, parent, 0.4f, 0.8f);
-                else
-                    SpawnFromArray(_flowers, pos, parent, 0.4f, 0.8f);
+            case 2: // Rừng tre (tăng thêm cỏ dại và bụi cây nhỏ phủ nền cho rậm rạp tự nhiên, phóng to kích thước cỏ/bụi vừa phải)
+                if (r < 0.45f) // Tăng cỏ từ 35% lên 45%
+                    SpawnFromArray(_grasses, pos, parent, 0.8f, 1.5f); // Phóng to cỏ vừa phải
+                else if (r < 0.60f) // Hoa cỏ nhỏ
+                    SpawnFromArray(_flowers, pos, parent, 0.5f, 1.0f);
+                else if (r < 0.70f) // Đá nhỏ
+                    SpawnFromArray(_rocks, pos, parent, 0.2f, 0.5f);
+                else // Bụi cây nhỏ mọc lan tỏa (30%)
+                    SpawnFromArray(_bushes, pos, parent, 0.5f, 1.0f); // Phóng to bụi cây vừa phải
                 break;
         }
     }
@@ -463,6 +559,16 @@ public class MapManager : MonoBehaviour
         {
             Vector3 offset = new Vector3(Random.Range(-1.5f, 1.5f), 0f, Random.Range(-1.5f, 1.5f));
             SpawnFromArray(_bushes, pos + offset, parent, 0.5f, 1.2f);
+        }
+    }
+
+    private void SpawnBambooGroup(Vector3 pos, Transform parent)
+    {
+        int count = Random.Range(2, 5); // Tạo thành các khóm tre gồm 2 đến 4 bụi mọc sát nhau
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 offset = new Vector3(Random.Range(-2.5f, 2.5f), 0f, Random.Range(-2.5f, 2.5f));
+            SpawnFromArray(_bamboos, pos + offset, parent, 0.7f, 1.4f);
         }
     }
 
@@ -742,13 +848,13 @@ public class MapManager : MonoBehaviour
                 ambientColor = new Color(0.30f, 0.22f, 0.18f);
                 break;
 
-            case 2: // Rừng U Minh — Rừng tre (dùng nền đất nâu và ánh sáng của Map 2/Ải Trâu Sơn theo yêu cầu)
-                groundColor = new Color(0.55f, 0.38f, 0.25f); // Nền đất nâu như Map 2 (Ải Trâu Sơn)
-                sunColor = new Color(1.0f, 0.78f, 0.55f);     // Ánh nắng hoàng hôn ấm như Map 2
-                sunIntensity = 0.95f;
-                fogColor = new Color(0.55f, 0.40f, 0.30f);    // Sương mù ấm áp dã ngoại như Map 2
-                fogDensity = 0.006f;
-                ambientColor = new Color(0.30f, 0.22f, 0.18f);
+            case 2: // Rừng U Minh — Rừng tre (giống hệt Map 1 theo yêu cầu mới nhất)
+                groundColor = new Color(0.28f, 0.48f, 0.22f); // Màu xanh cỏ giống Map 1
+                sunColor = new Color(1.0f, 0.95f, 0.88f);     // Ánh sáng giống Map 1
+                sunIntensity = 1.1f;
+                fogColor = new Color(0.65f, 0.72f, 0.60f);    // Sương mù giống Map 1
+                fogDensity = 0.004f;
+                ambientColor = new Color(0.30f, 0.32f, 0.28f);
                 break;
 
             default: // Ải Thạch Thất

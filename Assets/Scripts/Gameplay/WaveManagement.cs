@@ -166,6 +166,27 @@ public class WaveSpawner : MonoBehaviour
         return null;
     }
 
+    private GameObject FindChickenPrefab()
+    {
+        if (waves != null)
+        {
+            foreach (var w in waves)
+            {
+                if (w.enemies != null)
+                {
+                    foreach (var info in w.enemies)
+                    {
+                        if (info.enemyPrefab != null && info.enemyPrefab.name == "chicken")
+                        {
+                            return info.enemyPrefab;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private void SpawnEnemy(GameObject enemyPrefab)
     {
         if (player == null || enemyPrefab == null) return;
@@ -192,6 +213,28 @@ public class WaveSpawner : MonoBehaviour
                 if (enemyC != null)
                 {
                     enemyPrefab = enemyC;
+                }
+            }
+        }
+
+        // Map 3: Chỉ cho phép quái gà (chicken) và lính đi bộ (EnemyB).
+        // Đổi EnemyA (ngựa) thành chicken, đổi EnemyC (ném lao) thành EnemyB.
+        if (PlayerPrefs.GetInt("SelectedMap", 0) == 2)
+        {
+            if (enemyPrefab != null && enemyPrefab.name == "EnemyA")
+            {
+                GameObject chicken = FindChickenPrefab();
+                if (chicken != null)
+                {
+                    enemyPrefab = chicken;
+                }
+            }
+            else if (enemyPrefab != null && enemyPrefab.name == "EnemyC")
+            {
+                GameObject enemyB = FindEnemyBPrefab();
+                if (enemyB != null)
+                {
+                    enemyPrefab = enemyB;
                 }
             }
         }
