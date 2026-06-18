@@ -118,9 +118,41 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
+    private GameObject FindEnemyBPrefab()
+    {
+        if (waves != null)
+        {
+            foreach (var w in waves)
+            {
+                if (w.enemies != null)
+                {
+                    foreach (var info in w.enemies)
+                    {
+                        if (info.enemyPrefab != null && info.enemyPrefab.name == "EnemyB")
+                        {
+                            return info.enemyPrefab;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private void SpawnEnemy(GameObject enemyPrefab)
     {
         if (player == null) return;
+
+        // "xóa cái con ngựa của địch á, nó xuất hiện trong map 1 á"
+        // Nếu bản đồ đang chọn là Map 1 (index 0) và địch là EnemyA (ngựa), đổi sang EnemyB (đi bộ)
+        if (PlayerPrefs.GetInt("SelectedMap", 0) == 0 && enemyPrefab != null && enemyPrefab.name == "EnemyA")
+        {
+            GameObject enemyB = FindEnemyBPrefab();
+            if (enemyB != null)
+            {
+                enemyPrefab = enemyB;
+            }
+        }
 
         Vector2 randomCircle =
             Random.insideUnitCircle.normalized * spawnRadius;
