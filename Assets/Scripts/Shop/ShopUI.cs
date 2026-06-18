@@ -16,7 +16,6 @@ public class ShopUI : MonoBehaviour
 
     private enum CategoryFilter
     {
-        All,
         Weapon,
         Mount,
         Character
@@ -26,7 +25,7 @@ public class ShopUI : MonoBehaviour
     [SerializeField] private EquipmentPreviewManager equipmentPreviewManager;
 
     private ShopMode currentMode = ShopMode.Shop;
-    private CategoryFilter currentFilter = CategoryFilter.All;
+    private CategoryFilter currentFilter = CategoryFilter.Character;
     private GameItemData selectedItem;
     private CameraManager cameraManager;
 
@@ -45,7 +44,6 @@ public class ShopUI : MonoBehaviour
     private Button shopTabButton;
     private Button equipmentTabButton;
     private Button mapTabButton;
-    private Button allFilterButton;
     private Button weaponFilterButton;
     private Button mountFilterButton;
     private Button characterFilterButton;
@@ -57,7 +55,7 @@ public class ShopUI : MonoBehaviour
     {
         hasBuiltRuntimeUi = false;
         currentMode = ShopMode.Shop;
-        currentFilter = CategoryFilter.All;
+        currentFilter = CategoryFilter.Character;
         selectedItem = null;
         cameraManager = FindFirstObjectByType<CameraManager>(FindObjectsInactive.Include);
         previewManager ??= FindFirstObjectByType<PreviewManager>(FindObjectsInactive.Include);
@@ -189,10 +187,9 @@ public class ShopUI : MonoBehaviour
 
         RectTransform filterBar = CreateRect(leftPanel, "FilterBar");
         SetRect(filterBar, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -135f), new Vector2(500f, 44f), new Vector2(0.5f, 1f));
-        allFilterButton = CreateSmallButton(filterBar, "AllFilter", "TẤT CẢ", new Vector2(-187.5f, 0f), () => SelectFilter(CategoryFilter.All));
-        characterFilterButton = CreateSmallButton(filterBar, "CharacterFilter", "NHÂN VẬT", new Vector2(-62.5f, 0f), () => SelectFilter(CategoryFilter.Character));
-        mountFilterButton = CreateSmallButton(filterBar, "MountFilter", "THÚ CƯỠI", new Vector2(62.5f, 0f), () => SelectFilter(CategoryFilter.Mount));
-        weaponFilterButton = CreateSmallButton(filterBar, "WeaponFilter", "VŨ KHÍ", new Vector2(187.5f, 0f), () => SelectFilter(CategoryFilter.Weapon));
+        characterFilterButton = CreateSmallButton(filterBar, "CharacterFilter", "NHÂN VẬT", new Vector2(-166.5f, 0f), () => SelectFilter(CategoryFilter.Character));
+        mountFilterButton = CreateSmallButton(filterBar, "MountFilter", "THÚ CƯỠI", Vector2.zero, () => SelectFilter(CategoryFilter.Mount));
+        weaponFilterButton = CreateSmallButton(filterBar, "WeaponFilter", "VŨ KHÍ", new Vector2(166.5f, 0f), () => SelectFilter(CategoryFilter.Weapon));
 
         RectTransform listViewport = CreatePanel(leftPanel, "ListViewport", new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), new Color(0f, 0f, 0f, 0.22f));
         Stretch(listViewport, 24f, 198f, 24f, 24f);
@@ -333,12 +330,17 @@ public class ShopUI : MonoBehaviour
         shopTabButton = FindButton(root, "ShopTab");
         equipmentTabButton = FindButton(root, "EquipmentTab");
         mapTabButton = FindButton(root, "MapTab");
-        allFilterButton = FindButton(root, "AllFilter");
         weaponFilterButton = FindButton(root, "WeaponFilter");
         mountFilterButton = FindButton(root, "MountFilter");
         characterFilterButton = FindButton(root, "CharacterFilter");
         escButton = FindButton(root, "EscButton");
         escMenuPanel = FindRect(root, "EscMenuPanel");
+
+        Button legacyAllFilter = FindButton(root, "AllFilter");
+        if (legacyAllFilter != null)
+        {
+            legacyAllFilter.gameObject.SetActive(false);
+        }
     }
 
     private void EnsureRuntimeRefs()
@@ -421,10 +423,9 @@ public class ShopUI : MonoBehaviour
         }
 
         SetAnchorBox(filterBar, new Vector2(0.06f, 0.68f), new Vector2(0.94f, 0.75f), Vector2.zero, Vector2.zero);
-        LayoutFilterButton(allFilterButton, 0);
-        LayoutFilterButton(weaponFilterButton, 1);
-        LayoutFilterButton(mountFilterButton, 2);
-        LayoutFilterButton(characterFilterButton, 3);
+        LayoutFilterButton(characterFilterButton, 0);
+        LayoutFilterButton(mountFilterButton, 1);
+        LayoutFilterButton(weaponFilterButton, 2);
 
         SetAnchorBox(listViewport, new Vector2(0.06f, 0.06f), new Vector2(0.94f, 0.66f), Vector2.zero, Vector2.zero);
 
@@ -486,8 +487,8 @@ public class ShopUI : MonoBehaviour
             return;
         }
 
-        float min = index * 0.25f;
-        float max = min + 0.25f;
+        float min = index / 3f;
+        float max = (index + 1f) / 3f;
         SetAnchorBox(button.GetComponent<RectTransform>(), new Vector2(min, 0f), new Vector2(max, 1f), new Vector2(3f, 4f), new Vector2(-3f, -4f));
 
         TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
@@ -549,7 +550,7 @@ public class ShopUI : MonoBehaviour
 
     private void SelectFilter(CategoryFilter filter)
     {
-        if (filter != CategoryFilter.All && !HasItemsForFilter(filter))
+        if (!HasItemsForFilter(filter))
         {
             return;
         }
@@ -565,6 +566,8 @@ public class ShopUI : MonoBehaviour
         {
             return;
         }
+
+        EnsureAvailableFilter();
 
         foreach (Transform child in listContent)
         {
@@ -603,8 +606,7 @@ public class ShopUI : MonoBehaviour
 
     private bool MatchesFilter(GameItemData item)
     {
-        return currentFilter == CategoryFilter.All
-            || (currentFilter == CategoryFilter.Weapon && item.category == InventoryManager.ItemCategory.Weapon)
+        return (currentFilter == CategoryFilter.Weapon && item.category == InventoryManager.ItemCategory.Weapon)
             || (currentFilter == CategoryFilter.Mount && item.category == InventoryManager.ItemCategory.Mount)
             || (currentFilter == CategoryFilter.Character && item.category == InventoryManager.ItemCategory.Character);
     }
@@ -826,10 +828,30 @@ public class ShopUI : MonoBehaviour
 
     private void UpdateFilterVisuals()
     {
-        SetFilterButtonState(allFilterButton, true, currentFilter == CategoryFilter.All);
         SetFilterButtonState(characterFilterButton, HasItemsForFilter(CategoryFilter.Character), currentFilter == CategoryFilter.Character);
         SetFilterButtonState(mountFilterButton, HasItemsForFilter(CategoryFilter.Mount), currentFilter == CategoryFilter.Mount);
         SetFilterButtonState(weaponFilterButton, HasItemsForFilter(CategoryFilter.Weapon), currentFilter == CategoryFilter.Weapon);
+    }
+
+    private void EnsureAvailableFilter()
+    {
+        if (HasItemsForFilter(currentFilter))
+        {
+            return;
+        }
+
+        if (HasItemsForFilter(CategoryFilter.Character))
+        {
+            currentFilter = CategoryFilter.Character;
+        }
+        else if (HasItemsForFilter(CategoryFilter.Mount))
+        {
+            currentFilter = CategoryFilter.Mount;
+        }
+        else if (HasItemsForFilter(CategoryFilter.Weapon))
+        {
+            currentFilter = CategoryFilter.Weapon;
+        }
     }
 
     private bool HasItemsForFilter(CategoryFilter filter)
