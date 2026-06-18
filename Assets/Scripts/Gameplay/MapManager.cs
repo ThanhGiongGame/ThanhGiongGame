@@ -742,13 +742,13 @@ public class MapManager : MonoBehaviour
                 ambientColor = new Color(0.30f, 0.22f, 0.18f);
                 break;
 
-            case 2: // Rừng U Minh — Rừng tre (dùng nền và ánh sáng sáng rõ của Map 1 theo yêu cầu)
-                groundColor = new Color(0.28f, 0.48f, 0.22f); // Nền xanh sáng như Map 1
-                sunColor = new Color(1.0f, 0.95f, 0.88f);     // Ánh nắng sáng như Map 1
-                sunIntensity = 1.1f;
-                fogColor = new Color(0.65f, 0.72f, 0.60f);    // Sương mù sáng như Map 1
-                fogDensity = 0.004f;
-                ambientColor = new Color(0.30f, 0.32f, 0.28f);
+            case 2: // Rừng U Minh — Rừng tre (dùng nền đất nâu và ánh sáng của Map 2/Ải Trâu Sơn theo yêu cầu)
+                groundColor = new Color(0.55f, 0.38f, 0.25f); // Nền đất nâu như Map 2 (Ải Trâu Sơn)
+                sunColor = new Color(1.0f, 0.78f, 0.55f);     // Ánh nắng hoàng hôn ấm như Map 2
+                sunIntensity = 0.95f;
+                fogColor = new Color(0.55f, 0.40f, 0.30f);    // Sương mù ấm áp dã ngoại như Map 2
+                fogDensity = 0.006f;
+                ambientColor = new Color(0.30f, 0.22f, 0.18f);
                 break;
 
             default: // Ải Thạch Thất
