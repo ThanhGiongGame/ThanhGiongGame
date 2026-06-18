@@ -10,6 +10,7 @@ using UnityEngine.InputSystem;
 public class MainMenuManager : MonoBehaviour
 {
     private const string ShopSceneName = "GameShopScene";
+    private const string TutorialSceneName = "TutorialScene";
 
     [Header("UI Panels")]
     public GameObject settingsPanel;
@@ -215,7 +216,7 @@ public class MainMenuManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        SceneManager.LoadScene(ShopSceneName);
+        SceneManager.LoadScene(TutorialSceneName);
     }
 
     private void ResolveReferences()
@@ -448,22 +449,26 @@ public class MainMenuManager : MonoBehaviour
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(760f, 500f);
+            rect.sizeDelta = new Vector2(2200f, 1160f);
             rect.localScale = Vector3.one;
         }
 
         Image panelImage = settingsPanel.GetComponent<Image>();
         if (panelImage != null)
         {
-            panelImage.color = new Color(0.9f, 0.9f, 0.88f, 0.96f);
+            panelImage.color = new Color(0.02f, 0.018f, 0.018f, 0.86f);
             panelImage.raycastTarget = true;
         }
 
-        ConfigureSettingsText("text_title", "SETTING", new Vector2(0f, 195f), new Vector2(620f, 72f), 54f);
-        ConfigureSettingsText("SOUND", "Sound", new Vector2(-225f, 70f), new Vector2(210f, 56f), 38f);
-        ConfigureSettingsRect("Slider", new Vector2(145f, 72f), new Vector2(430f, 38f));
-        ConfigureSettingsRect("MuteButton", new Vector2(0f, -110f), new Vector2(120f, 120f));
-        ConfigureSettingsRect("CloseButton", new Vector2(340f, 210f), new Vector2(58f, 58f));
+        ConfigureSettingsText("text_title", "SETTINGS", new Vector2(160f, 360f), new Vector2(980f, 82f), 48f);
+        ConfigureSettingsText("SOUND", "Sound", new Vector2(-220f, 120f), new Vector2(280f, 56f), 34f);
+        ConfigureSettingsRect("Slider", new Vector2(260f, 120f), new Vector2(620f, 42f));
+        ConfigureSettingsRect("MuteButton", new Vector2(160f, -115f), new Vector2(120f, 120f));
+        ConfigureSettingsRect("CloseButton", new Vector2(843f, 413f), new Vector2(64f, 64f));
+        ConfigureSettingsRect("SettingsPage", Vector2.zero, new Vector2(2200f, 1160f));
+        ConfigureSettingsRect("ControlsPage", Vector2.zero, new Vector2(2200f, 1160f));
+        ConfigureSettingsRect("SettingsTabButton", new Vector2(-668f, 330f), new Vector2(300f, 70f));
+        ConfigureSettingsRect("ControlsTabButton", new Vector2(-668f, 230f), new Vector2(300f, 70f));
     }
 
     private void ConfigureSettingsText(string objectName, string text, Vector2 position, Vector2 size, float fontSize)
@@ -526,6 +531,11 @@ public class MainMenuManager : MonoBehaviour
         if (settingsPanel != null)
         {
             settingsPanel.SetActive(visible);
+        }
+
+        if (mainMenuContainer != null)
+        {
+            mainMenuContainer.SetActive(!visible && !isIntroPlaying && !isLoadingScene);
         }
     }
 

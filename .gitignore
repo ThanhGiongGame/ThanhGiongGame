@@ -115,3 +115,8 @@ TemplateData/
 # =========================
 [Aa]ssets/[Ss]creenshots/
 [Aa]ssets/[Ss]creenshots.meta
+
+# =========================
+# Claude Code / MCP
+# =========================
+.mcp.json
