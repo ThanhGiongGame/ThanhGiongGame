@@ -118,6 +118,23 @@ public class Enemy : MonoBehaviour
                 {
                     col.enabled = false;
                 }
+        }
+
+        // Auto-align visuals to stand on the ground based on CapsuleCollider
+        CapsuleCollider capsule = GetComponent<CapsuleCollider>();
+        if (capsule != null && !gameObject.name.Contains("EnemyA"))
+        {
+            Transform visuals = transform.Find("Visuals") ?? transform.Find("Cylinder") ?? transform.Find("Visual");
+            if (visuals != null && visuals.transform.localPosition.y == 0f)
+            {
+                if (capsule.center.y > 0f)
+                {
+                    visuals.transform.localPosition = new Vector3(
+                        visuals.transform.localPosition.x,
+                        capsule.center.y,
+                        visuals.transform.localPosition.z
+                    );
+                }
             }
         }
     }
