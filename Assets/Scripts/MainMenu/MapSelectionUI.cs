@@ -9,10 +9,14 @@ public class MapSelectionUI : MonoBehaviour
     private Action _onCloseCallback;
     private TMP_FontAsset _customFont;
 
+    // Unlock conditions
+    private static readonly int[] REQUIRED_VINHDAN = { 0, 100, 200 };
+    private static readonly int[] REQUIRED_KILLS = { 0, 10, 20 };
+
     public void Initialize(Action onClose)
     {
         _onCloseCallback = onClose;
-        
+
         // Cố gắng lấy font từ các text hiện có để đồng bộ giao diện
         var existingText = FindObjectOfType<TMP_Text>();
         if (existingText != null)
@@ -28,6 +32,7 @@ public class MapSelectionUI : MonoBehaviour
         if (_panelInstance != null)
         {
             _panelInstance.SetActive(true);
+            _panelInstance.transform.SetAsLastSibling();
             RefreshPage();
         }
     }
@@ -43,24 +48,24 @@ public class MapSelectionUI : MonoBehaviour
     private void BuildPanel()
     {
         Transform canvasTransform = transform;
-        
+
         // 1. Tạo Panel chính (Modal Container)
-        _panelInstance = CreatePanel(canvasTransform, Vector2.zero, new Vector2(1000f, 620f), new Color(0.04f, 0.06f, 0.07f, 0.98f));
+        _panelInstance = CreatePanel(canvasTransform, Vector2.zero, new Vector2(1050f, 680f), new Color(0.06f, 0.08f, 0.10f, 0.98f));
         _panelInstance.name = "MapSelectionOverlayPanel";
 
-        // Thêm viền vàng Đông Sơn cổ kính
-        GameObject outline = CreatePanel(_panelInstance.transform, Vector2.zero, new Vector2(1000f, 620f), new Color(0.92f, 0.82f, 0.55f, 0.08f));
+        // Viền vàng cổ kính
+        GameObject outline = CreatePanel(_panelInstance.transform, Vector2.zero, new Vector2(1050f, 680f), new Color(0.85f, 0.72f, 0.42f, 0.06f));
         outline.transform.SetAsFirstSibling();
         outline.name = "GoldOutlineBorder";
 
         // 2. Tiêu đề
-        CreateText(_panelInstance.transform, "― CỔ KÍNH ẢI MÀN CHƠI ―", new Vector2(0f, 240f), 30, FontStyle.Bold, new Color(0.92f, 0.82f, 0.55f));
+        CreateText(_panelInstance.transform, "― CHỌN BẢN ĐỒ ―", new Vector2(0f, 270f), 32, FontStyle.Bold, new Color(0.90f, 0.80f, 0.50f));
 
         // 3. Nội dung 3 bản đồ
         RefreshPage();
 
         // 4. Nút Đóng / Quay Lại
-        CreateButton(_panelInstance.transform, "↩  LUI VỀ", new Vector2(0f, -240f), new Vector2(240f, 55f), new Color(0.2f, 0.22f, 0.25f), () =>
+        CreateButton(_panelInstance.transform, "QUAY LẠI", new Vector2(0f, -280f), new Vector2(250f, 55f), new Color(0.22f, 0.24f, 0.28f), () =>
         {
             Hide();
             _onCloseCallback?.Invoke();
@@ -69,7 +74,7 @@ public class MapSelectionUI : MonoBehaviour
 
     private void RefreshPage()
     {
-        // Xóa các dòng map cũ nếu có (ngoại trừ tiêu đề, viền và nút đóng)
+        // Xóa các dòng map cũ nếu có
         foreach (Transform child in _panelInstance.transform)
         {
             if (child.name.StartsWith("MapRow_"))
@@ -78,28 +83,60 @@ public class MapSelectionUI : MonoBehaviour
             }
         }
 
-        string[] mapNames = { "● Ải Thạch Thất (Mặc Định)", "● Ải Trâu Sơn (Chiến Trường Lửa)", "● Rừng U Minh (Đêm Trúc Linh)" };
+        string[] mapNames = {
+            "- Trong Làng (Nhà Lá)",
+            "- Đồng Bằng (Chiến Trường)",
+            "- Rừng Tre (Bamboo Forest)"
+        };
         string[] mapDescs = {
-            "Vùng thung lũng xanh mướt rợp bóng tre ngà thanh bình.\nNơi bắt đầu cuộc hành trình dẹp giặc Ân cứu nước của Thánh Gióng.",
-            "Chiến trường đất đỏ khô cằn phủ đầy sương khói hoàng hôn cam cháy.\nCác ngọn đuốc cháy rực thiêu rụi và đẩy lùi quân thù.",
-            "Rừng tre cổ kính huyền bí chìm sâu trong đêm tối cô quạnh.\nÁnh trăng huyền ảo cùng các cột pha lê phát sáng linh thiêng."
+            "Đồng quê Việt Nam mộc mạc với những mái nhà lá đơn sơ, cây cối xanh mát và ruộng vườn thanh bình.",
+            "Nơi lính ngoại xâm kéo vào đánh phá làng quê đồng bằng hiểm nguy, đầy vách đá dựng đứng, cây cối và đuốc cháy.",
+            "Rừng tre sâu thẳm rậm rạp rợp bóng tre xanh mát, phủ đầy cỏ dại rừng già cùng đom đóm huyền ảo dưới trăng."
         };
         int selectedMap = PlayerPrefs.GetInt("SelectedMap", 0);
+        int playerVinhDanh = PlayerPrefs.GetInt("VinhDanhTotal", 0);
+        int playerTotalKills = PlayerPrefs.GetInt("TotalEnemiesKilled", 0);
 
-        // Sinh 3 dòng tương ứng 3 ải bản đồ
         for (int i = 0; i < 3; i++)
         {
-            CreateMapRow(i, mapNames[i], mapDescs[i], selectedMap == i, new Vector2(0f, 120f - (i * 120f)));
+            bool unlocked = IsMapUnlocked(i, playerVinhDanh, playerTotalKills);
+            string unlockInfo = GetUnlockText(i, playerVinhDanh, playerTotalKills);
+            CreateMapRow(i, mapNames[i], mapDescs[i], selectedMap == i, unlocked, unlockInfo,
+                new Vector2(0f, 140f - (i * 135f)));
         }
     }
 
-    private void CreateMapRow(int index, string mapName, string mapDesc, bool isSelected, Vector2 pos)
+    private bool IsMapUnlocked(int mapIndex, int vinhDanh, int totalKills)
     {
-        GameObject row = CreatePanel(_panelInstance.transform, pos, new Vector2(920f, 105f), new Color(0.08f, 0.10f, 0.11f, 1f));
+        if (mapIndex == 0) return true; // Map mặc định
+#if UNITY_EDITOR
+        return true; // Tự động mở khóa tất cả bản đồ trong Editor để kiểm tra/test dễ dàng!
+#endif
+        return vinhDanh >= REQUIRED_VINHDAN[mapIndex] || totalKills >= REQUIRED_KILLS[mapIndex];
+    }
+
+    private string GetUnlockText(int mapIndex, int vinhDanh, int totalKills)
+    {
+        if (mapIndex == 0) return "";
+        if (IsMapUnlocked(mapIndex, vinhDanh, totalKills)) return "ĐÃ MỞ KHÓA";
+
+        int reqVD = REQUIRED_VINHDAN[mapIndex];
+        int reqKill = REQUIRED_KILLS[mapIndex];
+        return $"Cần {vinhDanh}/{reqVD} Vinh Danh  hoặc  {totalKills}/{reqKill} Quái";
+    }
+
+    private void CreateMapRow(int index, string mapName, string mapDesc, bool isSelected, bool isUnlocked, string unlockInfo, Vector2 pos)
+    {
+        // Màu nền dòng
+        Color rowBg = isUnlocked
+            ? new Color(0.08f, 0.10f, 0.12f, 1f)
+            : new Color(0.06f, 0.06f, 0.07f, 1f);
+
+        GameObject row = CreatePanel(_panelInstance.transform, pos, new Vector2(960f, 120f), rowBg);
         row.name = $"MapRow_{index}";
 
-        // Viền của dòng
-        GameObject rowOutline = CreatePanel(row.transform, Vector2.zero, new Vector2(920f, 105f), new Color(0.92f, 0.82f, 0.55f, 0.05f));
+        // Viền nhẹ
+        GameObject rowOutline = CreatePanel(row.transform, Vector2.zero, new Vector2(960f, 120f), new Color(0.85f, 0.72f, 0.42f, 0.04f));
         rowOutline.transform.SetAsFirstSibling();
 
         // Text Group chứa tên và mô tả
@@ -109,47 +146,81 @@ public class MapSelectionUI : MonoBehaviour
         groupRt.anchorMin = new Vector2(0f, 0.5f);
         groupRt.anchorMax = new Vector2(0f, 0.5f);
         groupRt.pivot = new Vector2(0f, 0.5f);
-        groupRt.anchoredPosition = new Vector2(25f, 0f);
-        groupRt.sizeDelta = new Vector2(620f, 90f);
+        groupRt.anchoredPosition = new Vector2(25f, 5f);
+        groupRt.sizeDelta = new Vector2(620f, 100f);
 
         // Tên bản đồ
-        TMP_Text titleText = CreateText(textGroup.transform, mapName, new Vector2(0f, 18f), 20, FontStyle.Bold, new Color(0.92f, 0.82f, 0.55f));
+        Color titleColor = isUnlocked
+            ? new Color(0.90f, 0.80f, 0.50f)
+            : new Color(0.50f, 0.45f, 0.35f);
+
+        TMP_Text titleText = CreateText(textGroup.transform, mapName, new Vector2(0f, 22f), 20, FontStyle.Bold, titleColor);
         titleText.alignment = TextAlignmentOptions.Left;
         RectTransform titleRt = titleText.rectTransform;
         titleRt.anchorMin = new Vector2(0f, 0.5f); titleRt.anchorMax = new Vector2(1f, 0.5f);
         titleRt.pivot = new Vector2(0f, 0.5f); titleRt.sizeDelta = new Vector2(0f, 30f);
 
         // Mô tả bản đồ
-        TMP_Text descText = CreateText(textGroup.transform, mapDesc, new Vector2(0f, -18f), 14, FontStyle.Normal, new Color(0.8f, 0.8f, 0.8f));
+        Color descColor = isUnlocked
+            ? new Color(0.75f, 0.75f, 0.75f)
+            : new Color(0.40f, 0.40f, 0.40f);
+
+        TMP_Text descText = CreateText(textGroup.transform, mapDesc, new Vector2(0f, -12f), 13, FontStyle.Normal, descColor);
         descText.alignment = TextAlignmentOptions.Left;
         RectTransform descRt = descText.rectTransform;
         descRt.anchorMin = new Vector2(0f, 0.5f); descRt.anchorMax = new Vector2(1f, 0.5f);
         descRt.pivot = new Vector2(0f, 0.5f); descRt.sizeDelta = new Vector2(0f, 40f);
 
-        // Nút bấm chọn bản đồ
-        string btnLabel = isSelected ? "⚡ ĐÃ CHỌN" : "CHỌN ẢI";
-        Button btn = CreateButton(row.transform, btnLabel, new Vector2(340f, 0f), new Vector2(180f, 50f), Color.gray, null);
-        TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>();
-        Image btnImg = btn.GetComponent<Image>();
-
-        if (isSelected)
+        // Thông tin mở khóa (nếu có)
+        if (!string.IsNullOrEmpty(unlockInfo))
         {
-            if (btnText != null) btnText.color = Color.white;
-            btnImg.color = new Color(0.15f, 0.50f, 0.35f, 1f);
+            Color unlockColor = isUnlocked
+                ? new Color(0.3f, 0.75f, 0.4f)
+                : new Color(0.85f, 0.45f, 0.25f);
+            TMP_Text unlockText = CreateText(textGroup.transform, unlockInfo, new Vector2(0f, -38f), 12, FontStyle.Normal, unlockColor);
+            unlockText.alignment = TextAlignmentOptions.Left;
+            RectTransform unlockRt = unlockText.rectTransform;
+            unlockRt.anchorMin = new Vector2(0f, 0.5f); unlockRt.anchorMax = new Vector2(1f, 0.5f);
+            unlockRt.pivot = new Vector2(0f, 0.5f); unlockRt.sizeDelta = new Vector2(0f, 22f);
+        }
+
+        // Nút bấm
+        if (isUnlocked)
+        {
+            string btnLabel = isSelected ? "ĐÃ CHỌN" : "CHỌN ẢI";
+            Button btn = CreateButton(row.transform, btnLabel, new Vector2(370f, 0f), new Vector2(180f, 50f), Color.gray, null);
+            TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>();
+            Image btnImg = btn.GetComponent<Image>();
+
+            if (isSelected)
+            {
+                if (btnText != null) btnText.color = Color.white;
+                btnImg.color = new Color(0.15f, 0.50f, 0.35f, 1f);
+            }
+            else
+            {
+                if (btnText != null) btnText.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+                btnImg.color = new Color(0.22f, 0.25f, 0.28f, 1f);
+            }
+
+            btn.onClick.AddListener(() =>
+            {
+                Debug.Log($"[MapSelectionUI] Chọn bản đồ: {index}");
+                PlayerPrefs.SetInt("SelectedMap", index);
+                PlayerPrefs.Save();
+                RefreshPage();
+            });
         }
         else
         {
-            if (btnText != null) btnText.color = new Color(0.9f, 0.9f, 0.9f, 1f);
-            btnImg.color = new Color(0.22f, 0.25f, 0.28f, 1f);
+            // Map bị khóa
+            Button btn = CreateButton(row.transform, "CHƯA MỞ", new Vector2(370f, 0f), new Vector2(180f, 50f), Color.gray, null);
+            TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>();
+            Image btnImg = btn.GetComponent<Image>();
+            if (btnText != null) btnText.color = new Color(0.50f, 0.45f, 0.40f, 1f);
+            btnImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+            btn.interactable = false;
         }
-
-        btn.onClick.AddListener(() =>
-        {
-            Debug.Log($"[MapSelectionUI] Chọn bản đồ: {index}");
-            PlayerPrefs.SetInt("SelectedMap", index);
-            PlayerPrefs.Save();
-            RefreshPage();
-        });
     }
 
     private GameObject CreatePanel(Transform parent, Vector2 pos, Vector2 size, Color color)
@@ -159,10 +230,10 @@ public class MapSelectionUI : MonoBehaviour
         RectTransform rt = panel.AddComponent<RectTransform>();
         rt.sizeDelta = size;
         rt.anchoredPosition = pos;
-        
+
         Image img = panel.AddComponent<Image>();
         img.color = color;
-        
+
         return panel;
     }
 
@@ -183,7 +254,7 @@ public class MapSelectionUI : MonoBehaviour
         txt.fontSize = fontSize;
         txt.color = color;
         txt.alignment = TextAlignmentOptions.Center;
-        
+
         if (style == FontStyle.Bold)
         {
             txt.fontStyle = FontStyles.Bold;
@@ -227,7 +298,7 @@ public class MapSelectionUI : MonoBehaviour
 
         if (!string.IsNullOrEmpty(label))
         {
-            TMP_Text txt = CreateText(go.transform, label, Vector2.zero, 24, FontStyle.Bold, Color.white);
+            TMP_Text txt = CreateText(go.transform, label, Vector2.zero, 22, FontStyle.Bold, Color.white);
             RectTransform txtRt = txt.rectTransform;
             txtRt.anchorMin = Vector2.zero; txtRt.anchorMax = Vector2.one;
             txtRt.offsetMin = Vector2.zero; txtRt.offsetMax = Vector2.zero;

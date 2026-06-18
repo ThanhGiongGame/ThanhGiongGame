@@ -14,6 +14,10 @@ public class Enemy : MonoBehaviour
     public float attackRange = 1.5f;
     public float attackCooldown = 1f;
 
+    [Header("Ranged Attack")]
+    public bool isRanged = false;
+    public float projectileSpeed = 12f;
+
     [Header("Knockback")]
     public float selfKnockbackForce = 5f;
     public float selfKnockbackDuration = 0.2f;
@@ -52,6 +56,87 @@ public class Enemy : MonoBehaviour
         if (playerObject != null)
         {
             player = playerObject.transform;
+        }
+
+        // Configure EnemyC as ranged javelin thrower
+        if (gameObject.name.Contains("EnemyC"))
+        {
+            isRanged = true;
+            attackRange = 8f;
+            attackCooldown = 2.5f;
+            moveSpeed = 2f;
+
+            // Fix visual for EnemyC to use EnemyB's soldier mesh
+            WaveSpawner spawner = FindObjectOfType<WaveSpawner>();
+            if (spawner != null)
+            {
+                GameObject enemyBPrefab = spawner.FindEnemyBPrefab();
+                if (enemyBPrefab != null)
+                {
+                    Transform cylinder = transform.Find("Cylinder");
+                    if (cylinder != null)
+                    {
+                        cylinder.gameObject.SetActive(false);
+                    }
+
+                    Transform bCylinder = enemyBPrefab.transform.Find("Cylinder");
+                    if (bCylinder != null)
+                    {
+                        GameObject visual = Instantiate(bCylinder.gameObject, transform);
+                        visual.name = "Visual";
+                        visual.transform.localPosition = Vector3.zero;
+                        visual.transform.localRotation = Quaternion.identity;
+                        visual.transform.localScale = new Vector3(3f, 3f, 3f);
+
+                        foreach (Collider col in visual.GetComponentsInChildren<Collider>())
+                        {
+                            col.enabled = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Map 2 Armored Horse swap
+        if (PlayerPrefs.GetInt("SelectedMap", 0) == 1 && gameObject.name.Contains("EnemyA"))
+        {
+            PlayerEquipmentLoader loader = FindObjectOfType<PlayerEquipmentLoader>();
+            if (loader != null && loader.horseTier2 != null)
+            {
+                Transform cylinder = transform.Find("Cylinder");
+                if (cylinder != null)
+                {
+                    cylinder.gameObject.SetActive(false);
+                }
+
+                GameObject ironHorse = Instantiate(loader.horseTier2, transform);
+                ironHorse.transform.localPosition = Vector3.zero;
+                ironHorse.transform.localRotation = Quaternion.identity;
+                ironHorse.transform.localScale = new Vector3(6f, 6f, 6f);
+
+                foreach (Collider col in ironHorse.GetComponentsInChildren<Collider>())
+                {
+                    col.enabled = false;
+                }
+            }
+        }
+
+        // Auto-align visuals to stand on the ground based on CapsuleCollider
+        CapsuleCollider capsule = GetComponent<CapsuleCollider>();
+        if (capsule != null && !gameObject.name.Contains("EnemyA"))
+        {
+            Transform visuals = transform.Find("Visuals") ?? transform.Find("Cylinder") ?? transform.Find("Visual");
+            if (visuals != null && visuals.transform.localPosition.y == 0f)
+            {
+                if (capsule.center.y > 0f)
+                {
+                    visuals.transform.localPosition = new Vector3(
+                        visuals.transform.localPosition.x,
+                        capsule.center.y,
+                        visuals.transform.localPosition.z
+                    );
+                }
+            }
         }
     }
 
@@ -115,7 +200,7 @@ public class Enemy : MonoBehaviour
             targetEuler.x = initialRotationX;
             targetEuler.z = initialRotationZ;
             targetRotation = Quaternion.Euler(targetEuler);
-
+            transform.rotation = targetRotation;
         }
     }
 
@@ -208,25 +293,62 @@ public class Enemy : MonoBehaviour
 
         if (sqrDistance <= attackRangeSqr + 0.1f && attackTimer <= 0f)
         {
-            PlayerHealth playerHealth =
-                player.GetComponent<PlayerHealth>();
-
-            if (playerHealth != null)
+            if (isRanged)
             {
-                Vector3 knockbackDirection =
-                    offset.normalized;
-
-                playerHealth.TakeDamage(
-                    damage,
-                    knockbackDirection,
-                    10f
-                );
+                ThrowProjectile(offset.normalized);
             }
+            else
+            {
+                PlayerHealth playerHealth =
+                    player.GetComponent<PlayerHealth>();
 
-            ApplySelfKnockback();
+                if (playerHealth != null)
+                {
+                    Vector3 knockbackDirection =
+                        offset.normalized;
+
+                    playerHealth.TakeDamage(
+                        damage,
+                        knockbackDirection,
+                        10f
+                    );
+                }
+
+                ApplySelfKnockback();
+            }
 
             attackTimer = attackCooldown;
         }
+    }
+
+    private void ThrowProjectile(Vector3 dir)
+    {
+        GameObject javelin = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        javelin.name = "EnemyJavelin";
+
+        Collider oldCol = javelin.GetComponent<Collider>();
+        if (oldCol != null) Destroy(oldCol);
+
+        CapsuleCollider cap = javelin.AddComponent<CapsuleCollider>();
+        cap.isTrigger = true;
+        cap.radius = 0.15f;
+        cap.height = 1.8f;
+        cap.direction = 1;
+
+        javelin.transform.localScale = new Vector3(0.08f, 0.7f, 0.08f);
+        javelin.transform.position = transform.position + Vector3.up * 1f;
+        javelin.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
+
+        Renderer rend = javelin.GetComponent<Renderer>();
+        if (rend != null)
+        {
+            rend.material.color = new Color(0.8f, 0.5f, 0.2f);
+        }
+
+        EnemyJavelin script = javelin.AddComponent<EnemyJavelin>();
+        script.damage = damage;
+        script.direction = dir;
+        script.speed = projectileSpeed;
     }
 
     private void ApplySelfKnockback()
@@ -282,5 +404,36 @@ public class Enemy : MonoBehaviour
         }
         XPOrb.Spawn(transform.position, 10f);
         Destroy(gameObject);
+    }
+}
+
+public class EnemyJavelin : MonoBehaviour
+{
+    public float damage;
+    public Vector3 direction;
+    public float speed;
+    public float lifetime = 5f;
+
+    private void Start()
+    {
+        Destroy(gameObject, lifetime);
+    }
+
+    private void Update()
+    {
+        transform.position += direction * speed * Time.deltaTime;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(damage, direction, 8f);
+            }
+            Destroy(gameObject);
+        }
     }
 }

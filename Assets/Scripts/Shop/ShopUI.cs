@@ -44,6 +44,7 @@ public class ShopUI : MonoBehaviour
     private Button actionButton;
     private Button shopTabButton;
     private Button equipmentTabButton;
+    private Button mapTabButton;
     private Button allFilterButton;
     private Button weaponFilterButton;
     private Button mountFilterButton;
@@ -227,9 +228,10 @@ public class ShopUI : MonoBehaviour
         actionButtonText = actionButton.GetComponentInChildren<TMP_Text>();
 
         RectTransform bottom = CreatePanel(root, "BottomNav", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(1040f, 76f), new Vector2(0.5f, 0f), new Color(0.02f, 0.02f, 0.02f, 0.58f));
-        shopTabButton = CreateNavButton(bottom, "ShopTab", "CỬA HÀNG", new Vector2(-350f, 8f), OnShopTabClicked);
-        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(0f, 8f), OnEquipmentTabClicked);
-        CreateNavButton(bottom, "PlayTab", "VÀO TRẬN", new Vector2(350f, 8f), () => cameraManager?.ChangeGameplayScene());
+        shopTabButton = CreateNavButton(bottom, "ShopTab", "CỬA HÀNG", new Vector2(-390f, 8f), OnShopTabClicked);
+        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(-130f, 8f), OnEquipmentTabClicked);
+        mapTabButton = CreateNavButton(bottom, "MapTab", "BẢN ĐỒ", new Vector2(130f, 8f), () => cameraManager?.OpenMapSelection());
+        CreateNavButton(bottom, "PlayTab", "VÀO TRẬN", new Vector2(390f, 8f), () => cameraManager?.ChangeGameplayScene());
         BuildEscMenu();
 
         CacheRuntimeRefs();
@@ -270,6 +272,7 @@ public class ShopUI : MonoBehaviour
             "ActionButton",
             "ShopTab",
             "EquipmentTab",
+            "MapTab",
             "PlayTab",
             "EscButton"
         };
@@ -329,6 +332,7 @@ public class ShopUI : MonoBehaviour
         actionButtonText = actionButton != null ? actionButton.GetComponentInChildren<TMP_Text>(true) : null;
         shopTabButton = FindButton(root, "ShopTab");
         equipmentTabButton = FindButton(root, "EquipmentTab");
+        mapTabButton = FindButton(root, "MapTab");
         allFilterButton = FindButton(root, "AllFilter");
         weaponFilterButton = FindButton(root, "WeaponFilter");
         mountFilterButton = FindButton(root, "MountFilter");
@@ -464,9 +468,10 @@ public class ShopUI : MonoBehaviour
             SetAnchorBox(actionButton.GetComponent<RectTransform>(), new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.18f), Vector2.zero, Vector2.zero);
         }
 
-        LayoutBottomButton(shopTabButton, 0);
-        LayoutBottomButton(equipmentTabButton, 1);
-        LayoutBottomButton(FindButton(root, "PlayTab"), 2);
+        LayoutBottomButton(shopTabButton, 0, 4);
+        LayoutBottomButton(equipmentTabButton, 1, 4);
+        LayoutBottomButton(mapTabButton, 2, 4);
+        LayoutBottomButton(FindButton(root, "PlayTab"), 3, 4);
 
         if (escMenuPanel != null)
         {
@@ -495,15 +500,15 @@ public class ShopUI : MonoBehaviour
         }
     }
 
-    private static void LayoutBottomButton(Button button, int index)
+    private static void LayoutBottomButton(Button button, int index, int total = 4)
     {
         if (button == null)
         {
             return;
         }
 
-        float min = index / 3f;
-        float max = (index + 1f) / 3f;
+        float min = index / (float)total;
+        float max = (index + 1f) / (float)total;
         SetAnchorBox(button.GetComponent<RectTransform>(), new Vector2(min, 0f), new Vector2(max, 1f), new Vector2(14f, 9f), new Vector2(-14f, -9f));
     }
 
@@ -811,6 +816,7 @@ public class ShopUI : MonoBehaviour
     {
         SetButtonColor(shopTabButton, currentMode == ShopMode.Shop, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
         SetButtonColor(equipmentTabButton, currentMode == ShopMode.Equipment, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
+        SetButtonColor(mapTabButton, false, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
     }
 
     private void UpdateFilterVisuals()
