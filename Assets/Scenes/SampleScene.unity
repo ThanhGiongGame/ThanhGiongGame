@@ -1071,7 +1071,7 @@ MonoBehaviour:
   horseTier4: {fileID: 3968897697879102497, guid: 852c98d7af3562244a4fe5bffa3f9eb8, type: 3}
   weaponTier1: {fileID: 8693844333337119980, guid: 9945e31ac358e734e96ffec0547e688f, type: 3}
   weaponTier2: {fileID: 4005225249148235920, guid: 350b85753ce62a74dbbf80fb9ba76969, type: 3}
-  weaponTier3: {fileID: 0}
+  weaponTier3: {fileID: 8305646712886389394, guid: bcc8af3f69d6bf944916e90d203cb49a, type: 3}
   bonusHealth: 0
   bonusDamage: 0
   bonusSpeed: 0

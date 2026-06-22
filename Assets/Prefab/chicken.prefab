@@ -79,9 +79,9 @@ MonoBehaviour:
   projectileSpeed: 12
   selfKnockbackForce: 5
   selfKnockbackDuration: 0.2
-  personalSpaceRadius: 2
-  separationRadius: 1.5
-  separationStrength: 2
+  personalSpaceRadius: 4
+  separationRadius: 4
+  separationStrength: 1
   waveSpawner: {fileID: 0}
 --- !u!1001 &5003050146020442092
 PrefabInstance:

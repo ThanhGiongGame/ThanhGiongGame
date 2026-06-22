@@ -80,8 +80,8 @@ MonoBehaviour:
   selfKnockbackForce: 5
   selfKnockbackDuration: 0.2
   personalSpaceRadius: 2
-  separationRadius: 1.5
-  separationStrength: 2
+  separationRadius: 2.5
+  separationStrength: 1
   waveSpawner: {fileID: 0}
 --- !u!1001 &5306346140085953996
 PrefabInstance:

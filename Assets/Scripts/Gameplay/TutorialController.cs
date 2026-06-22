@@ -249,7 +249,7 @@ public class TutorialController : MonoBehaviour
             skill2.SetLevel(0);
         }
 
-        int spawned = SpawnChickenWave(10);
+        int spawned = SpawnChickenWave(2);
         skillOneWaveActive = spawned > 0;
         SetObjective(spawned > 0
             ? "Đàn gà đã ùa vào! Bấm 1, chọn tâm đàn gà bằng chuột trái để dùng Thiên Giáng."
@@ -290,10 +290,10 @@ public class TutorialController : MonoBehaviour
         SetPlayerControl(true);
         SetGameplayHudVisible(true);
 
-        int spawned = SpawnChickenWave(20);
+        int spawned = SpawnChickenWave(3);
         wave2Active = spawned > 0;
         SetObjective(spawned > 0
-            ? "20 con gà tràn vào! Hạ tất cả chúng!"
+            ? "3 con gà tràn vào! Hạ tất cả chúng!"
             : "Không tìm thấy mẫu gà.");
         routineRunning = false;
     }
@@ -303,10 +303,10 @@ public class TutorialController : MonoBehaviour
         routineRunning = true;
         phase = 6;
 
-        int spawned = SpawnChickenWave(30);
+        int spawned = SpawnChickenWave(5);
         wave3Active = spawned > 0;
         SetObjective(spawned > 0
-            ? "30 con gà! Đây là thử thách cuối — hạ tất cả!"
+            ? "5 con gà! Đây là thử thách cuối — hạ tất cả!"
             : "Không tìm thấy mẫu gà.");
         routineRunning = false;
         yield break;

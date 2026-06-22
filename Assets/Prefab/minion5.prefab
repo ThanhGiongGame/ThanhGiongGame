@@ -80,7 +80,7 @@ MonoBehaviour:
   selfKnockbackForce: 5
   selfKnockbackDuration: 0.2
   personalSpaceRadius: 2.5
-  separationRadius: 1.5
+  separationRadius: 2.8
   separationStrength: 2
   waveSpawner: {fileID: 0}
 --- !u!1001 &7499385074983346860
