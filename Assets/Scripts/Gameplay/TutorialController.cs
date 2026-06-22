@@ -56,6 +56,7 @@ public class TutorialController : MonoBehaviour
     private Vector3 playerStart;
     private float phaseStartedAt;
     private float ignoreConfirmUntil;
+    private float dialogueConfirmReadyAt;
 
     private void Awake()
     {
@@ -170,9 +171,9 @@ public class TutorialController : MonoBehaviour
         yield return AutoWalk(player, new Vector3(-2.2f, 0f, -2f), 2.4f);
         if (mother != null) yield return AutoWalk(mother, new Vector3(-5.4f, 0f, -4.6f), 1.8f);
 
-        yield return ShowDialogue("Mẹ Gióng", "Con còn nhỏ, sao lại bước ra sân đình lúc trống trận vang như vậy?");
-        yield return ShowDialogue("Gióng", "Mẹ ra mời sứ giả vào đây. Giặc đến cõi bờ, con xin đi phá giặc, cứu nước.");
-        yield return ShowDialogue("Xứ giả", "Nếu lời ấy là thật, hãy bước đến sân tập. Ta sẽ xem sức con.");
+        yield return ShowDialogue("Mẹ Gióng", "Con còn nhỏ, sao lại bước ra sân đình lúc trống trận vang như vậy?", 1.2f);
+        yield return ShowDialogue("Gióng", "Mẹ ra mời sứ giả vào đây. Giặc đến cõi bờ, con xin đi phá giặc, cứu nước.", 0.9f);
+        yield return ShowDialogue("Xứ giả", "Nếu lời ấy là thật, hãy bước đến sân tập. Ta sẽ xem sức con.", 0.9f);
 
         if (cameraController != null)
         {
@@ -627,11 +628,12 @@ public class TutorialController : MonoBehaviour
         startupCoverImage = null;
     }
 
-    private IEnumerator ShowDialogue(string speaker, string body)
+    private IEnumerator ShowDialogue(string speaker, string body, float minDisplaySeconds = 0.45f)
     {
         waitingForDialogue = true;
         typewriterDone = false;
         fullDialogueText = body;
+        dialogueConfirmReadyAt = Time.unscaledTime + Mathf.Max(0.1f, minDisplaySeconds);
 
         if (!playerControlEnabled) SetGameplayHudVisible(false);
 
@@ -690,12 +692,18 @@ public class TutorialController : MonoBehaviour
 
     private void ContinueDialogue()
     {
+        if (Time.unscaledTime < dialogueConfirmReadyAt)
+        {
+            return;
+        }
+
         if (!typewriterDone)
         {
             // Nhấn lần 1: hiện ngay toàn bộ text
             if (typewriterCoroutine != null) { StopCoroutine(typewriterCoroutine); typewriterCoroutine = null; }
             if (bodyText != null) bodyText.text = fullDialogueText;
             typewriterDone = true;
+            dialogueConfirmReadyAt = Time.unscaledTime + 0.3f;
             if (continueIndicator != null)
             {
                 continueIndicator.SetActive(true);
@@ -995,6 +1003,11 @@ public class TutorialController : MonoBehaviour
     private bool WasConfirmPressed()
     {
         if (Time.unscaledTime < ignoreConfirmUntil)
+        {
+            return false;
+        }
+
+        if (waitingForDialogue && Time.unscaledTime < dialogueConfirmReadyAt)
         {
             return false;
         }
