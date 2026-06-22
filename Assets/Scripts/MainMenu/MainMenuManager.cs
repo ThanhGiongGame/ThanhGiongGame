@@ -209,7 +209,7 @@ public class MainMenuManager : MonoBehaviour
             introVideoPlayer.Stop();
         }
 
-        SetIntroVideoVisible(false);
+        SetIntroVideoVisible(true);
     }
 
     public void ToggleSettings()
@@ -267,8 +267,6 @@ public class MainMenuManager : MonoBehaviour
 
     private IEnumerator LoadNextSceneAfterUiEvent()
     {
-        yield return null;
-
         if (!PlayerPrefs.HasKey(VinhDanhTotalKey))
         {
             PlayerPrefs.SetInt(VinhDanhTotalKey, 0);
@@ -279,6 +277,7 @@ public class MainMenuManager : MonoBehaviour
 
         Time.timeScale = 1f;
         SceneManager.LoadScene(TutorialSceneName);
+        yield break;
     }
 
     private IEnumerator LoadContinueSceneAfterUiEvent()
