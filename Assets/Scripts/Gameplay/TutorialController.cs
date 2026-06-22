@@ -32,8 +32,6 @@ public class TutorialController : MonoBehaviour
     private TMP_Text objectiveText;
     private Button skipButton;
     private Image fadeImage;
-    private Canvas startupCoverCanvas;
-    private Image startupCoverImage;
     private GameObject continueIndicator;
     private Coroutine typewriterCoroutine;
     private bool typewriterDone;
@@ -55,20 +53,12 @@ public class TutorialController : MonoBehaviour
     private bool wave3Active;
     private Vector3 playerStart;
     private float phaseStartedAt;
-    private float ignoreConfirmUntil;
-    private float dialogueConfirmReadyAt;
-
-    private void Awake()
-    {
-        CreateStartupCover();
-    }
 
     private void Start()
     {
         Time.timeScale = 1f;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
-        ignoreConfirmUntil = Time.unscaledTime + 0.8f;
 
         ResolveSceneReferences();
         ConfigureActors();
@@ -140,6 +130,7 @@ public class TutorialController : MonoBehaviour
 
     private IEnumerator OpeningSequence()
     {
+        yield return null;
         SetPlayerControl(false);
         SetGameplayHudVisible(false);
         HideObjective();
@@ -165,15 +156,12 @@ public class TutorialController : MonoBehaviour
             cameraController.SetCinematicView(new Vector3(0f, 6.2f, -7.2f), 42f);
         }
 
-        yield return null;
-        yield return FadeOutStartupCover();
-
         yield return AutoWalk(player, new Vector3(-2.2f, 0f, -2f), 2.4f);
         if (mother != null) yield return AutoWalk(mother, new Vector3(-5.4f, 0f, -4.6f), 1.8f);
 
-        yield return ShowDialogue("Mẹ Gióng", "Con còn nhỏ, sao lại bước ra sân đình lúc trống trận vang như vậy?", 1.2f);
-        yield return ShowDialogue("Gióng", "Mẹ ra mời sứ giả vào đây. Giặc đến cõi bờ, con xin đi phá giặc, cứu nước.", 0.9f);
-        yield return ShowDialogue("Xứ giả", "Nếu lời ấy là thật, hãy bước đến sân tập. Ta sẽ xem sức con.", 0.9f);
+        yield return ShowDialogue("Mẹ Gióng", "Con còn nhỏ, sao lại bước ra sân đình lúc trống trận vang như vậy?");
+        yield return ShowDialogue("Gióng", "Mẹ ra mời sứ giả vào đây. Giặc đến cõi bờ, con xin đi phá giặc, cứu nước.");
+        yield return ShowDialogue("Xứ giả", "Nếu lời ấy là thật, hãy bước đến sân tập. Ta sẽ xem sức con.");
 
         if (cameraController != null)
         {
@@ -580,60 +568,11 @@ public class TutorialController : MonoBehaviour
         HideDialogue();
     }
 
-    private void CreateStartupCover()
-    {
-        GameObject coverObject = new GameObject("TutorialStartupCover");
-        startupCoverCanvas = coverObject.AddComponent<Canvas>();
-        startupCoverCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        startupCoverCanvas.sortingOrder = 10000;
-
-        RectTransform coverRect = coverObject.AddComponent<RectTransform>();
-        coverRect.anchorMin = Vector2.zero;
-        coverRect.anchorMax = Vector2.one;
-        coverRect.offsetMin = Vector2.zero;
-        coverRect.offsetMax = Vector2.zero;
-
-        GameObject imageObject = new GameObject("Cover");
-        imageObject.transform.SetParent(coverObject.transform, false);
-        RectTransform imageRect = imageObject.AddComponent<RectTransform>();
-        imageRect.anchorMin = Vector2.zero;
-        imageRect.anchorMax = Vector2.one;
-        imageRect.offsetMin = Vector2.zero;
-        imageRect.offsetMax = Vector2.zero;
-
-        startupCoverImage = imageObject.AddComponent<Image>();
-        startupCoverImage.color = Color.black;
-        startupCoverImage.raycastTarget = true;
-    }
-
-    private IEnumerator FadeOutStartupCover()
-    {
-        if (startupCoverCanvas == null || startupCoverImage == null)
-        {
-            yield break;
-        }
-
-        float elapsed = 0f;
-        const float duration = 0.18f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float alpha = 1f - Mathf.Clamp01(elapsed / duration);
-            startupCoverImage.color = new Color(0f, 0f, 0f, alpha);
-            yield return null;
-        }
-
-        Destroy(startupCoverCanvas.gameObject);
-        startupCoverCanvas = null;
-        startupCoverImage = null;
-    }
-
-    private IEnumerator ShowDialogue(string speaker, string body, float minDisplaySeconds = 0.45f)
+    private IEnumerator ShowDialogue(string speaker, string body)
     {
         waitingForDialogue = true;
         typewriterDone = false;
         fullDialogueText = body;
-        dialogueConfirmReadyAt = Time.unscaledTime + Mathf.Max(0.1f, minDisplaySeconds);
 
         if (!playerControlEnabled) SetGameplayHudVisible(false);
 
@@ -692,18 +631,12 @@ public class TutorialController : MonoBehaviour
 
     private void ContinueDialogue()
     {
-        if (Time.unscaledTime < dialogueConfirmReadyAt)
-        {
-            return;
-        }
-
         if (!typewriterDone)
         {
             // Nhấn lần 1: hiện ngay toàn bộ text
             if (typewriterCoroutine != null) { StopCoroutine(typewriterCoroutine); typewriterCoroutine = null; }
             if (bodyText != null) bodyText.text = fullDialogueText;
             typewriterDone = true;
-            dialogueConfirmReadyAt = Time.unscaledTime + 0.3f;
             if (continueIndicator != null)
             {
                 continueIndicator.SetActive(true);
@@ -1000,18 +933,8 @@ public class TutorialController : MonoBehaviour
         }
     }
 
-    private bool WasConfirmPressed()
+    private static bool WasConfirmPressed()
     {
-        if (Time.unscaledTime < ignoreConfirmUntil)
-        {
-            return false;
-        }
-
-        if (waitingForDialogue && Time.unscaledTime < dialogueConfirmReadyAt)
-        {
-            return false;
-        }
-
 #if ENABLE_INPUT_SYSTEM
         return (Keyboard.current != null && (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame))
             || (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame);
