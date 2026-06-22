@@ -162,14 +162,15 @@ public class TutorialController : MonoBehaviour
             cameraController.SetCinematicView(new Vector3(0f, 6.2f, -7.2f), 42f);
         }
 
+        yield return null;
         yield return FadeOutStartupCover();
-
-        yield return AutoWalk(player, new Vector3(-2.2f, 0f, -2f), 2.4f);
-        if (mother != null) yield return AutoWalk(mother, new Vector3(-5.4f, 0f, -4.6f), 1.8f);
 
         yield return ShowDialogue("Mẹ Gióng", "Con còn nhỏ, sao lại bước ra sân đình lúc trống trận vang như vậy?");
         yield return ShowDialogue("Gióng", "Mẹ ra mời sứ giả vào đây. Giặc đến cõi bờ, con xin đi phá giặc, cứu nước.");
         yield return ShowDialogue("Xứ giả", "Nếu lời ấy là thật, hãy bước đến sân tập. Ta sẽ xem sức con.");
+
+        yield return AutoWalk(player, new Vector3(-2.2f, 0f, -2f), 2.4f);
+        if (mother != null) yield return AutoWalk(mother, new Vector3(-5.4f, 0f, -4.6f), 1.8f);
 
         if (cameraController != null)
         {
