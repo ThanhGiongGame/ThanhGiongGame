@@ -53,7 +53,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1.2
+  m_Radius: 2
   m_Height: 4.71
   m_Direction: 1
   m_Center: {x: 0, y: 2.35, z: 0}
@@ -75,9 +75,11 @@ MonoBehaviour:
   damage: 10
   attackRange: 1.5
   attackCooldown: 1
+  isRanged: 0
+  projectileSpeed: 12
   selfKnockbackForce: 5
   selfKnockbackDuration: 0.2
-  personalSpaceRadius: 2
+  personalSpaceRadius: 2.5
   separationRadius: 1.5
   separationStrength: 2
   waveSpawner: {fileID: 0}

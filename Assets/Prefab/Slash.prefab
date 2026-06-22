@@ -109,7 +109,7 @@ MonoBehaviour:
   sweepAngle: -180
   lifetime: 0.417
   radius: 5
-  damage: 15
+  damage: 10
 --- !u!65 &5165159735173569279
 BoxCollider:
   m_ObjectHideFlags: 0

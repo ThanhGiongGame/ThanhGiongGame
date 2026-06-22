@@ -1157,7 +1157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 100
-  knockbackDamping: 5
+  knockbackDamping: 10
 --- !u!1001 &6938606960425385046
 PrefabInstance:
   m_ObjectHideFlags: 0
