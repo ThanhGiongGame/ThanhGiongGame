@@ -124,121 +124,11 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
-    public GameObject FindEnemyBPrefab()
-    {
-        if (waves != null)
-        {
-            foreach (var w in waves)
-            {
-                if (w.enemies != null)
-                {
-                    foreach (var info in w.enemies)
-                    {
-                        if (info.enemyPrefab != null && info.enemyPrefab.name == "EnemyB")
-                        {
-                            return info.enemyPrefab;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private GameObject FindEnemyCPrefab()
-    {
-        if (waves != null)
-        {
-            foreach (var w in waves)
-            {
-                if (w.enemies != null)
-                {
-                    foreach (var info in w.enemies)
-                    {
-                        if (info.enemyPrefab != null && info.enemyPrefab.name == "EnemyC")
-                        {
-                            return info.enemyPrefab;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private GameObject FindChickenPrefab()
-    {
-        if (waves != null)
-        {
-            foreach (var w in waves)
-            {
-                if (w.enemies != null)
-                {
-                    foreach (var info in w.enemies)
-                    {
-                        if (info.enemyPrefab != null && info.enemyPrefab.name == "chicken")
-                        {
-                            return info.enemyPrefab;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
 
     private void SpawnEnemy(GameObject enemyPrefab)
     {
         if (player == null || enemyPrefab == null) return;
-        // Only allow standard enemy types (including chicken)
         if (enemyPrefab.name != "EnemyA" && enemyPrefab.name != "EnemyB" && enemyPrefab.name != "EnemyC" && enemyPrefab.name != "chicken") return;
-
-        // "xóa cái con ngựa của địch á, nó xuất hiện trong map 1 á"
-        // Nếu bản đồ đang chọn là Map 1 (index 0) và địch là EnemyA (ngựa), đổi sang EnemyB (đi bộ)
-        if (PlayerPrefs.GetInt("SelectedMap", 0) == 0 && enemyPrefab != null && enemyPrefab.name == "EnemyA")
-        {
-            GameObject enemyB = FindEnemyBPrefab();
-            if (enemyB != null)
-            {
-                enemyPrefab = enemyB;
-            }
-        }
-
-        // Map 2: 35% chance to swap EnemyA or EnemyB with EnemyC (javelin thrower)
-        if (PlayerPrefs.GetInt("SelectedMap", 0) == 1 && enemyPrefab != null && (enemyPrefab.name == "EnemyA" || enemyPrefab.name == "EnemyB"))
-        {
-            if (Random.value < 0.35f)
-            {
-                GameObject enemyC = FindEnemyCPrefab();
-                if (enemyC != null)
-                {
-                    enemyPrefab = enemyC;
-                }
-            }
-        }
-
-        // Map 3: Chỉ cho phép quái gà (chicken) và lính đi bộ (EnemyB).
-        // Đổi EnemyA (ngựa) thành chicken, đổi EnemyC (ném lao) thành EnemyB.
-        if (PlayerPrefs.GetInt("SelectedMap", 0) == 2)
-        {
-            if (enemyPrefab != null && enemyPrefab.name == "EnemyA")
-            {
-                GameObject chicken = FindChickenPrefab();
-                if (chicken != null)
-                {
-                    enemyPrefab = chicken;
-                }
-            }
-            else if (enemyPrefab != null && enemyPrefab.name == "EnemyC")
-            {
-                GameObject enemyB = FindEnemyBPrefab();
-                if (enemyB != null)
-                {
-                    enemyPrefab = enemyB;
-                }
-            }
-        }
-
         Vector2 randomCircle =
             Random.insideUnitCircle.normalized * spawnRadius;
 
@@ -252,12 +142,7 @@ public class WaveSpawner : MonoBehaviour
             enemyPrefab.transform.rotation
         );
 
-        // Auto gán WaveSpawner vào enemy
         Enemy enemy = enemyObj.GetComponent<Enemy>();
 
-        if (enemy != null)
-        {
-            enemy.waveSpawner = this;
-        }
     }
 }

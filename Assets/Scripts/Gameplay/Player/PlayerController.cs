@@ -183,7 +183,7 @@ public class PlayerController : MonoBehaviour
             float moveMutiplier = 1f;
             if (walkTimer > 3)
             {
-                moveMutiplier = 1.5f;
+                moveMutiplier = 1.8f;
             }
             else moveMutiplier = 1;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) horizontal -= 1f;

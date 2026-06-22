@@ -59,85 +59,85 @@ public class Enemy : MonoBehaviour
         }
 
         // Configure EnemyC as ranged javelin thrower
-        if (gameObject.name.Contains("EnemyC"))
-        {
-            isRanged = true;
-            attackRange = 8f;
-            attackCooldown = 2.5f;
-            moveSpeed = 2f;
+        //if (gameObject.name.Contains("EnemyC"))
+        //{
+        //    isRanged = true;
+        //    attackRange = 8f;
+        //    attackCooldown = 2.5f;
+        //    moveSpeed = 2f;
 
-            // Fix visual for EnemyC to use EnemyB's soldier mesh
-            WaveSpawner spawner = FindObjectOfType<WaveSpawner>();
-            if (spawner != null)
-            {
-                GameObject enemyBPrefab = spawner.FindEnemyBPrefab();
-                if (enemyBPrefab != null)
-                {
-                    Transform cylinder = transform.Find("Cylinder");
-                    if (cylinder != null)
-                    {
-                        cylinder.gameObject.SetActive(false);
-                    }
+        //    // Fix visual for EnemyC to use EnemyB's soldier mesh
+        //    WaveSpawner spawner = FindObjectOfType<WaveSpawner>();
+        //    if (spawner != null)
+        //    {
+        //        GameObject enemyBPrefab = spawner.FindEnemyBPrefab();
+        //        if (enemyBPrefab != null)
+        //        {
+        //            Transform cylinder = transform.Find("Cylinder");
+        //            if (cylinder != null)
+        //            {
+        //                cylinder.gameObject.SetActive(false);
+        //            }
 
-                    Transform bCylinder = enemyBPrefab.transform.Find("Cylinder");
-                    if (bCylinder != null)
-                    {
-                        GameObject visual = Instantiate(bCylinder.gameObject, transform);
-                        visual.name = "Visual";
-                        visual.transform.localPosition = Vector3.zero;
-                        visual.transform.localRotation = Quaternion.identity;
-                        visual.transform.localScale = new Vector3(3f, 3f, 3f);
+        //            Transform bCylinder = enemyBPrefab.transform.Find("Cylinder");
+        //            if (bCylinder != null)
+        //            {
+        //                GameObject visual = Instantiate(bCylinder.gameObject, transform);
+        //                visual.name = "Visual";
+        //                visual.transform.localPosition = Vector3.zero;
+        //                visual.transform.localRotation = Quaternion.identity;
+        //                visual.transform.localScale = new Vector3(3f, 3f, 3f);
 
-                        foreach (Collider col in visual.GetComponentsInChildren<Collider>())
-                        {
-                            col.enabled = false;
-                        }
-                    }
-                }
-            }
-        }
+        //                foreach (Collider col in visual.GetComponentsInChildren<Collider>())
+        //                {
+        //                    col.enabled = false;
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
-        // Map 2 Armored Horse swap
-        if (PlayerPrefs.GetInt("SelectedMap", 0) == 1 && gameObject.name.Contains("EnemyA"))
-        {
-            PlayerEquipmentLoader loader = FindObjectOfType<PlayerEquipmentLoader>();
-            if (loader != null && loader.horseTier2 != null)
-            {
-                Transform cylinder = transform.Find("Cylinder");
-                if (cylinder != null)
-                {
-                    cylinder.gameObject.SetActive(false);
-                }
+        //// Map 2 Armored Horse swap
+        //if (PlayerPrefs.GetInt("SelectedMap", 0) == 1 && gameObject.name.Contains("EnemyA"))
+        //{
+        //    PlayerEquipmentLoader loader = FindObjectOfType<PlayerEquipmentLoader>();
+        //    if (loader != null && loader.horseTier2 != null)
+        //    {
+        //        Transform cylinder = transform.Find("Cylinder");
+        //        if (cylinder != null)
+        //        {
+        //            cylinder.gameObject.SetActive(false);
+        //        }
 
-                GameObject ironHorse = Instantiate(loader.horseTier2, transform);
-                ironHorse.transform.localPosition = Vector3.zero;
-                ironHorse.transform.localRotation = Quaternion.identity;
-                ironHorse.transform.localScale = new Vector3(6f, 6f, 6f);
+        //        GameObject ironHorse = Instantiate(loader.horseTier2, transform);
+        //        ironHorse.transform.localPosition = Vector3.zero;
+        //        ironHorse.transform.localRotation = Quaternion.identity;
+        //        ironHorse.transform.localScale = new Vector3(6f, 6f, 6f);
 
-                foreach (Collider col in ironHorse.GetComponentsInChildren<Collider>())
-                {
-                    col.enabled = false;
-                }
-            }
-        }
+        //        foreach (Collider col in ironHorse.GetComponentsInChildren<Collider>())
+        //        {
+        //            col.enabled = false;
+        //        }
+        //    }
+        //}
 
-        // Auto-align visuals to stand on the ground based on CapsuleCollider
-        CapsuleCollider capsule = GetComponent<CapsuleCollider>();
-        if (capsule != null && !gameObject.name.Contains("EnemyA"))
-        {
-            Transform visuals = transform.Find("Visuals") ?? transform.Find("Cylinder") ?? transform.Find("Visual");
-            if (visuals != null && visuals.transform.localPosition.y == 0f)
-            {
-                if (capsule.center.y > 0f)
-                {
-                    visuals.transform.localPosition = new Vector3(
-                        visuals.transform.localPosition.x,
-                        capsule.center.y,
-                        visuals.transform.localPosition.z
-                    );
-                }
-            }
-        }
+        //// Auto-align visuals to stand on the ground based on CapsuleCollider
+        //CapsuleCollider capsule = GetComponent<CapsuleCollider>();
+        //if (capsule != null && !gameObject.name.Contains("EnemyA"))
+        //{
+        //    Transform visuals = transform.Find("Visuals") ?? transform.Find("Cylinder") ?? transform.Find("Visual");
+        //    if (visuals != null && visuals.transform.localPosition.y == 0f)
+        //    {
+        //        if (capsule.center.y > 0f)
+        //        {
+        //            visuals.transform.localPosition = new Vector3(
+        //                visuals.transform.localPosition.x,
+        //                capsule.center.y,
+        //                visuals.transform.localPosition.z
+        //            );
+        //        }
+        //    }
+        //}
     }
 
     private void Update()
