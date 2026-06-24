@@ -26,6 +26,8 @@ public class DialogueUI : MonoBehaviour
     private bool _skipRequested;
     private Coroutine _typewriterCoroutine;
 
+    private AudioSource _voiceAudioSource;
+
     // Singleton đơn giản
     public static DialogueUI Instance { get; private set; }
 
@@ -55,6 +57,7 @@ public class DialogueUI : MonoBehaviour
     public void EndDialogue()
     {
         StopAllCoroutines();
+        if (_voiceAudioSource != null) _voiceAudioSource.Stop();
         dialoguePanel.SetActive(false);
         Time.timeScale = 1f;
     }
@@ -109,6 +112,35 @@ public class DialogueUI : MonoBehaviour
         }
 
         continueIndicator.SetActive(false);
+
+        // Phát voice lồng tiếng nếu có
+        if (_voiceAudioSource == null)
+        {
+            _voiceAudioSource = gameObject.AddComponent<AudioSource>();
+            _voiceAudioSource.ignoreListenerPause = true;
+            _voiceAudioSource.playOnAwake = false;
+            _voiceAudioSource.volume = 1f;
+            Debug.Log("[DialogueUI] Đã tạo AudioSource mới cho lồng tiếng");
+        }
+        
+        _voiceAudioSource.Stop();
+        if (line.voiceClip != null)
+        {
+            Debug.Log("[DialogueUI] 🔊 Đang phát voice clip: " + line.voiceClip.name + " | Độ dài: " + line.voiceClip.length + "s");
+            _voiceAudioSource.clip = line.voiceClip;
+            _voiceAudioSource.Play();
+            
+            // Fallback: dùng PlayOneShot nếu Play() không hoạt động
+            if (!_voiceAudioSource.isPlaying)
+            {
+                Debug.LogWarning("[DialogueUI] ⚠️ AudioSource.Play() thất bại, thử PlayOneShot...");
+                _voiceAudioSource.PlayOneShot(line.voiceClip);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[DialogueUI] ⚠️ Voice Clip = NULL! Không có file mp3 gắn vào dòng thoại này: " + line.characterName);
+        }
 
         if (_typewriterCoroutine != null)
             StopCoroutine(_typewriterCoroutine);

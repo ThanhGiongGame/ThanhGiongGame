@@ -9,6 +9,9 @@ public class DialogueLine
     [Tooltip("Nội dung thoại")]
     [TextArea(3, 6)]
     public string text;
+
+    [Tooltip("File lồng tiếng cho câu thoại này (Tùy chọn)")]
+    public AudioClip voiceClip;
 }
 
 [CreateAssetMenu(fileName = "New Dialogue", menuName = "ThanhGiong/Dialogue Data")]

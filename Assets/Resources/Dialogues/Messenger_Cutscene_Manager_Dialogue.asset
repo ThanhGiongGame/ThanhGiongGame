@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1e4846ae98bb674fa13543877b4a222, type: 3}
+  m_Name: Messenger_Cutscene_Manager_Dialogue
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  lines:
+  - characterName: "S\u1EE9 Gi\u1EA3"
+    text: "B\xE1o!... Tin m\u1EEBng! Tr\xE1ng s\u0129 \u01A1i, gi\u1EB7c d\u1EEF
+      \u1EDF khu v\u1EF1c l\xE0ng ta \u0111\xE3 b\u1ECB ng\xE0i \u0111u\u1ED5i s\u1EA1ch
+      r\u1ED3i! D\xE2n l\xE0ng \u0111\xE3 \u0111\u01B0\u1EE3c b\xECnh y\xEAn!"
+    voiceClip: {fileID: 8300000, guid: 3a83bf0103b06ff4ab8242cafbf8bb74, type: 3}
+  - characterName: "Th\xE1nh Gi\xF3ng"
+    text: "S\u1EE9 gi\u1EA3 ch\u1EDB m\u1EEBng v\u1ED9i. C\u0103n nguy\xEAn b\u1EDD
+      c\xF5i ch\u01B0a y\xEAn, to\xE1n qu\xE2n ch\xEDnh c\u1EE7a ch\xFAng \u0111ang
+      \u1EDF \u0111\xE2u?"
+    voiceClip: {fileID: 8300000, guid: 7aa417e683727eb47b1ac6b07fb4bb78, type: 3}
+  - characterName: "S\u1EE9 Gi\u1EA3"
+    text: "\u0110\xE2y l\xE0 b\u1EA3n \u0111\u1ED3 qu\xE2n c\u01A1 c\u1EE7a tri\u1EC1u
+      \u0111\xECnh. Ph\xEDa tr\u01B0\u1EDBc l\xE0 v\xF9ng \u0111\u1ED3ng b\u1EB1ng,
+      qu\xE2n \u0111\u1ECBch t\u1EE5 t\u1EADp r\u1EA5t \u0111\xF4ng!"
+    voiceClip: {fileID: 8300000, guid: 5e88f8ae0f4ae514a8855f36308d7d5b, type: 3}

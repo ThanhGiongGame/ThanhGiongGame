@@ -158,8 +158,22 @@ public class MainMenuManager : MonoBehaviour
             backgroundMusic.Stop();
         }
 
+        // Reset game progress
+        ResetGameProgress();
+
         introVideoPlayer.Stop();
         introVideoPlayer.Play();
+    }
+
+    private void ResetGameProgress()
+    {
+        PlayerPrefs.DeleteKey(TutorialCompleteKey);
+        PlayerPrefs.DeleteKey(HasSeenIntroKey);
+        PlayerPrefs.DeleteKey(VinhDanhTotalKey);
+        PlayerPrefs.DeleteKey("Map2Unlocked");
+        PlayerPrefs.DeleteKey("Map3Unlocked");
+        // We do not delete Volume and Muted settings
+        PlayerPrefs.Save();
     }
 
     public void ContinueGame()
@@ -343,11 +357,11 @@ public class MainMenuManager : MonoBehaviour
         ConfigureBackground();
         ConfigureTitle();
 
-        // 1. Nhân bản nút SETTINGS thành các nút phụ nếu chưa có
-        GameObject settingsBtnGO = FindByName("SETTINGS");
-        if (settingsBtnGO != null)
+        // 1. Ẩn các nút không cần thiết
+        GameObject continueBtnGO = FindByName("CONTINUE");
+        if (continueBtnGO != null)
         {
-            EnsureMenuButtonClone(settingsBtnGO, "CONTINUE", ContinueGame);
+            continueBtnGO.SetActive(false);
         }
 
         GameObject mapButtonObject = FindByName("MAP_SELECT");
@@ -356,10 +370,9 @@ public class MainMenuManager : MonoBehaviour
             mapButtonObject.SetActive(false);
         }
 
-        // 2. Định vị lại menu chính cho flow rõ hơn.
-        ConfigureMenuButton("PLAY", new Vector2(0f, 112f), "BẮT ĐẦU HÀNH TRÌNH");
-        ConfigureMenuButton("CONTINUE", new Vector2(0f, 0f), "TIẾP TỤC");
-        ConfigureMenuButton("SETTINGS", new Vector2(0f, -112f), "CÀI ĐẶT");
+        // 2. Định vị lại menu chính cho flow rõ hơn (Chỉ còn Bắt đầu & Cài đặt).
+        ConfigureMenuButton("PLAY", new Vector2(0f, 60f), "BẮT ĐẦU HÀNH TRÌNH");
+        ConfigureMenuButton("SETTINGS", new Vector2(0f, -60f), "CÀI ĐẶT");
         NormalizeSettingsPanel();
         NormalizeIntroVideoPanel();
     }
