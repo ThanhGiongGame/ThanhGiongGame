@@ -187,6 +187,22 @@ public class MainMenuManager : MonoBehaviour
         StartCoroutine(LoadContinueSceneAfterUiEvent());
     }
 
+    public void QuitGame()
+    {
+        if (isLoadingScene)
+        {
+            return;
+        }
+
+        Time.timeScale = 1f;
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
     public void SkipVideo()
     {
         if (isLoadingScene)
@@ -348,6 +364,7 @@ public class MainMenuManager : MonoBehaviour
         if (settingsBtnGO != null)
         {
             EnsureMenuButtonClone(settingsBtnGO, "CONTINUE", ContinueGame);
+            EnsureMenuButtonClone(settingsBtnGO, "QUIT", QuitGame);
         }
 
         GameObject mapButtonObject = FindByName("MAP_SELECT");
@@ -357,9 +374,10 @@ public class MainMenuManager : MonoBehaviour
         }
 
         // 2. Định vị lại menu chính cho flow rõ hơn.
-        ConfigureMenuButton("PLAY", new Vector2(0f, 112f), "BẮT ĐẦU HÀNH TRÌNH");
-        ConfigureMenuButton("CONTINUE", new Vector2(0f, 0f), "TIẾP TỤC");
-        ConfigureMenuButton("SETTINGS", new Vector2(0f, -112f), "CÀI ĐẶT");
+        ConfigureMenuButton("PLAY", new Vector2(0f, 168f), "BẮT ĐẦU HÀNH TRÌNH");
+        ConfigureMenuButton("CONTINUE", new Vector2(0f, 56f), "TIẾP TỤC");
+        ConfigureMenuButton("SETTINGS", new Vector2(0f, -56f), "CÀI ĐẶT");
+        ConfigureMenuButton("QUIT", new Vector2(0f, -168f), "THOÁT GAME");
         NormalizeSettingsPanel();
         NormalizeIntroVideoPanel();
     }
