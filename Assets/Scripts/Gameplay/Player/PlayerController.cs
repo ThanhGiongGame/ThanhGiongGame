@@ -6,26 +6,33 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    private int attackId = 0;
     [Header("Movement")]
     public float moveSpeed = 5f;
     [HideInInspector]
     public float slashDamageMultiplier = 1.0f; // Defaults to 100% damage base
     [Header("Attack")]
     public GameObject slashPrefab;
+    [Header("Horse Rotation")]
+    public float turnSpeed = 300f;
     public Transform attackSpawnPoint;
     public float attackInterval = 1.2f;   // 0.2s wind-up + 1.0s swing
     public float attackWindUp = 0.2f;   // delay before slash spawns
-
+    public WeaponDamage weaponDamage;
+    public WeaponTrail weaponTrail;
     public Boolean Tutorial = false;
+    public Animator riderAnimator;
+    public Animator horseAnimator;
+    public PlayerEquipmentLoader equipmentLoader;
+    public HorseLoader horseLoader;
 
     // ---- Private references ----
     private CharacterController controller;
     private PlayerHealth playerHealth;
     private Camera mainCamera;
     private UltimateController ultimateController;
-    private Animator horseAnimator;
-    public PlayerEquipmentLoader equipmentLoader;
     private float walkTimer = 0f;
+    private bool isAttacking;
 
     // ---- Attack timer ----
     private float attackTimer;
@@ -36,18 +43,7 @@ public class PlayerController : MonoBehaviour
     // ---- Unused legacy field (kept to avoid prefab warnings) ----
     private Transform enemyTransform;
 
-    // ================================================================
-    // Properties used by Skills (Fixes compilation errors)
-    // ================================================================
-    /// <summary>
-    /// Tracks if the player is currently executing a manual movement skill (like Flame Dash)
-    /// to block regular WASD movement inputs and automated primary attacks.
-    /// </summary>
     public bool IsPerformingSkill { get; set; }
-
-    /// <summary>
-    /// Provides access to the player's vulnerability state.
-    /// </summary>
     public bool IsInvulnerable
     {
         get => _isInvulnerable;
@@ -67,6 +63,9 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         playerHealth = GetComponent<PlayerHealth>();
         ultimateController = GetComponent<UltimateController>();
+        horseLoader = GetComponent<HorseLoader>();
+        horseLoader.LoadHorse();
+        weaponDamage = GetComponent<WeaponDamage>();
         IsInvulnerable = false;
         float baseDamage = 20f;
         float baseMaxHealth = 100f;
@@ -125,10 +124,9 @@ public class PlayerController : MonoBehaviour
     {
         ExpireStuckInvulnerability();
 
-        // Don't rotate or attack automatically if aiming or performing a skill
         if (!IsPerformingSkill)
         {
-            HandleRotation();
+            //HandleRotation();
             HandleAttack();
         }
         if (Keyboard.current.qKey.wasPressedThisFrame)
@@ -136,11 +134,9 @@ public class PlayerController : MonoBehaviour
             TryUseUltimate();
         }
         HandleMovement();
+
     }
 
-    // -------------------------------------------------------
-    // Movement — SINGLE controller.Move() call per frame
-    // -------------------------------------------------------
     private void TryUseUltimate()
     {
         string equippedUltimate =
@@ -163,10 +159,10 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleMovement()
     {
-        if (equipmentLoader != null && equipmentLoader.horseRoot != null)
-        {
-            horseAnimator = equipmentLoader.horseRoot.GetComponentInChildren<Animator>();
-        }
+        //if (equipmentLoader != null && equipmentLoader.horseRoot != null)
+        //{
+        //    horseAnimator = equipmentLoader.horseRoot.GetComponentInChildren<Animator>();
+        //}
 
         // If a skill like Flame Dash is currently driving CharacterController.Move(),
         // we completely bypass the standard movement calculation loop.
@@ -191,7 +187,26 @@ public class PlayerController : MonoBehaviour
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) vertical -= 1f;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) vertical += 1f;
 
-            moveVelocity = new Vector3(horizontal, 0f, vertical).normalized * moveSpeed * moveMutiplier;
+            Vector3 moveDir =
+                new Vector3(horizontal, 0f, vertical);
+
+            if (moveDir.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRotation =
+                    Quaternion.LookRotation(moveDir.normalized);
+
+                transform.rotation =
+                    Quaternion.RotateTowards(
+                        transform.rotation,
+                        targetRotation,
+                        turnSpeed * Time.deltaTime
+                    );
+            }
+
+            moveVelocity =
+                moveDir.normalized
+                * moveSpeed
+                * moveMutiplier;
         }
         if (horseAnimator != null)
         {
@@ -245,82 +260,151 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // -------------------------------------------------------
-    // Rotation — face mouse cursor
-    // -------------------------------------------------------
-
-    private void HandleRotation()
+    // Mouse Detection
+    private float GetMouseRelativeAngle()
     {
-        if (Mouse.current == null) return;
-        if (mainCamera == null) return;
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        Ray ray = mainCamera.ScreenPointToRay(mousePos);
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-        float rayDistance;
+        if (!TryGetMouseGroundPoint(out Vector3 mousePoint))
+            return 0f;
 
-        if (groundPlane.Raycast(ray, out rayDistance))
-        {
-            Vector3 point = ray.GetPoint(rayDistance);
-            Vector3 lookDirection = point - transform.position;
-            lookDirection.y = 0f;
+        Vector3 mouseDir =
+            mousePoint - transform.position;
 
-            if (lookDirection != Vector3.zero)
-                transform.rotation = Quaternion.LookRotation(lookDirection);
-        }
+        mouseDir.y = 0;
+
+        float angle =
+            Vector3.SignedAngle(
+                transform.forward,
+                mouseDir,
+                Vector3.up
+            );
+
+        if (angle < 0)
+            angle += 360;
+
+        return angle;
     }
+    private bool TryGetMouseGroundPoint(out Vector3 point)
+    {
+        point = Vector3.zero;
 
+        if (mainCamera == null)
+            mainCamera = Camera.main;
+
+        if (mainCamera == null)
+            return false;
+
+        if (Mouse.current == null)
+            return false;
+
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+
+        Ray ray = mainCamera.ScreenPointToRay(mousePos);
+
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+
+        if (!groundPlane.Raycast(ray, out float distance))
+            return false;
+
+        point = ray.GetPoint(distance);
+        return true;
+    }
     // -------------------------------------------------------
     // Attack
     // -------------------------------------------------------
+    public enum AttackDirection
+    {
+        West = 0,
+        North = 1,
+        East = 2
+    }
+    private AttackDirection GetAttackDirection()
+    {
+        float angle = GetMouseRelativeAngle();
 
+        // vùng trước mặt
+        if (angle <= 45f || angle >= 315f)
+        {
+            Debug.Log("Facing North");
+            return AttackDirection.North;
+        }
+
+        // nửa phải
+        if (angle > 45f && angle < 180f)
+        {
+            Debug.Log("Facing East");
+            return AttackDirection.East;
+        }
+
+        // nửa trái
+        Debug.Log("Facing West");
+        return AttackDirection.West;
+    }
     private void HandleAttack()
     {
         attackTimer -= Time.deltaTime;
 
-        if (attackTimer <= 0f)
+        if (attackTimer <= 0f && !isAttacking)
         {
             StartCoroutine(AttackCoroutine());
-            attackTimer = attackInterval;   
+
+            attackTimer = attackInterval;
         }
     }
-
-    // Wind-up (0.2 s) → spawn slash → swing for 1 s
     private IEnumerator AttackCoroutine()
     {
-        if (slashPrefab == null)
+        isAttacking = true;
+        try
         {
-            Debug.LogWarning("Slash Prefab is not assigned in PlayerController!");
-            yield break;
+
+            if (slashPrefab == null)
+                yield break;
+
+            if (!TryGetMouseGroundPoint(out Vector3 targetPoint))
+                yield break;
+            AttackDirection attackDir =
+                GetAttackDirection();
+            if (riderAnimator != null)
+            {
+                riderAnimator.SetInteger(
+                    "AttackDirection",
+                    (int)attackDir
+                );
+
+                riderAnimator.SetTrigger("Attack");
+            }
+
+            if (Mouse.current == null) yield break;
+
+            Vector2 mousePos = Mouse.current.position.ReadValue();
+            Ray ray = mainCamera.ScreenPointToRay(mousePos);
+            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+            float rayDistance;
+
+            if (!groundPlane.Raycast(ray, out rayDistance)) yield break;
+
+            Vector3 lookDirection = targetPoint - transform.position;
+            lookDirection.y = 0f;
+            int id = ++attackId;
+
+            // --- Wind-up pause ---
+            weaponTrail.BeginTrail();
+            Debug.Log($"Attack {id} Started");
+
+            yield return new WaitForSeconds(attackWindUp);
+            Debug.Log($"[{Time.time:F3}] Is Attacking");
+            Debug.Log($"Attack {id} Is Attacking");
+            weaponDamage.BeginAttack();
+
+            yield return new WaitForSeconds(1.5f);
+            Debug.Log($"[{Time.time:F3}] End Attacking");
+            Debug.Log($"Attack {id} End");
+            weaponDamage.EndAttack();
+            Debug.Log($"Attack {id} End Trail");
+            weaponTrail.EndTrail();
         }
-
-        if (Mouse.current == null) yield break;
-
-        // --- Capture direction at the moment the attack is triggered ---
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        Ray ray = mainCamera.ScreenPointToRay(mousePos);
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-        float rayDistance;
-
-        if (!groundPlane.Raycast(ray, out rayDistance)) yield break;
-
-        Vector3 targetPoint = ray.GetPoint(rayDistance);
-        Vector3 lookDirection = targetPoint - transform.position;
-        lookDirection.y = 0f;
-
-        // --- Wind-up pause ---
-        yield return new WaitForSeconds(attackWindUp);
-
-        // --- Spawn & launch the slash ---
-        GameObject slash = Instantiate(slashPrefab, transform.position, Quaternion.identity);
-        SlashProjectile slashScript = slash.GetComponent<SlashProjectile>();
-
-        if (slashScript != null)
+        finally
         {
-            slashScript.Initialize(transform, lookDirection);
-
-            // Multiply the projectile's native damage by the player's stat multiplier
-            // (Change 'damage' to whatever variable name your projectile script uses)
-            slashScript.damage *= slashDamageMultiplier;
+            isAttacking = false;
         }
     }
 }

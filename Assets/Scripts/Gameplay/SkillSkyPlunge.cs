@@ -39,6 +39,7 @@ public class SkillSkyPlunge : MonoBehaviour
     private CameraController _cam;
     private Camera           _mainCamera;
     private SkillIndicator   _indicator;
+    private Animator _horseAnimator;
     private Vector3          _originalScale;
     private Vector3          _targetPos;
 
@@ -55,6 +56,9 @@ public class SkillSkyPlunge : MonoBehaviour
         _cam           = FindObjectOfType<CameraController>();
         _mainCamera    = Camera.main;
         _originalScale = transform.localScale;
+        _horseAnimator = _pc.horseAnimator;
+
+
     }
 
     private void Update()
@@ -156,7 +160,7 @@ public class SkillSkyPlunge : MonoBehaviour
         Vector3 highP = startP + Vector3.up * AscendHeight;
         Vector3 startS = _originalScale;
         Vector3 tinyS = _originalScale * 0.05f;
-
+        _horseAnimator.SetInteger("PlungeStart",1);
         while (t0 < AscendTime)
         {
             t0 += Time.deltaTime;
@@ -201,9 +205,8 @@ public class SkillSkyPlunge : MonoBehaviour
 
         // ---- Landing ----
         DoLandingImpact();
+        _horseAnimator.SetInteger("PlungeStart", 0);
 
-        // ---- Invulnerability frames (Giữ trạng thái bất tử) ----
-        // Ép liên tục trong vòng lặp để tránh bị các script khác đè cấu trúc tắt bất tử
         float elapsedInvuln = 0f;
         while (elapsedInvuln < InvulnDuration)
         {
@@ -225,6 +228,8 @@ public class SkillSkyPlunge : MonoBehaviour
     private void DoLandingImpact()
     {
         // Camera shake
+        _horseAnimator.SetInteger("PlungeStart", 2);
+
         if (_cam != null) _cam.Shake(0.6f, 0.35f);
 
         // Visual burst

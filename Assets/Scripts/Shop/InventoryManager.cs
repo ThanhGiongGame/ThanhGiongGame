@@ -42,8 +42,9 @@ public class InventoryManager : MonoBehaviour
     // Thiết lập toàn bộ dữ liệu vật phẩm tại đây (Dễ dàng thêm mới món thứ 5, thứ 6)
     private void InitDatabase()
     {
+
     }
-    public int GetCurrency() => PlayerPrefs.GetInt("VinhDanhTotal", 100000000);
+    public int GetCurrency() => PlayerPrefs.GetInt("VinhDanhTotal", 9999);
 
     public void AddCurrency(int amount)
     {
