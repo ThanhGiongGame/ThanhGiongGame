@@ -1,0 +1,205 @@
+Đúng, Phase 1 có **D1, D2, D3**, nên không chỉ sửa mỗi RQ2. Cần sửa theo kiểu **đồng bộ scope toàn bộ file**.
+
+## Nguyên tắc sửa toàn Phase 1
+
+Thay toàn bộ hướng cũ:
+
+```text
+backend e-commerce systems
+e-commerce backend prototypes
+two equivalent prototypes
+high-concurrency e-commerce / flash-sale context
+same domain rules, same DB schema, same API endpoints
+```
+
+bằng hướng mới:
+
+```text
+selected open-source backend systems with identifiable architectural structures
+```
+
+Vì Phase 2 đã chốt scope là **4 open-source backend systems** chứ không còn tự build 2 prototype e-commerce.
+
+---
+
+# D1 — Problem Statement
+
+## Cần sửa
+
+| Phần                               | Trạng thái                                                                                                           | Cần làm                                                    |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Topic**                          | Còn “Clean Architecture Applications”                                                                                | Sửa title cho có Traditional Layered + Open-source backend |
+| **Business Context**               | Đã có “representative open-source backend implementations” nhưng vẫn nói “controlled backend application prototypes” | Sửa nhẹ để không mâu thuẫn                                 |
+| **3.3 Ensuring a Fair Comparison** | Còn nói prototypes phải cùng domain rules, DB schema, API endpoints, tech stack                                      | Cần sửa vì giờ không phải tự build 2 prototype giống hệt   |
+| **Core Problem Statement**         | Đã khá ổn, nhưng nên đổi “open-source backend applications” thành cụm chặt hơn                                       | Sửa nhẹ                                                    |
+
+D1 hiện vẫn có topic cũ và đoạn Business Context đang nói “controlled backend application prototypes”, dù sau đó đã nhắc open-source backend implementations. 
+
+### D1 nên thay bằng hướng này
+
+Topic:
+
+Evaluating Runtime and Development Overhead of Clean Architecture Compared with Traditional Layered Architecture in Open-Source Backend Systems
+
+Phần **3.3 Ensuring a Fair Comparison** nên sửa vì hiện đang nói hai prototype phải cùng domain rules, use cases, database schema, API endpoints, technology stack, dataset, workload. Câu đó hợp với nghiên cứu tự build prototype, nhưng lệch với open-source systems. 
+
+Traditional Layered Architecture is used as a reference baseline, not as an assumption that it is universally superior. Because this study focuses on selected open-source backend systems, the comparison must focus on comparable architectural characteristics rather than identical business domains. The selected systems should expose identifiable architectural structures, such as controller/API layers, service or use-case layers, domain logic, repository or data-access layers, and infrastructure components. Without these controls, the results may reflect differences in domain, framework, or implementation quality rather than architectural effects.
+
+Core Problem Statement hiện đã gần đúng vì có “open-source backend applications”, nhưng nên đổi thành “selected open-source backend systems with identifiable architectural structures” cho khớp Phase 2. 
+
+---
+
+# D2 — Initial Paper Collection Sheet
+
+## Cần sửa
+
+| Phần                                         | Trạng thái                                                      | Cần làm                                       |
+| -------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------- |
+| **Research Topic**                           | Còn title cũ                                                    | Sửa giống D1                                  |
+| **RQ2**                                      | Còn “backend e-commerce systems”                                | Bắt buộc sửa                                  |
+| **Suggested Search Keywords**                | Thiếu keyword về open-source systems / architecture conformance | Nên thêm                                      |
+| **Initial Research Gap Direction**           | Còn “equivalent backend requirements”                           | Sửa nhẹ sang selected open-source systems     |
+| **Collection Limitation / Gap Audit nếu có** | Còn “e-commerce backend prototype”                              | Đổi sang selected open-source backend systems |
+
+D2 hiện RQ2 vẫn là:
+
+```text
+backend e-commerce systems
+```
+
+nên đây là lỗi đồng bộ rõ nhất. 
+
+### RQ2 thay bằng
+
+RQ2: How does the implementation of Clean Architecture affect maintainability and runtime performance in selected open-source backend systems with identifiable architectural structures when compared with Traditional Layered Architecture?
+
+Phần keyword hiện có keyword về Clean Architecture, Layered Architecture, DTO, DI, repository, ISO 25010; vậy là ổn nền tảng. Nhưng nên thêm mấy dòng này để khớp scope mới. 
+
+```text
+- open-source backend architecture comparison
+- GitHub open-source backend maintainability
+- architecture conformance open-source systems
+- Clean Architecture open-source backend
+- layered architecture open-source backend
+```
+
+---
+
+# D3 — Literature Review Report trong Phase 1
+
+D3 là phần cần sửa **nhiều nhất**, vì nó vẫn đi theo hướng cũ: **e-commerce / flash-sale / two prototypes**.
+
+## Cần sửa các phần này
+
+| Phần D3                              | Cần sửa gì                                                                               |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| **Paper Title**                      | Đổi giống D1/D2                                                                          |
+| **1. Background**                    | Bỏ hoặc làm mềm đoạn e-commerce, flash-sale                                              |
+| **2. Problem Statement**             | Đổi “backend e-commerce domains” thành selected open-source backend systems              |
+| **3. Research Gap**                  | Đổi “same controlled problem domain”, “lab-scale experiments built from scratch”         |
+| **4. Research Question**             | RQ2 đổi giống Phase 2                                                                    |
+| **5. PICOC Framework**               | Population, Context phải đổi                                                             |
+| **6. Research Method Overview**      | Bỏ “two equivalent e-commerce backend prototypes will be developed”                      |
+| **Prototype Development**            | Đổi thành “Selected Systems and Architectural Role”                                      |
+| **Maintainability Evaluation**       | Đổi change scenarios từ discount/payment/inventory nếu không dùng e-commerce             |
+| **Performance Evaluation**           | Đổi “flash-sale workload” thành representative backend workloads                         |
+| **Expected Contributions / Results** | Đổi “backend e-commerce systems/environments” thành selected open-source backend systems |
+
+## D3 nên đổi Method Overview như nào?
+
+Thay tư duy cũ:
+
+```text
+Tự build 2 prototype e-commerce giống nhau.
+```
+
+bằng:
+
+```text
+Phân tích 4 open-source systems đã chọn theo vai trò kiến trúc.
+```
+
+Cấu trúc D3 mới nên là:
+
+```text
+Selected Systems:
+- Jason Taylor CleanArchitecture: Clean Architecture reference template
+- Squidex: Clean/Hexagonal-style open-source backend system
+- Spring PetClinic: Traditional layered Spring backend
+- nopCommerce: Layered/database-driven .NET backend
+
+Evaluation Focus:
+- development overhead: files/classes/interfaces/DTOs/mappers/modules
+- maintainability: modularity, testability, change propagation, architectural separation
+- runtime performance: only if benchmarkable under comparable workloads, otherwise discuss as expected/limited evaluation
+```
+
+## Cần cẩn thận một điểm
+
+Vì các bạn chọn **4 open-source systems khác domain và khác công nghệ**, không nên viết:
+
+```text
+same technology stack
+same database schema
+same API endpoints
+same domain rules
+```
+
+Cái đó chỉ đúng nếu nhóm tự build 2 hệ thống giống nhau.
+
+Nên viết:
+
+```text
+comparable architectural characteristics
+comparable backend workflows
+selected systems with identifiable architectural structures
+```
+
+---
+
+# Thứ tự ưu tiên sửa
+
+## Ưu tiên 1 — bắt buộc
+
+1. **D1 Topic**
+2. **D2 Topic**
+3. **D2 RQ2**
+4. **D3 Title**
+5. **D3 RQ2**
+6. Mọi chỗ có cụm:
+
+```text
+backend e-commerce systems
+e-commerce backend prototypes
+high-concurrency e-commerce
+flash-sale
+two equivalent prototypes
+same domain rules / same DB schema / same API endpoints
+```
+
+## Ưu tiên 2 — nên sửa để bài không bị bắt lỗi
+
+1. D1 3.3 Fair Comparison
+2. D3 PICOC Framework
+3. D3 Research Method Overview
+4. D3 Research Gap
+5. D3 Expected Contributions / Expected Results
+
+## Ưu tiên 3 — thêm cho chắc
+
+Thêm một bảng vào D3 hoặc Phase 2:
+
+| System                         | Architectural role                    | Reason for selection                                           |
+| ------------------------------ | ------------------------------------- | -------------------------------------------------------------- |
+| Jason Taylor CleanArchitecture | Clean Architecture reference template | Explicit Clean Architecture structure                          |
+| Squidex                        | Clean/Hexagonal-style backend         | Real-world open-source backend with separated concerns         |
+| Spring PetClinic               | Traditional layered backend           | Conventional Spring layered structure                          |
+| nopCommerce                    | Layered/database-driven backend       | Real-world .NET backend with layered/database-driven structure |
+
+## Chốt ngắn
+
+**D1 sửa ít. D2 sửa vừa. D3 sửa nhiều nhất.**
+
+* D1: sửa title, fair comparison, core scope.
+* D2: sửa title, RQ2, keywords/gap wording.
+* D3: đổi toàn bộ e-commerce/prototype framing sang selected open-source backend systems.

@@ -387,7 +387,7 @@ public class Enemy : MonoBehaviour
         Debug.Log(gameObject.name + " took damage: " + damageAmount);
 
         // Spawn a yellow hit burst at the enemy's centre
-        HitEffect.Spawn(transform.position + Vector3.up * 0.8f, HitColor, 1.0f);
+        HitEffect.Spawn(transform.position + Vector3.up * 0.8f, HitColor, 3.0f);
 
         if (currentHealth <= 0f)
         {
