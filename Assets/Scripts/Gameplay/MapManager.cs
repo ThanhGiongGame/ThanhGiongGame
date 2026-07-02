@@ -503,24 +503,7 @@ public class MapManager : MonoBehaviour
                     SpawnFromArray(_bigTrees, pos, parent, 1.0f, 2.0f);
                 break;
 
-            case 1: // Ải Trâu Sơn — Đồng bằng (Nhiều đá, ít cây)
-                if (r < 0.65f) // Nhiều đá hơn (65%)
-                {
-                    if (Random.value < 0.5f && _terrainRocks != null && _terrainRocks.Length > 0)
-                        SpawnFromArray(_terrainRocks, pos, parent, 1.0f, 2.5f); // Real Cliffs & Mountains!
-                    else
-                        SpawnRockGroup(pos, parent);
-                }
-                else if (r < 0.70f) // Ít cây (5% Pine Trees)
-                    SpawnFromArray(_pineTrees, pos, parent, 0.8f, 1.5f);
-                else if (r < 0.75f) // (5% Simple Trees)
-                    SpawnFromArray(_simpleTrees, pos, parent, 0.6f, 1.2f);
-                else if (r < 0.80f) // (5% Broken Trees)
-                    SpawnFromArray(_brokenTrees, pos, parent, 1.0f, 1.8f);
-                else if (r < 0.90f) // (10% Flaming Beacon)
-                    SpawnFlamingBeacon(pos, parent);
-                else // (10% Bushes)
-                    SpawnBushGroup(pos, parent);
+            case 1: // Ải Trâu Sơn - Removed procedural gen
                 break;
 
             case 2: // Rừng U Minh — Rừng tre (Không có nhà lá, nhiều tre mọc thành cụm xen lẫn một ít cây xanh to vừa và bụi cây cỏ)
@@ -559,13 +542,7 @@ public class MapManager : MonoBehaviour
                     SpawnFromArray(_bushes, pos, parent, 0.3f, 0.6f);
                 break;
 
-            case 1: // Chiến trường đồng bằng (Nhiều đá vụn)
-                if (r < 0.15f)
-                    SpawnFromArray(_grasses, pos, parent, 0.3f, 0.8f);
-                else if (r < 0.85f) // 70% đá vụn!
-                    SpawnFromArray(_rocks, pos, parent, 0.3f, 0.7f);
-                else
-                    SpawnFromArray(_bushes, pos, parent, 0.2f, 0.5f);
+            case 1: // Chiến trường đồng bằng - Removed procedural gen
                 break;
 
             case 2: // Rừng tre (tăng thêm cỏ dại và bụi cây nhỏ phủ nền cho rậm rạp tự nhiên, phóng to kích thước cỏ/bụi vừa phải)
