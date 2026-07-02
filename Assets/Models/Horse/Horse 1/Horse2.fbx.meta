@@ -31,9 +31,96 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Ready
+      name: Walking
       takeName: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
       internalID: 5998469576373145300
+      firstFrame: 11
+      lastFrame: 54
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Ready-Run
+      takeName: HorseFKRig.002|HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
+      internalID: 6676473395669718095
+      firstFrame: 129
+      lastFrame: 147
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Running
+      takeName: HorseFKRig.002|HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
+      internalID: -1229037805253942926
+      firstFrame: 145
+      lastFrame: 164
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Ready
+      takeName: HorseFKRig.002|HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
+      internalID: -7302093502140447608
       firstFrame: 0
       lastFrame: 10
       wrapMode: 0
@@ -60,11 +147,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.002
-      takeName: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.002
-      internalID: -4837075649601261777
-      firstFrame: 0
-      lastFrame: 60
+      name: Fly
+      takeName: HorseFKRig.002|HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
+      internalID: 9101462813096871297
+      firstFrame: 150
+      lastFrame: 179
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -89,11 +176,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.003
-      takeName: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.003
-      internalID: 7269297993757984924
-      firstFrame: 0
-      lastFrame: 71
+      name: Slam
+      takeName: HorseFKRig.002|HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
+      internalID: -6409651579788492529
+      firstFrame: 172
+      lastFrame: 184
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -118,11 +205,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|Icosphere.001Action
-      takeName: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|Icosphere.001Action
-      internalID: 7630813258071225258
-      firstFrame: 0
-      lastFrame: 0
+      name: Slam-Hold
+      takeName: HorseFKRig.002|HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
+      internalID: -6202576716357971840
+      firstFrame: 180
+      lastFrame: 181
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -130,93 +217,6 @@ ModelImporter:
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|IcosphereAction
-      takeName: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|IcosphereAction
-      internalID: 2034764835749368318
-      firstFrame: 0
-      lastFrame: 0
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: Walking
-      takeName: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
-      internalID: -7223446408059166767
-      firstFrame: 10
-      lastFrame: 51
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: Running
-      takeName: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
-      internalID: 2530298485009247402
-      firstFrame: 52
-      lastFrame: 71
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -235,10 +235,39 @@ ModelImporter:
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
       name: Idle
-      takeName: HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
-      internalID: 3944483582155145310
+      takeName: HorseFKRig.002|HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
+      internalID: -3272780010836475753
       firstFrame: 0
       lastFrame: 0
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: WALKING
+      takeName: HorseFKRig.002|HorseFKRig.001|HorseFKRig|HorseFKRig|HorseFKRig|HorseFKRigAction.001
+      internalID: 1670015189157486563
+      firstFrame: 11
+      lastFrame: 54
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

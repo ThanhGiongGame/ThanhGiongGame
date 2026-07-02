@@ -364,37 +364,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameOverManager
   enemiesKilled: 25
   timeSurvived: 120
---- !u!1 &666081250
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 666081251}
-  m_Layer: 0
-  m_Name: CharacterRoot
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &666081251
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 666081250}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.47, z: 1.47}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1500706620}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -453,16 +422,28 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.3174472
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.0000000044941544
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.9258654
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: m_LocalRotation.w
@@ -507,18 +488,18 @@ PrefabInstance:
     - target: {fileID: 5660747524681282104, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: equipmentLoader
       value: 
-      objectReference: {fileID: 1500706631}
+      objectReference: {fileID: 0}
     - target: {fileID: 8230111567610110378, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: m_Height
       value: 1.73
       objectReference: {fileID: 0}
     - target: {fileID: 8230111567610110378, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: m_Radius
-      value: 2.76
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8230111567610110378, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: m_SkinWidth
-      value: 2.68
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       propertyPath: m_Name
@@ -529,16 +510,8 @@ PrefabInstance:
     - {fileID: 3208197654734963655, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
     - {fileID: 3928170681927569214, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
     - {fileID: 6042982593691213055, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 666081251}
-    - targetCorrespondingSourceObject: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1316441235}
-    - targetCorrespondingSourceObject: {fileID: 1160562224135066171, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1207967657}
+    - {fileID: -6744191370715878312, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
+    m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       insertIndex: -1
@@ -546,12 +519,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1500706629}
-    - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1500706631}
-    - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1500706632}
     - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1500706635}
@@ -564,38 +531,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1500706637}
+    - targetCorrespondingSourceObject: {fileID: 9210581540030000790, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1500706640}
   m_SourcePrefab: {fileID: 100100000, guid: 9e500c4070e6ba74aad402d9e20dbbe5, type: 3}
---- !u!1 &1207967656
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1207967657}
-  m_Layer: 0
-  m_Name: WeaponRoot
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1207967657
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1207967656}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 3}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1500706620}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1001 &1270390507
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -873,37 +812,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cee4975b7b9796a438221571c430483f, type: 3}
---- !u!1 &1316441234
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1316441235}
-  m_Layer: 0
-  m_Name: HorseRoot
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1316441235
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1316441234}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1500706620}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1486702829
 GameObject:
   m_ObjectHideFlags: 0
@@ -1034,6 +942,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 568353d91c0899449a6157de92394df4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillSkyPlunge
+  _horseAnimator: {fileID: 0}
 --- !u!114 &1500706630
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1046,59 +955,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b00a00103d81eb5478d1a8f8e985990d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillFlameDash
---- !u!114 &1500706631
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 277011917}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9940d6bcf890aba4887e59fbed6223d5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipmentLoader
-  characterRoot: {fileID: 666081251}
-  horseRoot: {fileID: 1316441235}
-  weaponRoot: {fileID: 1207967657}
-  characterTier1: {fileID: 5810981235641027063, guid: 6c3a01e0c218f804e8904e9bd219a6b0, type: 3}
-  characterTier2: {fileID: 5335100030709257915, guid: 56f7ca89516d6104f9e4b35120e7e954, type: 3}
-  characterTier3: {fileID: 2744189008267092339, guid: f69053e060e26a74db1a2c0e1f559503, type: 3}
-  characterTier4: {fileID: 198213724827679966, guid: 883568315039e474fbcd3d120b774891, type: 3}
-  horseTier1: {fileID: 2509007373314399612, guid: 03a857eff65d5244f868119b3643d232, type: 3}
-  horseTier2: {fileID: 6971327475350281801, guid: 8f14ec3083bd9d647a0c8b339b3e4299, type: 3}
-  horseTier3: {fileID: 9056600945002159126, guid: dcafcc10797f0234ea7b02413e22a09d, type: 3}
-  horseTier4: {fileID: 3968897697879102497, guid: 852c98d7af3562244a4fe5bffa3f9eb8, type: 3}
-  weaponTier1: {fileID: 8693844333337119980, guid: 9945e31ac358e734e96ffec0547e688f, type: 3}
-  weaponTier2: {fileID: 4005225249148235920, guid: 350b85753ce62a74dbbf80fb9ba76969, type: 3}
-  weaponTier3: {fileID: 8305646712886389394, guid: bcc8af3f69d6bf944916e90d203cb49a, type: 3}
-  bonusHealth: 0
-  bonusDamage: 0
-  bonusSpeed: 0
---- !u!114 &1500706632
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 277011917}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a55e005fc7c2cb439702d02a0ba8308, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UltimateController
-  player: {fileID: 1500706620}
-  equipmentLoader: {fileID: 1500706631}
-  cameraController: {fileID: 6938606960425385047}
-  thunderKickPrefab: {fileID: 7455240955051241814, guid: 4140c2de27ceed64096e528a21586004, type: 3}
-  startupTime: 1.5
-  closeupTime: 0.8
-  chargeTime: 0.5
-  finishDelay: 0.5
-  cinematicOffset: {x: 0, y: 4, z: -6}
-  closeupOffset: {x: 0, y: 5.28, z: -2}
-  cinematicPitch: 20
-  closeupPitch: 10
 --- !u!114 &1500706635
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1114,11 +970,16 @@ MonoBehaviour:
   moveSpeed: 10
   slashDamageMultiplier: 1
   slashPrefab: {fileID: 3125582759919746879, guid: 43126d90953462148ad7e2a47f6a2f64, type: 3}
+  turnSpeed: 300
   attackSpawnPoint: {fileID: 0}
-  attackInterval: 1.667
+  attackInterval: 1.6
   attackWindUp: 0.417
+  weaponDamage: {fileID: 0}
+  weaponTrail: {fileID: 0}
   Tutorial: 0
-  equipmentLoader: {fileID: 1500706631}
+  riderAnimator: {fileID: 0}
+  horseAnimator: {fileID: 0}
+  horseLoader: {fileID: 0}
 --- !u!114 &1500706637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1156,8 +1017,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0682443eef945949bcc756128f8f350, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  maxHealth: 100
+  maxHealth: 800
   knockbackDamping: 10
+--- !u!114 &1500706640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 277011917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbb102c6861c20e429c0894061a82133, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HorseLoader
+  horseTier1: {fileID: 8743665289023274355, guid: c4de13cc36a65c74dafadd512ee58e77, type: 3}
+  horseTier2: {fileID: 2832876265287016671, guid: cac247c676b0dd34d9cf55d297f21068, type: 3}
+  horseTier3: {fileID: 8748667856923948819, guid: 4bc7e85fffafa4b4095a39244dc708ff, type: 3}
+  horseTier4: {fileID: 8929430132614352413, guid: e514771139ab04c4eab47f011c261478, type: 3}
+  bonusHealth: 0
+  bonusDamage: 0
+  bonusSpeed: 0
+  riderAnchor: {fileID: 0}
 --- !u!1001 &6938606960425385046
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1231,17 +1112,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
---- !u!114 &6938606960425385047 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
-  m_PrefabInstance: {fileID: 6938606960425385046}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3010ab2390af28d4fb9d4801b9257e54, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CameraController
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

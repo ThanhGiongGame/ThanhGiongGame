@@ -23,14 +23,12 @@ public class PlayerController : MonoBehaviour
     public Boolean Tutorial = false;
     public Animator riderAnimator;
     public Animator horseAnimator;
-    public PlayerEquipmentLoader equipmentLoader;
     public HorseLoader horseLoader;
 
     // ---- Private references ----
     private CharacterController controller;
     private PlayerHealth playerHealth;
     private Camera mainCamera;
-    private UltimateController ultimateController;
     private float walkTimer = 0f;
     private bool isAttacking;
 
@@ -62,7 +60,6 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         playerHealth = GetComponent<PlayerHealth>();
-        ultimateController = GetComponent<UltimateController>();
         horseLoader = GetComponent<HorseLoader>();
         horseLoader.LoadHorse();
         weaponDamage = GetComponent<WeaponDamage>();
@@ -70,14 +67,6 @@ public class PlayerController : MonoBehaviour
         float baseDamage = 20f;
         float baseMaxHealth = 100f;
         float baseSpeed = 5f;
-        if (Tutorial != true)
-        {
-            baseDamage += equipmentLoader.bonusDamage;
-            baseMaxHealth += equipmentLoader.bonusHealth;
-            baseSpeed += equipmentLoader.bonusSpeed;
-
-        }
-
         moveSpeed = baseSpeed;
         playerHealth.maxHealth = baseMaxHealth;
         slashDamageMultiplier = baseDamage / 20f;
@@ -88,20 +77,6 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("PlayerController: No Camera tagged 'MainCamera' found in the scene!");
         }
 
-        // --- Safe Initialization for the Horse Animator ---
-        if ( equipmentLoader == null && Tutorial != true)
-        {
-            equipmentLoader = GetComponent<PlayerEquipmentLoader>();
-            if (equipmentLoader == null)
-            {
-                Debug.LogWarning("PlayerController: No PlayerEquipmentLoader found on the player! Horse animations will not play.");
-            }
-            else if (equipmentLoader.horseRoot == null)
-            {
-                Debug.LogWarning("PlayerController: PlayerEquipmentLoader found but horseRoot is not assigned! Horse animations will not play.");
-            }
-
-        }
         attackTimer = attackInterval;
 
         // --- Đọc dữ liệu Loadout từ Shop Menu ---
@@ -129,34 +104,10 @@ public class PlayerController : MonoBehaviour
             //HandleRotation();
             HandleAttack();
         }
-        if (Keyboard.current.qKey.wasPressedThisFrame)
-        {
-            TryUseUltimate();
-        }
         HandleMovement();
 
     }
 
-    private void TryUseUltimate()
-    {
-        string equippedUltimate =
-            PlayerPrefs.GetString(
-                "EquippedUltimate",
-                ""
-            );
-
-        switch (equippedUltimate)
-        {
-            case "Ultimate_Tier1":
-
-                if (ultimateController != null)
-                {
-                    ultimateController.TryUseUltimate();
-                }
-
-                break;
-        }
-    }
     private void HandleMovement()
     {
         //if (equipmentLoader != null && equipmentLoader.horseRoot != null)
@@ -324,19 +275,16 @@ public class PlayerController : MonoBehaviour
         // vùng trước mặt
         if (angle <= 45f || angle >= 315f)
         {
-            Debug.Log("Facing North");
             return AttackDirection.North;
         }
 
         // nửa phải
         if (angle > 45f && angle < 180f)
         {
-            Debug.Log("Facing East");
             return AttackDirection.East;
         }
 
         // nửa trái
-        Debug.Log("Facing West");
         return AttackDirection.West;
     }
     private void HandleAttack()
@@ -353,58 +301,37 @@ public class PlayerController : MonoBehaviour
     private IEnumerator AttackCoroutine()
     {
         isAttacking = true;
+
         try
         {
-
-            if (slashPrefab == null)
-                yield break;
-
             if (!TryGetMouseGroundPoint(out Vector3 targetPoint))
                 yield break;
-            AttackDirection attackDir =
-                GetAttackDirection();
+
+            AttackDirection attackDir = GetAttackDirection();
+
             if (riderAnimator != null)
             {
-                riderAnimator.SetInteger(
-                    "AttackDirection",
-                    (int)attackDir
-                );
-
+                riderAnimator.SetInteger("AttackDirection", (int)attackDir);
                 riderAnimator.SetTrigger("Attack");
             }
 
-            if (Mouse.current == null) yield break;
-
-            Vector2 mousePos = Mouse.current.position.ReadValue();
-            Ray ray = mainCamera.ScreenPointToRay(mousePos);
-            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-            float rayDistance;
-
-            if (!groundPlane.Raycast(ray, out rayDistance)) yield break;
-
-            Vector3 lookDirection = targetPoint - transform.position;
-            lookDirection.y = 0f;
-            int id = ++attackId;
-
-            // --- Wind-up pause ---
-            weaponTrail.BeginTrail();
-            Debug.Log($"Attack {id} Started");
-
-            yield return new WaitForSeconds(attackWindUp);
-            Debug.Log($"[{Time.time:F3}] Is Attacking");
-            Debug.Log($"Attack {id} Is Attacking");
-            weaponDamage.BeginAttack();
-
-            yield return new WaitForSeconds(1.5f);
-            Debug.Log($"[{Time.time:F3}] End Attacking");
-            Debug.Log($"Attack {id} End");
-            weaponDamage.EndAttack();
-            Debug.Log($"Attack {id} End Trail");
-            weaponTrail.EndTrail();
+            // Chờ animation kết thúc
+            yield return new WaitForSeconds(attackInterval);
         }
         finally
         {
             isAttacking = false;
         }
+    }
+    public void EnableWeaponDamage()
+    {
+        weaponDamage.BeginAttack();
+        weaponTrail.BeginTrail();
+    }
+
+    public void DisableWeaponDamage()
+    {
+        weaponDamage.EndAttack();
+        weaponTrail.EndTrail();
     }
 }

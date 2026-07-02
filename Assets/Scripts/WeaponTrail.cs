@@ -38,13 +38,11 @@ public class WeaponTrail : MonoBehaviour
     }
     public void BeginTrail()
     {
-        Debug.Log($"[{Time.time:F3}] Trail Start");
         emitting = true;
     }
 
     public void EndTrail()
     {
-        Debug.Log($"[{Time.time:F3}] Trail End");
         emitting = false;
     }
 

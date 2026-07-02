@@ -63,7 +63,9 @@ currentHorse.GetComponentInChildren<Animator>();
             GetComponentInParent<PlayerController>();
 
         player.horseAnimator = anim;
-
+        SkillSkyPlunge skillSkyPlunge =
+            GetComponentInParent<SkillSkyPlunge>();
+        skillSkyPlunge._horseAnimator = anim;
 
     }
 }

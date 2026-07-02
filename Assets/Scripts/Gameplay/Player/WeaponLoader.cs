@@ -10,6 +10,8 @@ public class WeaponLoader : MonoBehaviour
     public GameObject weaponTier1;
     public GameObject weaponTier2;
     public GameObject weaponTier3;
+    public GameObject weaponTier4;
+
     public float bonusHealth;
     public float bonusDamage;
     public float bonusSpeed;
@@ -43,6 +45,11 @@ public class WeaponLoader : MonoBehaviour
                 prefab = weaponTier3;
                 bonusDamage += 30;
                 break;
+            case "Weapon_Tier4":
+                prefab = weaponTier4;
+                bonusDamage += 50;
+
+                break;
         }
 
 
@@ -56,6 +63,5 @@ public class WeaponLoader : MonoBehaviour
     GetComponentInParent<PlayerController>();
         player.weaponDamage = weaponDmg;
         player.weaponTrail = weaponTrl;
-
     }
 }

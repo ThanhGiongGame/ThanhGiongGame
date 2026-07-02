@@ -37,7 +37,7 @@ public class WeaponDamage : MonoBehaviour
             return;
 
         hitEnemies.Add(enemy);
-
+        Debug.Log(enemy);
         enemy.TakeDamage(damage);
     }
 }

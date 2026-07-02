@@ -16,7 +16,7 @@ public class SkillSkyPlunge : MonoBehaviour
     private static readonly float[] Cooldowns = { 0f, 20f,  20f,  20f,   15f  };
 
     // ---- Timing constants ----
-    private const float AscendTime     = 0.50f;
+    private const float AscendTime     = 0.5f;
     private const float CameraHoldTime = 1.00f;
     private const float PlungeTime     = 0.30f;
     private const float InvulnDuration = 1.00f;
@@ -39,7 +39,7 @@ public class SkillSkyPlunge : MonoBehaviour
     private CameraController _cam;
     private Camera           _mainCamera;
     private SkillIndicator   _indicator;
-    private Animator _horseAnimator;
+    public Animator _horseAnimator;
     private Vector3          _originalScale;
     private Vector3          _targetPos;
 
@@ -56,7 +56,6 @@ public class SkillSkyPlunge : MonoBehaviour
         _cam           = FindObjectOfType<CameraController>();
         _mainCamera    = Camera.main;
         _originalScale = transform.localScale;
-        _horseAnimator = _pc.horseAnimator;
 
 
     }
@@ -161,13 +160,14 @@ public class SkillSkyPlunge : MonoBehaviour
         Vector3 startS = _originalScale;
         Vector3 tinyS = _originalScale * 0.05f;
         _horseAnimator.SetInteger("PlungeStart",1);
+        _horseAnimator.SetBool("isWaling", false);
         while (t0 < AscendTime)
         {
             t0 += Time.deltaTime;
             float frac = Mathf.Clamp01(t0 / AscendTime);
             float ease = frac * frac;                       // ease-in
             transform.position = Vector3.Lerp(startP, highP, ease);
-            transform.localScale = Vector3.Lerp(startS, tinyS, frac);
+            //transform.localScale = Vector3.Lerp(startS, tinyS, frac);
             yield return null;
         }
         transform.localScale = tinyS;
@@ -179,7 +179,7 @@ public class SkillSkyPlunge : MonoBehaviour
         // Teleport above target
         transform.position = _targetPos + Vector3.up * AscendHeight;
         transform.localScale = _originalScale;
-
+        _horseAnimator.SetInteger("PlungeStart", 2);
         float t1 = 0f;
         Vector3 top = transform.position;
         while (t1 < PlungeTime)
@@ -205,7 +205,6 @@ public class SkillSkyPlunge : MonoBehaviour
 
         // ---- Landing ----
         DoLandingImpact();
-        _horseAnimator.SetInteger("PlungeStart", 0);
 
         float elapsedInvuln = 0f;
         while (elapsedInvuln < InvulnDuration)
@@ -228,7 +227,8 @@ public class SkillSkyPlunge : MonoBehaviour
     private void DoLandingImpact()
     {
         // Camera shake
-        _horseAnimator.SetInteger("PlungeStart", 2);
+        _horseAnimator.SetInteger("PlungeStart", 3);
+
 
         if (_cam != null) _cam.Shake(0.6f, 0.35f);
 
@@ -251,6 +251,8 @@ public class SkillSkyPlunge : MonoBehaviour
             if (dir == Vector3.zero) dir = Random.insideUnitSphere;
             dir.Normalize();
             e.ApplyKnockbackStun(dir, 18f, 1.8f);
+            _horseAnimator.SetInteger("PlungeStart", 0);
+
         }
     }
 
