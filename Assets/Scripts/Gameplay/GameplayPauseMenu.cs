@@ -12,6 +12,7 @@ public class GameplayPauseMenu : MonoBehaviour
     private const string MainMenuSceneName = "MainMenuScene";
     private const string ShopSceneName = "GameShopScene";
     private const string GameplaySceneName = "SampleScene";
+    private const string Map2SceneName = "map2";
 
     private Canvas canvas;
     private GameObject pausePanel;
@@ -37,7 +38,7 @@ public class GameplayPauseMenu : MonoBehaviour
 
     private static void EnsurePauseMenuForScene(Scene scene)
     {
-        if (scene.name != GameplaySceneName)
+        if (scene.name != GameplaySceneName && scene.name != Map2SceneName)
         {
             return;
         }

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class CameraManager : MonoBehaviour
 {
     private const string GameplaySceneName = "SampleScene";
+    private const string Map2SceneName = "map2";
 
     [SerializeField] private Camera shopCamera;
     [SerializeField] private Camera equipmentCamera;
@@ -46,7 +47,8 @@ public class CameraManager : MonoBehaviour
     public void ChangeGameplayScene()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(GameplaySceneName);
+        string sceneName = PlayerPrefs.GetInt("SelectedMap", 0) == 1 ? Map2SceneName : GameplaySceneName;
+        SceneManager.LoadScene(sceneName);
     }
 
     private void NormalizeShopLayout()
