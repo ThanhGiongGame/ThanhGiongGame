@@ -109,10 +109,9 @@ public class MapSelectionUI : MonoBehaviour
     private bool IsMapUnlocked(int mapIndex, int vinhDanh, int totalKills)
     {
         if (mapIndex == 0) return true; // Map mặc định
-#if UNITY_EDITOR
-        return true; // Tự động mở khóa tất cả bản đồ trong Editor để kiểm tra/test dễ dàng!
-#endif
-        return vinhDanh >= REQUIRED_VINHDAN[mapIndex] || totalKills >= REQUIRED_KILLS[mapIndex];
+        if (PlayerPrefs.GetInt("UnlockedMap_" + mapIndex, 0) == 1) return true;
+
+        return false;
     }
 
     private string GetUnlockText(int mapIndex, int vinhDanh, int totalKills)
@@ -120,9 +119,7 @@ public class MapSelectionUI : MonoBehaviour
         if (mapIndex == 0) return "";
         if (IsMapUnlocked(mapIndex, vinhDanh, totalKills)) return "ĐÃ MỞ KHÓA";
 
-        int reqVD = REQUIRED_VINHDAN[mapIndex];
-        int reqKill = REQUIRED_KILLS[mapIndex];
-        return $"Cần {vinhDanh}/{reqVD} Vinh Danh  hoặc  {totalKills}/{reqKill} Quái";
+        return "Hoàn thành bản đồ trước đó để mở khóa";
     }
 
     private void CreateMapRow(int index, string mapName, string mapDesc, bool isSelected, bool isUnlocked, string unlockInfo, Vector2 pos)

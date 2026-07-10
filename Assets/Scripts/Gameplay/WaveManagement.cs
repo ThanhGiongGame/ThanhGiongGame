@@ -36,6 +36,8 @@ public class WaveSpawner : MonoBehaviour
     private Transform player;
 
     private int totalKills = 0;
+    private int totalEnemiesToSpawn = 0;
+    private bool levelComplete = false;
 
     private void Start()
     {
@@ -46,18 +48,60 @@ public class WaveSpawner : MonoBehaviour
             player = playerObject.transform;
         }
 
+        foreach (Wave wave in waves)
+        {
+            foreach (EnemySpawnInfo info in wave.enemies)
+            {
+                if (info.enemyPrefab == null) continue;
+                string pName = info.enemyPrefab.name;
+                if (pName == "EnemyA" || pName == "EnemyB" || pName == "EnemyC" || pName == "chicken")
+                {
+                    totalEnemiesToSpawn += info.count;
+                }
+            }
+        }
+        Debug.Log("Total enemies to spawn: " + totalEnemiesToSpawn);
+
         // Spawn all waves có requiredKills = 0
         CheckWaveUnlock();
     }
 
     // Gọi hàm này khi enemy chết
-    public void OnEnemyKilled()
+    public void OnEnemyKilled(Vector3 deathPos)
     {
         totalKills++;
 
-        Debug.Log("Total Kills: " + totalKills);
+        Debug.Log("Total Kills: " + totalKills + "/" + totalEnemiesToSpawn);
 
         CheckWaveUnlock();
+
+        if (!levelComplete && totalEnemiesToSpawn > 0 && totalKills >= totalEnemiesToSpawn)
+        {
+            levelComplete = true;
+            SpawnMapDrop(deathPos);
+        }
+    }
+
+    private void SpawnMapDrop(Vector3 pos)
+    {
+        Debug.Log("Level Complete! Spawning Map Drop.");
+        GameObject mapDrop = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        mapDrop.name = "MapUnlockDrop";
+        mapDrop.transform.position = pos + Vector3.up * 1f;
+        mapDrop.transform.localScale = new Vector3(0.5f, 0.05f, 0.5f);
+        mapDrop.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+        Collider oldCol = mapDrop.GetComponent<Collider>();
+        if (oldCol != null) Destroy(oldCol);
+
+        SphereCollider trigger = mapDrop.AddComponent<SphereCollider>();
+        trigger.isTrigger = true;
+        trigger.radius = 3f;
+
+        Renderer rend = mapDrop.GetComponent<Renderer>();
+        if (rend != null) rend.material.color = new Color(1f, 0.84f, 0f);
+
+        mapDrop.AddComponent<MapUnlockItem>();
     }
 
     private void CheckWaveUnlock()
@@ -143,6 +187,9 @@ public class WaveSpawner : MonoBehaviour
         );
 
         Enemy enemy = enemyObj.GetComponent<Enemy>();
-
+        if (enemy != null)
+        {
+            enemy.waveSpawner = this;
+        }
     }
 }

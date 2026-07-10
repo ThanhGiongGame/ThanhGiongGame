@@ -140,6 +140,8 @@ public class Enemy : MonoBehaviour
         //}
     }
 
+
+
     private void Update()
     {
         if (GlobalFreeze)
@@ -179,11 +181,7 @@ public class Enemy : MonoBehaviour
             moveDirection = toPlayer.normalized;
         }
 
-        Vector3 separationForce =
-            GetSeparationForce();
-
-        Vector3 finalDirection =
-            (moveDirection + separationForce).normalized;
+        Vector3 finalDirection = moveDirection.normalized;
 
         finalDirection.y = 0f;
 
@@ -196,44 +194,35 @@ public class Enemy : MonoBehaviour
             Quaternion targetRotation =
                 Quaternion.LookRotation(flat);
 
-            Vector3 targetEuler = targetRotation.eulerAngles;
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
+
+            Vector3 targetEuler = transform.rotation.eulerAngles;
             targetEuler.x = initialRotationX;
             targetEuler.z = initialRotationZ;
-            targetRotation = Quaternion.Euler(targetEuler);
-            transform.rotation = targetRotation;
+            transform.rotation = Quaternion.Euler(targetEuler);
         }
+
+        ResolveOverlaps();
     }
 
-    private Vector3 GetSeparationForce()
+    private void ResolveOverlaps()
     {
-        Collider[] nearbyEnemies =
-            Physics.OverlapSphere(transform.position, separationRadius);
+        Collider myCol = GetComponent<Collider>();
+        if (myCol == null) return;
 
-        Vector3 separationForce = Vector3.zero;
-
-        foreach (Collider collider in nearbyEnemies)
+        Collider[] nearby = Physics.OverlapBox(myCol.bounds.center, myCol.bounds.extents, Quaternion.identity);
+        foreach (Collider other in nearby)
         {
-            if (collider.gameObject == gameObject)
-                continue;
+            if (other == myCol || other.isTrigger || !other.CompareTag("Enemy")) continue;
 
-            if (collider.CompareTag("Enemy"))
+            if (Physics.ComputePenetration(myCol, transform.position, transform.rotation,
+                                           other, other.transform.position, other.transform.rotation,
+                                           out Vector3 dir, out float dist))
             {
-                Vector3 away =
-                    transform.position - collider.transform.position;
-
-                away.y = 0f;
-
-                float distance = away.magnitude;
-
-                if (distance > 0f)
-                {
-                    separationForce +=
-                        away.normalized / distance;
-                }
+                transform.position += dir * (dist * 0.5f);
+                other.transform.position -= dir * (dist * 0.5f);
             }
         }
-
-        return separationForce * separationStrength;
     }
 
     private Coroutine _knockbackCoroutine;
@@ -400,7 +389,7 @@ public class Enemy : MonoBehaviour
         // Báo cho WaveSpawner biết đã kill enemy
         if (waveSpawner != null)
         {
-            waveSpawner.OnEnemyKilled();
+            waveSpawner.OnEnemyKilled(transform.position);
         }
         XPOrb.Spawn(transform.position, 10f);
         Destroy(gameObject);

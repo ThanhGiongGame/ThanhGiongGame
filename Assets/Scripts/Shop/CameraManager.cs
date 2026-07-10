@@ -24,16 +24,7 @@ public class CameraManager : MonoBehaviour
         ResolveSceneCameras();
         shopUI = FindFirstObjectByType<ShopUI>(FindObjectsInactive.Include);
         SetupMapSelection();
-        ShowShop();
-    }
-
-    public void ShowShop()
-    {
-        ResolveSceneCameras();
-        SetCameraActive(shopCamera, true);
-        SetCameraActive(equipmentCamera, false);
-        SetTabVisuals("BtnShop");
-        
+        ShowEquipment();
     }
 
     public void ShowEquipment()

@@ -8,11 +8,7 @@ using UnityEngine.InputSystem;
 
 public class ShopUI : MonoBehaviour
 {
-    private enum ShopMode
-    {
-        Shop,
-        Equipment
-    }
+
 
     private enum CategoryFilter
     {
@@ -24,7 +20,7 @@ public class ShopUI : MonoBehaviour
     [SerializeField] private PreviewManager previewManager;
     [SerializeField] private EquipmentPreviewManager equipmentPreviewManager;
 
-    private ShopMode currentMode = ShopMode.Shop;
+
     private CategoryFilter currentFilter = CategoryFilter.Character;
     private GameItemData selectedItem;
     private CameraManager cameraManager;
@@ -41,7 +37,6 @@ public class ShopUI : MonoBehaviour
     private TMP_Text itemStatusText;
     private TMP_Text actionButtonText;
     private Button actionButton;
-    private Button shopTabButton;
     private Button equipmentTabButton;
     private Button mapTabButton;
     private Button weaponFilterButton;
@@ -54,13 +49,13 @@ public class ShopUI : MonoBehaviour
     private void OnEnable()
     {
         hasBuiltRuntimeUi = false;
-        currentMode = ShopMode.Shop;
         currentFilter = CategoryFilter.Character;
         selectedItem = null;
         cameraManager = FindFirstObjectByType<CameraManager>(FindObjectsInactive.Include);
         previewManager ??= FindFirstObjectByType<PreviewManager>(FindObjectsInactive.Include);
         equipmentPreviewManager ??= FindFirstObjectByType<EquipmentPreviewManager>(FindObjectsInactive.Include);
-        ShowShopMode();
+        PersistentLevel.OnLevelChanged += UpdateCurrency;
+        ShowEquipmentMode();
     }
 
     private void Update()
@@ -81,23 +76,8 @@ public class ShopUI : MonoBehaviour
         }
     }
 
-    public void ShowShopMode()
-    {
-        currentMode = ShopMode.Shop;
-        ResolveSceneRefs();
-        BuildRuntimeUi();
-        equipmentPreviewManager?.SetPreviewVisible(false);
-        EquipmentPreviewManager.HideAllEquipmentPreviews();
-        cameraManager?.ShowShop();
-        titleText.text = "CỬA HÀNG";
-        hintText.text = "Mua vật phẩm. Trang bị sẽ được đổi ở tab TRANG BỊ.";
-        RebuildItemList();
-        UpdateTabVisuals();
-    }
-
     public void ShowEquipmentMode()
     {
-        currentMode = ShopMode.Equipment;
         ResolveSceneRefs();
 
         BuildRuntimeUi();
@@ -112,15 +92,7 @@ public class ShopUI : MonoBehaviour
 
     }
 
-    public void BuySelectedItem()
-    {
-        PerformSelectedAction();
-    }
 
-    private void OnShopTabClicked()
-    {
-        ShowShopMode();
-    }
 
     private void OnEquipmentTabClicked()
     {
@@ -225,10 +197,9 @@ public class ShopUI : MonoBehaviour
         actionButtonText = actionButton.GetComponentInChildren<TMP_Text>();
 
         RectTransform bottom = CreatePanel(root, "BottomNav", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(1040f, 76f), new Vector2(0.5f, 0f), new Color(0.02f, 0.02f, 0.02f, 0.58f));
-        shopTabButton = CreateNavButton(bottom, "ShopTab", "CỬA HÀNG", new Vector2(-390f, 8f), OnShopTabClicked);
-        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(-130f, 8f), OnEquipmentTabClicked);
-        mapTabButton = CreateNavButton(bottom, "MapTab", "BẢN ĐỒ", new Vector2(130f, 8f), () => cameraManager?.OpenMapSelection());
-        CreateNavButton(bottom, "PlayTab", "VÀO TRẬN", new Vector2(390f, 8f), () => cameraManager?.ChangeGameplayScene());
+        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(-260f, 8f), OnEquipmentTabClicked);
+        mapTabButton = CreateNavButton(bottom, "MapTab", "BẢN ĐỒ", new Vector2(0f, 8f), () => cameraManager?.OpenMapSelection());
+        CreateNavButton(bottom, "PlayTab", "VÀO TRẬN", new Vector2(260f, 8f), () => cameraManager?.ChangeGameplayScene());
         BuildEscMenu();
 
         CacheRuntimeRefs();
@@ -327,7 +298,6 @@ public class ShopUI : MonoBehaviour
         itemStatusText = FindText(root, "ItemStatus");
         actionButton = FindButton(root, "ActionButton");
         actionButtonText = actionButton != null ? actionButton.GetComponentInChildren<TMP_Text>(true) : null;
-        shopTabButton = FindButton(root, "ShopTab");
         equipmentTabButton = FindButton(root, "EquipmentTab");
         mapTabButton = FindButton(root, "MapTab");
         weaponFilterButton = FindButton(root, "WeaponFilter");
@@ -469,10 +439,9 @@ public class ShopUI : MonoBehaviour
             SetAnchorBox(actionButton.GetComponent<RectTransform>(), new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.18f), Vector2.zero, Vector2.zero);
         }
 
-        LayoutBottomButton(shopTabButton, 0, 4);
-        LayoutBottomButton(equipmentTabButton, 1, 4);
-        LayoutBottomButton(mapTabButton, 2, 4);
-        LayoutBottomButton(FindButton(root, "PlayTab"), 3, 4);
+        LayoutBottomButton(equipmentTabButton, 0, 3);
+        LayoutBottomButton(mapTabButton, 1, 3);
+        LayoutBottomButton(FindButton(root, "PlayTab"), 2, 3);
 
         if (escMenuPanel != null)
         {
@@ -582,10 +551,7 @@ public class ShopUI : MonoBehaviour
                 continue;
             }
 
-            if (currentMode == ShopMode.Equipment && !item.IsOwned())
-            {
-                continue;
-            }
+
 
             CreateItemRow(item);
             first ??= item;
@@ -627,7 +593,7 @@ public class ShopUI : MonoBehaviour
         name.overflowMode = TextOverflowModes.Ellipsis;
 
         TMP_Text price = CreateText(row.transform, "Price", new Vector2(0.68f, 0f), Vector2.one, new Vector2(-12f, 0f), Vector2.zero, new Vector2(1f, 0.5f), 16f, new Color(0.08f, 0.07f, 0.04f, 1f), FontStyles.Bold, TextAlignmentOptions.MidlineRight);
-        price.text = currentMode == ShopMode.Equipment || item.IsOwned() ? "ĐÃ CÓ" : item.cost + " VD";
+        price.text = item.IsUnlocked() ? "ĐÃ MỞ KHÓA" : "CẦN CẤP ĐỘ " + item.requiredLevel;
         SetAnchorBox(price.rectTransform, new Vector2(0.62f, 0f), Vector2.one, Vector2.zero, new Vector2(-12f, 0f));
         price.enableAutoSizing = true;
         price.fontSizeMin = 10f;
@@ -646,18 +612,11 @@ public class ShopUI : MonoBehaviour
         Debug.Log("Item " + item.displayName);
         itemNameText.text = item.displayName;
         itemMetaText.text = GetCategoryLabel(item.category);
-        itemPriceText.text = currentMode == ShopMode.Shop ? item.cost + " Vinh Danh" : "Đã sở hữu";
+        itemPriceText.text = item.IsUnlocked() ? "ĐÃ MỞ KHÓA" : "CẦN CẤP ĐỘ " + item.requiredLevel;
         itemDescriptionText.text = item.description;
         itemStatusText.text = GetStatusText(item);
 
-        if (currentMode == ShopMode.Shop && previewManager != null)
-        {
-            previewManager.Show(item);
-        }
-        else if (currentMode == ShopMode.Equipment)
-        {
-            previewManager?.Clear();
-        }
+        previewManager?.Clear();
 
         UpdateActionButton();
     }
@@ -673,9 +632,7 @@ public class ShopUI : MonoBehaviour
         itemNameText.text = "CHƯA CÓ ĐỒ";
         itemMetaText.text = "";
         itemPriceText.text = "";
-        itemDescriptionText.text = currentMode == ShopMode.Equipment
-            ? "Hãy mua vật phẩm trong CỬA HÀNG trước."
-            : "Không có vật phẩm trong danh mục này.";
+        itemDescriptionText.text = "Không có vật phẩm trong danh mục này.";
         itemStatusText.text = "";
         UpdateActionButton();
     }
@@ -687,17 +644,7 @@ public class ShopUI : MonoBehaviour
             return;
         }
 
-        if (currentMode == ShopMode.Shop)
-        {
-            if (InventoryManager.Instance.BuyItem(selectedItem))
-            {
-                SelectItem(selectedItem);
-                RebuildItemList();
-            }
-            return;
-        }
-
-        if (selectedItem.IsOwned())
+        if (selectedItem.IsUnlocked())
         {
             InventoryManager.Instance.ToggleEquip(selectedItem);
             SelectItem(selectedItem);
@@ -720,19 +667,19 @@ public class ShopUI : MonoBehaviour
         if (selectedItem == null)
         {
             actionButton.interactable = false;
-            actionButtonText.text = currentMode == ShopMode.Shop ? "MUA" : "TRANG BỊ";
+            actionButtonText.text = "TRANG BỊ";
             return;
         }
 
-        if (currentMode == ShopMode.Shop)
+        if (!selectedItem.IsUnlocked())
         {
-            actionButtonText.text = selectedItem.IsOwned() ? "ĐÃ SỞ HỮU" : "MUA";
-            actionButton.interactable = !selectedItem.IsOwned();
+            actionButtonText.text = "CẦN CẤP ĐỘ " + selectedItem.requiredLevel;
+            actionButton.interactable = false;
             return;
         }
 
         actionButtonText.text = selectedItem.IsEquipped() ? "ĐANG DÙNG" : "TRANG BỊ";
-        actionButton.interactable = selectedItem.IsOwned() && !selectedItem.IsEquipped();
+        actionButton.interactable = !selectedItem.IsEquipped();
     }
 
     private bool EnsureDetailRefsReady()
@@ -758,34 +705,32 @@ public class ShopUI : MonoBehaviour
 
     private string GetStatusText(GameItemData item)
     {
-        if (currentMode == ShopMode.Shop)
-        {
-            return item.IsOwned() ? "ĐÃ SỞ HỮU" : "CHƯA SỞ HỮU";
-        }
-
-        return item.IsEquipped() ? "ĐANG TRANG BỊ" : "ĐÃ SỞ HỮU";
+        return item.IsUnlocked() ? (item.IsEquipped() ? "ĐANG TRANG BỊ" : "SẴN SÀNG") : "CHƯA MỞ KHÓA";
     }
 
     private void UpdateCurrency()
     {
-        if (currencyText != null && InventoryManager.Instance != null)
+        if (currencyText != null)
         {
-            currencyText.text = "Vinh Danh: " + InventoryManager.Instance.GetCurrency() + " VD";
+            currencyText.text = "Cấp độ: " + PersistentLevel.Current;
             currencyText.gameObject.SetActive(true);
         }
     }
 
     private void BuildEscMenu()
     {
-        escMenuPanel = CreatePanel(root, "EscMenuPanel", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 330f), new Vector2(0.5f, 0.5f), new Color(0.02f, 0.02f, 0.02f, 0.94f));
+        escMenuPanel = CreatePanel(root, "EscMenuPanel", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 480f), new Vector2(0.5f, 0.5f), new Color(0.02f, 0.02f, 0.02f, 0.94f));
         escMenuPanel.SetAsLastSibling();
 
         TMP_Text title = CreateText(escMenuPanel, "EscTitle", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -42f), new Vector2(360f, 50f), new Vector2(0.5f, 1f), 34f, new Color(1f, 0.93f, 0.62f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
         title.text = "TÙY CHỌN";
 
-        CreateButton(escMenuPanel, "ResumeButton", "TIẾP TỤC", new Vector2(0f, 48f), new Vector2(310f, 58f), ToggleEscMenu, new Color(0.62f, 0.88f, 0.9f, 0.98f), 24f);
-        CreateButton(escMenuPanel, "MainMenuButton", "VỀ MENU", new Vector2(0f, -28f), new Vector2(310f, 58f), BackToMainMenu, new Color(0.9f, 0.82f, 0.58f, 0.98f), 24f);
-        CreateButton(escMenuPanel, "QuitButton", "THOÁT", new Vector2(0f, -104f), new Vector2(310f, 58f), QuitGame, new Color(0.75f, 0.28f, 0.24f, 0.98f), 24f);
+        CreateButton(escMenuPanel, "ResumeButton", "TIẾP TỤC", new Vector2(0f, 120f), new Vector2(310f, 58f), ToggleEscMenu, new Color(0.62f, 0.88f, 0.9f, 0.98f), 24f);
+        CreateButton(escMenuPanel, "MainMenuButton", "VỀ MENU", new Vector2(0f, 40f), new Vector2(310f, 58f), BackToMainMenu, new Color(0.9f, 0.82f, 0.58f, 0.98f), 24f);
+        CreateButton(escMenuPanel, "QuitButton", "THOÁT", new Vector2(0f, -40f), new Vector2(310f, 58f), QuitGame, new Color(0.75f, 0.28f, 0.24f, 0.98f), 24f);
+
+        CreateButton(escMenuPanel, "DevLevelUpButton", "DEV: THÊM CẤP ĐỘ", new Vector2(0f, -120f), new Vector2(310f, 40f), () => { PersistentLevel.AddLevel(1); RebuildItemList(); }, new Color(0.3f, 0.8f, 0.3f, 0.98f), 18f);
+        CreateButton(escMenuPanel, "DevLevelResetButton", "DEV: RESET CẤP ĐỘ", new Vector2(0f, -170f), new Vector2(310f, 40f), () => { PersistentLevel.ResetLevel(); RebuildItemList(); }, new Color(0.8f, 0.3f, 0.3f, 0.98f), 18f);
 
         escMenuPanel.gameObject.SetActive(false);
     }
@@ -821,8 +766,7 @@ public class ShopUI : MonoBehaviour
 
     private void UpdateTabVisuals()
     {
-        SetButtonColor(shopTabButton, currentMode == ShopMode.Shop, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
-        SetButtonColor(equipmentTabButton, currentMode == ShopMode.Equipment, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
+        SetButtonColor(equipmentTabButton, true, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
         SetButtonColor(mapTabButton, false, new Color(1f, 0.72f, 0.14f, 0.98f), new Color(0.62f, 0.88f, 0.9f, 0.98f));
     }
 

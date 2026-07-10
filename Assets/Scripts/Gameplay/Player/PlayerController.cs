@@ -70,6 +70,10 @@ public class PlayerController : MonoBehaviour
         moveSpeed = baseSpeed;
         playerHealth.maxHealth = baseMaxHealth;
         slashDamageMultiplier = baseDamage / 20f;
+
+        gameObject.AddComponent<LegendaryUpgradeSystem>();
+        new GameObject("LegendHUD").AddComponent<LegendHUD>();
+
         // Always find the camera first so combat functions even if visuals are missing
         mainCamera = Camera.main;
         if (mainCamera == null)

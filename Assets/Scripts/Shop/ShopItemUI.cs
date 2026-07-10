@@ -26,7 +26,7 @@ public class ShopItemUI : MonoBehaviour
         itemName.text =
             data.displayName;
         itemPrice.text =
-            data.cost + " VD";
+            data.IsUnlocked() ? "ĐÃ MỞ KHÓA" : "CẦN CẤP ĐỘ " + data.requiredLevel;
 
         button.onClick.RemoveAllListeners();
 

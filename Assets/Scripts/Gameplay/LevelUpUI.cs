@@ -24,6 +24,13 @@ public class LevelUpUI : MonoBehaviour
     private static readonly Color SkillBorder = new Color(1.00f, 0.45f, 0.10f, 1.00f);
     private static readonly Color SkillTitle  = new Color(1.00f, 0.70f, 0.20f, 1.00f);
 
+    // Legend card (Mythic Gold theme)
+    private static readonly Color LegendBg       = new Color(0.10f, 0.08f, 0.04f, 0.98f);
+    private static readonly Color LegendBorder   = new Color(1.00f, 0.85f, 0.20f, 1.00f);
+    private static readonly Color LegendTitle    = new Color(1.00f, 0.90f, 0.40f, 1.00f);
+    private static readonly Color LegendEvoBorder = new Color(0.90f, 0.20f, 0.90f, 1.00f);
+    private static readonly Color LegendEvoTitle  = new Color(1.00f, 0.40f, 1.00f, 1.00f);
+
     private Canvas     _canvas;
     private GameObject _panel;
     private bool       _isShowing;
@@ -116,9 +123,12 @@ public class LevelUpUI : MonoBehaviour
     private void BuildCard(Transform parent, UpgradeOption opt, float xMin, float xMax)
     {
         bool isSkill   = opt.type == UpgradeType.Skill1 || opt.type == UpgradeType.Skill2;
-        Color bg       = isSkill ? SkillBg     : StatBg;
-        Color border   = isSkill ? SkillBorder : StatBorder;
-        Color titleCol = isSkill ? SkillTitle  : StatTitle;
+        bool isLegend  = opt.legendSystem != LegendSystemType.None;
+        bool isEvo     = opt.isEvolution;
+
+        Color bg       = isLegend ? LegendBg : (isSkill ? SkillBg     : StatBg);
+        Color border   = isLegend ? (isEvo ? LegendEvoBorder : LegendBorder) : (isSkill ? SkillBorder : StatBorder);
+        Color titleCol = isLegend ? (isEvo ? LegendEvoTitle : LegendTitle) : (isSkill ? SkillTitle  : StatTitle);
 
         // Outer border rectangle
         GameObject borderGO = new GameObject("Card_" + opt.type);
@@ -158,11 +168,45 @@ public class LevelUpUI : MonoBehaviour
                 TextAnchor.MiddleCenter);
         }
 
-        // Description
-        AddText(cardGO.transform, opt.description,
-            new Vector2(0f, 0.03f), new Vector2(1f, 0.57f),
-            26, FontStyle.Normal, new Color(0.72f, 0.72f, 0.82f),
-            TextAnchor.UpperCenter, wrap: true, padding: 12f);
+        // Legend Subtitle
+        float descTop = 0.57f;
+        if (isLegend && !string.IsNullOrEmpty(opt.legendSubtitle))
+        {
+            AddText(cardGO.transform, opt.legendSubtitle,
+                new Vector2(0f, 0.45f), new Vector2(1f, 0.53f),
+                22, FontStyle.Italic, new Color(0.9f, 0.7f, 0.3f),
+                TextAnchor.MiddleCenter);
+            descTop = 0.45f;
+        }
+
+        // Icon
+        if (opt.icon != null)
+        {
+            GameObject iconGO = new GameObject("Icon");
+            iconGO.transform.SetParent(cardGO.transform, false);
+            RectTransform iRect = iconGO.AddComponent<RectTransform>();
+            // Place icon on the left side of the description area
+            iRect.anchorMin = new Vector2(0.05f, 0.05f);
+            iRect.anchorMax = new Vector2(0.35f, descTop - 0.05f);
+            iRect.offsetMin = iRect.offsetMax = Vector2.zero;
+            Image img = iconGO.AddComponent<Image>();
+            img.sprite = opt.icon;
+            img.preserveAspect = true;
+
+            // Description on the right side
+            AddText(cardGO.transform, opt.description,
+                new Vector2(0.38f, 0.03f), new Vector2(0.95f, descTop),
+                22, FontStyle.Normal, new Color(0.72f, 0.72f, 0.82f),
+                TextAnchor.MiddleLeft, wrap: true, padding: 0f);
+        }
+        else
+        {
+            // Full width description
+            AddText(cardGO.transform, opt.description,
+                new Vector2(0f, 0.03f), new Vector2(1f, descTop),
+                26, FontStyle.Normal, new Color(0.72f, 0.72f, 0.82f),
+                TextAnchor.UpperCenter, wrap: true, padding: 12f);
+        }
 
         // Click button over the whole border
         Button btn = borderGO.AddComponent<Button>();

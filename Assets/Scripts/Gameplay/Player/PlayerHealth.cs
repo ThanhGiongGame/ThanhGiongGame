@@ -4,7 +4,7 @@ public class PlayerHealth : MonoBehaviour
 {
     public float maxHealth = 100f;
     private PlayerController _pc;
-    private float currentHealth;
+    public float currentHealth;
 
     // Knockback is now OWNED by PlayerController via the public getter.
     // PlayerHealth only tracks the vector and decays it — it never calls controller.Move() itself.
@@ -58,6 +58,11 @@ public class PlayerHealth : MonoBehaviour
         currentHealth += amount; // Heal them for the amount gained so their bar fills up
         Debug.Log($"Max HP upgraded! New Max HP: {maxHealth}");
     }
+
+    public void Heal(float amount)
+    {
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+    }
     public void TakeDamage(float damage, Vector3 knockbackDirection, float knockbackForce)
     {
         if (_pc != null && _pc.IsInvulnerable)
@@ -80,6 +85,13 @@ public class PlayerHealth : MonoBehaviour
         }
         if (currentHealth <= 0f)
         {
+            var leLoi = GetComponent<LegendSystemLeLoi>();
+            if (leLoi != null && leLoi.CanRevive())
+            {
+                leLoi.OnPlayerDeath();
+                return; // Survived!
+            }
+            
             GameOverManager.Instance.OnPlayerDeath();
         }
     }

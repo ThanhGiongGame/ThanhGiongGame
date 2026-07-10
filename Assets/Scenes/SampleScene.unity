@@ -589,7 +589,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.size
-      value: 4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[0].waveName
@@ -601,7 +601,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[2].waveName
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[3].waveName
@@ -617,7 +617,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[2].requiredKills
-      value: 40
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[3].requiredKills
@@ -633,15 +633,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[1].enemies.Array.size
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[2].enemies.Array.size
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[3].enemies.Array.size
-      value: 4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[4].enemies.Array.size
@@ -649,19 +649,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[0].enemies.Array.data[0].count
-      value: 10
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[0].enemies.Array.data[1].count
-      value: 10
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[1].enemies.Array.data[0].count
-      value: 15
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[1].enemies.Array.data[1].count
-      value: 30
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 877777682809506181, guid: cee4975b7b9796a438221571c430483f, type: 3}
       propertyPath: waves.Array.data[1].enemies.Array.data[2].count
@@ -1018,6 +1018,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 800
+  currentHealth: 0
   knockbackDamping: 10
 --- !u!114 &1500706640
 MonoBehaviour:

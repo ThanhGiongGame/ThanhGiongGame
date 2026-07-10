@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System;
 
@@ -42,44 +42,23 @@ public class InventoryManager : MonoBehaviour
     // Thiết lập toàn bộ dữ liệu vật phẩm tại đây (Dễ dàng thêm mới món thứ 5, thứ 6)
     private void InitDatabase()
     {
-
+        foreach (var item in allItems)
+        {
+            if (item.id.Contains("Tier1")) item.requiredLevel = 1;
+            else if (item.id.Contains("Tier2")) item.requiredLevel = 3;
+            else if (item.id.Contains("Tier3"))
+            {
+                if (item.id.Contains("Character")) item.requiredLevel = 8;
+                else item.requiredLevel = 5;
+            }
+            else if (item.id.Contains("Tier4")) item.requiredLevel = 8;
+            else item.requiredLevel = 1;
+        }
     }
-    public int GetCurrency() => PlayerPrefs.GetInt("VinhDanhTotal", 9999);
-
-    public void AddCurrency(int amount)
-    {
-        PlayerPrefs.SetInt("VinhDanhTotal", GetCurrency() + amount);
-        PlayerPrefs.Save();
-    }
-
-    public bool BuyItem(GameItemData item)
-    {
-        Debug.Log("IsOwned:" + item.IsOwned() + "\nVinhDanh:" + GetCurrency());
-        if (item.IsOwned())
-            return false;
-        
-        int money = GetCurrency();
-
-        if (money < item.cost)
-            return false;
-
-        PlayerPrefs.SetInt(
-            "VinhDanhTotal",
-            money - item.cost
-        );
-
-        PlayerPrefs.SetInt(
-            item.id + "_Owned",
-            1
-        );
-
-        PlayerPrefs.Save();
-        Debug.Log("Item is bought:" + item.IsOwned());
-        return true;
-    }
+    // Removed Currency and Buy logic as Shop uses Level-based unlocks now.
     public void ToggleEquip(GameItemData item)
     {
-        if (!item.IsOwned())
+        if (!item.IsUnlocked())
             return;
 
         switch (item.category)

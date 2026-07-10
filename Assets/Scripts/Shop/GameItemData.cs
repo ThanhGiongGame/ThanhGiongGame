@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using static InventoryManager;
 
@@ -14,13 +14,13 @@ public class GameItemData
 
     public ItemCategory category;
 
-    public int cost;
+    public int requiredLevel = 1;
 
     public GameObject prefab;
 
-    public bool IsOwned()
+    public bool IsUnlocked()
     {
-        return PlayerPrefs.GetInt(id + "_Owned", 0) == 1;
+        return PersistentLevel.Current >= requiredLevel;
     }
 
     public bool IsEquipped()
@@ -28,13 +28,13 @@ public class GameItemData
         switch (category)
         {
             case ItemCategory.Character:
-                return PlayerPrefs.GetString("EquippedCharacter") == id;
+                return PlayerPrefs.GetString("EquippedCharacter", "Character_Tier1") == id;
 
             case ItemCategory.Mount:
-                return PlayerPrefs.GetString("EquippedHorse") == id;
+                return PlayerPrefs.GetString("EquippedHorse", "Horse_Tier1") == id;
 
             case ItemCategory.Weapon:
-                return PlayerPrefs.GetString("EquippedWeapon") == id;
+                return PlayerPrefs.GetString("EquippedWeapon", "Weapon_Tier1") == id;
         }
 
         return false;

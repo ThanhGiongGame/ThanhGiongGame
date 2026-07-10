@@ -1,0 +1,362 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class LegendSystemCoLoa : MonoBehaviour
+{
+    private int w1Level;
+    private int w2Level;
+    private int evoLevel;
+
+    // W1: Nỏ Liên Châu
+    private float fireTimer = 0f;
+    private float fireRate => 1.5f - (w1Level * 0.2f);
+    
+    // W2: Mai Rùa Vàng
+    private List<GameObject> shields = new List<GameObject>();
+    private float shieldRadius = 2.5f;
+    private float shieldRotSpeed = 90f;
+
+    public void UpdateLevels(int w1, int w2, int evo)
+    {
+        w1Level = w1;
+        w2Level = w2;
+        evoLevel = evo;
+
+        if (evoLevel > 0)
+        {
+            ClearShields();
+            SpawnEvoShields();
+        }
+        else
+        {
+            if (w2Level > 0) UpdateShields();
+        }
+    }
+
+    private void Update()
+    {
+        if (evoLevel > 0)
+        {
+            EvoUpdate();
+        }
+        else
+        {
+            if (w1Level > 0) W1Update();
+            if (w2Level > 0) W2Update();
+        }
+    }
+
+    private void W1Update()
+    {
+        fireTimer += Time.deltaTime;
+        if (fireTimer >= fireRate)
+        {
+            fireTimer = 0f;
+            FireCrossbow(false);
+        }
+    }
+
+    private void W2Update()
+    {
+        RotateShields();
+    }
+
+    private void EvoUpdate()
+    {
+        fireTimer += Time.deltaTime;
+        if (fireTimer >= 0.5f) // Faster fire rate for evo
+        {
+            fireTimer = 0f;
+            FireCrossbow(true); // Piercing and exploding
+        }
+        RotateShields();
+    }
+
+    private void FireCrossbow(bool isEvo)
+    {
+        // Find nearest enemy
+        Collider[] enemies = Physics.OverlapSphere(transform.position, 15f);
+        Transform target = null;
+        float closestDist = float.MaxValue;
+        foreach(var col in enemies)
+        {
+            if (col.CompareTag("Enemy"))
+            {
+                float d = Vector3.Distance(transform.position, col.transform.position);
+                if (d < closestDist) { closestDist = d; target = col.transform; }
+            }
+        }
+
+        if (target != null)
+        {
+            Vector3 dir = (target.position - transform.position).normalized;
+            dir.y = 0;
+            
+            int arrows = isEvo ? 3 : (1 + w1Level / 2);
+            for(int i=0; i<arrows; i++)
+            {
+                Vector3 spreadDir = Quaternion.Euler(0, (i - arrows/2f)*15f, 0) * dir;
+                SpawnArrow(spreadDir, isEvo);
+            }
+        }
+    }
+
+    private void SpawnArrow(Vector3 dir, bool isEvo)
+    {
+        string prefabName = isEvo ? "CoLoa_EvoArrow" : "CoLoa_Arrow";
+        GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
+        GameObject arrow = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        arrow.name = prefabName;
+        arrow.transform.position = transform.position + Vector3.up * 1f;
+        arrow.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f,0,0);
+        arrow.transform.localScale = new Vector3(0.1f, 0.5f, 0.1f);
+        
+        Collider col = arrow.GetComponent<Collider>();
+        if (col != null) col.isTrigger = true;
+        
+        Renderer rend = arrow.GetComponent<Renderer>();
+        rend.material.color = isEvo ? Color.red : new Color(0.8f, 0.4f, 0.1f);
+        rend.material.EnableKeyword("_EMISSION");
+        rend.material.SetColor("_EmissionColor", rend.material.color * 2f);
+        
+        Rigidbody rb = arrow.AddComponent<Rigidbody>();
+        rb.useGravity = false;
+        rb.isKinematic = false;
+
+        var proj = arrow.AddComponent<CoLoaArrow>();
+        proj.dir = dir;
+        proj.speed = 20f;
+        proj.damage = isEvo ? 50f : 15f + (w1Level * 5f);
+        proj.isEvo = isEvo;
+    }
+
+    private void UpdateShields()
+    {
+        int count = w2Level;
+        ClearShields();
+        for (int i = 0; i < count; i++)
+        {
+            GameObject prefab = Resources.Load<GameObject>("Prefabs/CoLoa_Shield");
+            GameObject shield = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            shield.name = "CoLoa_Shield";
+            shield.transform.localScale = new Vector3(1f, 1f, 1f);
+            
+            Renderer rend = shield.GetComponent<Renderer>();
+            rend.material.color = new Color(1f, 0.9f, 0f, 0.5f); // Golden
+            rend.material.EnableKeyword("_EMISSION");
+            rend.material.SetColor("_EmissionColor", new Color(0.5f, 0.45f, 0f));
+            // Semi transparent
+            rend.material.SetFloat("_Mode", 3);
+            rend.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            rend.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            rend.material.SetInt("_ZWrite", 0);
+            rend.material.DisableKeyword("_ALPHATEST_ON");
+            rend.material.EnableKeyword("_ALPHABLEND_ON");
+            rend.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            rend.material.renderQueue = 3000;
+            
+            shield.GetComponent<Collider>().isTrigger = true;
+            
+            var logic = shield.AddComponent<CoLoaShield>();
+            logic.damage = 10f + (w2Level * 5f);
+            logic.parentSystem = this;
+
+            shields.Add(shield);
+        }
+    }
+
+    private void SpawnEvoShields()
+    {
+        ClearShields();
+        for (int i = 0; i < 4; i++) // 4 big shields
+        {
+            GameObject prefab = Resources.Load<GameObject>("Prefabs/CoLoa_EvoShield");
+            GameObject shield = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            shield.name = "CoLoa_EvoShield";
+            shield.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+            
+            Renderer rend = shield.GetComponent<Renderer>();
+            rend.material.color = new Color(1f, 0.5f, 0f, 0.6f); // Orange Gold
+            rend.material.EnableKeyword("_EMISSION");
+            rend.material.SetColor("_EmissionColor", new Color(0.8f, 0.2f, 0f));
+            rend.material.SetFloat("_Mode", 3);
+            rend.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            rend.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            rend.material.SetInt("_ZWrite", 0);
+            rend.material.DisableKeyword("_ALPHATEST_ON");
+            rend.material.EnableKeyword("_ALPHABLEND_ON");
+            rend.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            rend.material.renderQueue = 3000;
+            
+            shield.GetComponent<Collider>().isTrigger = true;
+            
+            var logic = shield.AddComponent<CoLoaShield>();
+            logic.damage = 80f;
+            logic.parentSystem = this;
+            logic.isEvo = true;
+            logic.hp = 10; // Extra durability for evo
+
+            shields.Add(shield);
+        }
+    }
+
+    private void RotateShields()
+    {
+        if (shields.Count == 0) return;
+        float angleStep = 360f / shields.Count;
+        for (int i = 0; i < shields.Count; i++)
+        {
+            if (shields[i] == null) continue;
+            float angle = (Time.time * shieldRotSpeed) + (i * angleStep);
+            Vector3 offset = new Vector3(Mathf.Sin(angle * Mathf.Deg2Rad), 0f, Mathf.Cos(angle * Mathf.Deg2Rad)) * shieldRadius;
+            shields[i].transform.position = transform.position + Vector3.up * 1f + offset;
+        }
+    }
+
+    private void ClearShields()
+    {
+        foreach (var s in shields) if (s != null) Destroy(s);
+        shields.Clear();
+    }
+
+    public void OnShieldBroken(GameObject shield)
+    {
+        if (evoLevel > 0)
+        {
+            // Evo Shockwave Visual
+            GameObject shockwave = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            shockwave.transform.position = transform.position;
+            shockwave.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            Destroy(shockwave.GetComponent<Collider>());
+            Renderer rend = shockwave.GetComponent<Renderer>();
+            rend.material.color = new Color(1f, 0.5f, 0f, 0.5f);
+            StartCoroutine(ShockwaveAnim(shockwave));
+
+            // Evo Shockwave Logic
+            Collider[] enemies = Physics.OverlapSphere(transform.position, 6f);
+            foreach(var e in enemies)
+            {
+                if (e.CompareTag("Enemy"))
+                {
+                    Enemy en = e.GetComponent<Enemy>();
+                    if (en != null) en.TakeDamage(100f);
+                    // Push back
+                    Vector3 push = (e.transform.position - transform.position).normalized * 8f;
+                    push.y = 0;
+                    e.transform.position += push;
+                }
+            }
+            // Heal 10%
+            PlayerHealth ph = GetComponent<PlayerHealth>();
+            if (ph != null) ph.Heal(ph.maxHealth * 0.1f);
+        }
+        
+        shields.Remove(shield);
+        Destroy(shield);
+        
+        // Respawn shield after a delay
+        StartCoroutine(RespawnShieldRoutine(evoLevel > 0));
+    }
+
+    private IEnumerator ShockwaveAnim(GameObject wave)
+    {
+        float t = 0;
+        while(t < 0.3f)
+        {
+            t += Time.deltaTime;
+            float scale = Mathf.Lerp(0.1f, 12f, t / 0.3f);
+            wave.transform.localScale = new Vector3(scale, 0.1f, scale);
+            yield return null;
+        }
+        Destroy(wave);
+    }
+
+    private IEnumerator RespawnShieldRoutine(bool isEvo)
+    {
+        yield return new WaitForSeconds(5f);
+        if (isEvo) SpawnEvoShields();
+        else UpdateShields();
+    }
+}
+
+public class CoLoaArrow : MonoBehaviour
+{
+    public Vector3 dir;
+    public float speed;
+    public float damage;
+    public bool isEvo;
+    private int pierceCount = 0;
+    private float lifeTime = 0f;
+
+    void Update()
+    {
+        transform.position += dir * speed * Time.deltaTime;
+        lifeTime += Time.deltaTime;
+        if (lifeTime > 5f) Destroy(gameObject); // Cleanup
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            Enemy e = other.GetComponent<Enemy>();
+            if (e != null) e.TakeDamage(damage);
+
+            if (isEvo)
+            {
+                // Explosion Visual
+                GameObject explo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                explo.transform.position = transform.position;
+                explo.transform.localScale = new Vector3(3f, 3f, 3f);
+                Destroy(explo.GetComponent<Collider>());
+                Renderer rend = explo.GetComponent<Renderer>();
+                rend.material.color = new Color(1f, 0f, 0f, 0.5f);
+                Destroy(explo, 0.2f); // quick flash
+
+                // Explosion Logic
+                Collider[] splash = Physics.OverlapSphere(transform.position, 2.5f);
+                foreach(var s in splash)
+                {
+                    if (s.CompareTag("Enemy") && s.gameObject != other.gameObject)
+                    {
+                        Enemy en = s.GetComponent<Enemy>();
+                        if (en != null) en.TakeDamage(damage * 0.5f);
+                    }
+                }
+            }
+
+            if (!isEvo || pierceCount >= 3)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                pierceCount++;
+            }
+        }
+    }
+}
+
+public class CoLoaShield : MonoBehaviour
+{
+    public float damage;
+    public LegendSystemCoLoa parentSystem;
+    public bool isEvo;
+    public int hp = 3;
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            Enemy e = other.GetComponent<Enemy>();
+            if (e != null) e.TakeDamage(damage);
+            
+            hp--;
+            if (hp <= 0)
+            {
+                parentSystem.OnShieldBroken(gameObject);
+            }
+        }
+    }
+}
