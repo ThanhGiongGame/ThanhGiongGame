@@ -391,7 +391,31 @@ public class Enemy : MonoBehaviour
         {
             waveSpawner.OnEnemyKilled(transform.position);
         }
-        XPOrb.Spawn(transform.position, 10f);
+
+        // XP Drop Chance logic
+        float xpAmount = 10f;
+        if (UpgradeManager.Instance != null)
+        {
+            float doubleXpChance = UpgradeManager.Instance.XpDropChanceLevel * 0.15f;
+            if (Random.value < doubleXpChance)
+            {
+                xpAmount *= 2f;
+                // Quick yellow glow effect for critical double XP
+                HitEffect.Spawn(transform.position, Color.yellow, 1.5f);
+            }
+        }
+        XPOrb.Spawn(transform.position, xpAmount);
+
+        // Health Pack Drop Chance logic
+        if (UpgradeManager.Instance != null)
+        {
+            float healthPackChance = UpgradeManager.Instance.HealthPackDropChanceLevel * 0.08f;
+            if (Random.value < healthPackChance)
+            {
+                HealthPack.Spawn(transform.position, 25f);
+            }
+        }
+
         Destroy(gameObject);
     }
 }

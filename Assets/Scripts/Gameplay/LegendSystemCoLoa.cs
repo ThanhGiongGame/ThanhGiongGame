@@ -106,19 +106,17 @@ public class LegendSystemCoLoa : MonoBehaviour
     {
         string prefabName = isEvo ? "CoLoa_EvoArrow" : "CoLoa_Arrow";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        GameObject arrow = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        // spherical=true: arrow faces camera fully, then rotates in screen space so tip → enemy
+        GameObject arrow = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cylinder, isEvo ? Color.red : new Color(0.8f, 0.4f, 0.1f), 2.5f, billboard: true, travelDirection: dir, spriteScale: 2.5f, spherical: true);
         arrow.name = prefabName;
         arrow.transform.position = transform.position + Vector3.up * 1f;
-        arrow.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f,0,0);
-        arrow.transform.localScale = new Vector3(0.1f, 0.5f, 0.1f);
+        // Don't override rotation for sprite — Billboard handles it. For 3D fallback keep the look rotation:
+        if (arrow.GetComponent<SpriteRenderer>() == null)
+            arrow.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0, 0);
+        arrow.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f); // big enough to see
         
         Collider col = arrow.GetComponent<Collider>();
         if (col != null) col.isTrigger = true;
-        
-        Renderer rend = arrow.GetComponent<Renderer>();
-        rend.material.color = isEvo ? Color.red : new Color(0.8f, 0.4f, 0.1f);
-        rend.material.EnableKeyword("_EMISSION");
-        rend.material.SetColor("_EmissionColor", rend.material.color * 2f);
         
         Rigidbody rb = arrow.AddComponent<Rigidbody>();
         rb.useGravity = false;
@@ -138,25 +136,12 @@ public class LegendSystemCoLoa : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             GameObject prefab = Resources.Load<GameObject>("Prefabs/CoLoa_Shield");
-            GameObject shield = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject shield = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual("CoLoa_Shield", PrimitiveType.Sphere, new Color(1f, 0.9f, 0f, 0.5f), 1.5f, billboard: true);
             shield.name = "CoLoa_Shield";
             shield.transform.localScale = new Vector3(1f, 1f, 1f);
             
-            Renderer rend = shield.GetComponent<Renderer>();
-            rend.material.color = new Color(1f, 0.9f, 0f, 0.5f); // Golden
-            rend.material.EnableKeyword("_EMISSION");
-            rend.material.SetColor("_EmissionColor", new Color(0.5f, 0.45f, 0f));
-            // Semi transparent
-            rend.material.SetFloat("_Mode", 3);
-            rend.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            rend.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            rend.material.SetInt("_ZWrite", 0);
-            rend.material.DisableKeyword("_ALPHATEST_ON");
-            rend.material.EnableKeyword("_ALPHABLEND_ON");
-            rend.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            rend.material.renderQueue = 3000;
-            
-            shield.GetComponent<Collider>().isTrigger = true;
+            Collider col = shield.GetComponent<Collider>();
+            if (col != null) col.isTrigger = true;
             
             var logic = shield.AddComponent<CoLoaShield>();
             logic.damage = 10f + (w2Level * 5f);
@@ -172,24 +157,12 @@ public class LegendSystemCoLoa : MonoBehaviour
         for (int i = 0; i < 4; i++) // 4 big shields
         {
             GameObject prefab = Resources.Load<GameObject>("Prefabs/CoLoa_EvoShield");
-            GameObject shield = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject shield = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual("CoLoa_EvoShield", PrimitiveType.Sphere, new Color(1f, 0.5f, 0f, 0.6f), 2.5f, billboard: true);
             shield.name = "CoLoa_EvoShield";
-            shield.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+            shield.transform.localScale = new Vector3(2.5f, 2.5f, 2.5f); // Increased hitbox
             
-            Renderer rend = shield.GetComponent<Renderer>();
-            rend.material.color = new Color(1f, 0.5f, 0f, 0.6f); // Orange Gold
-            rend.material.EnableKeyword("_EMISSION");
-            rend.material.SetColor("_EmissionColor", new Color(0.8f, 0.2f, 0f));
-            rend.material.SetFloat("_Mode", 3);
-            rend.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            rend.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            rend.material.SetInt("_ZWrite", 0);
-            rend.material.DisableKeyword("_ALPHATEST_ON");
-            rend.material.EnableKeyword("_ALPHABLEND_ON");
-            rend.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            rend.material.renderQueue = 3000;
-            
-            shield.GetComponent<Collider>().isTrigger = true;
+            Collider col = shield.GetComponent<Collider>();
+            if (col != null) { col.isTrigger = true; ((SphereCollider)col).radius = 0.8f; }
             
             var logic = shield.AddComponent<CoLoaShield>();
             logic.damage = 80f;
@@ -234,17 +207,18 @@ public class LegendSystemCoLoa : MonoBehaviour
             StartCoroutine(ShockwaveAnim(shockwave));
 
             // Evo Shockwave Logic
-            Collider[] enemies = Physics.OverlapSphere(transform.position, 6f);
+            Collider[] enemies = Physics.OverlapSphere(transform.position, 8f); // Increased explosion radius
             foreach(var e in enemies)
             {
                 if (e.CompareTag("Enemy"))
                 {
                     Enemy en = e.GetComponent<Enemy>();
-                    if (en != null) en.TakeDamage(100f);
-                    // Push back
-                    Vector3 push = (e.transform.position - transform.position).normalized * 8f;
-                    push.y = 0;
-                    e.transform.position += push;
+                    if (en != null) 
+                    {
+                        en.TakeDamage(100f);
+                        Vector3 push = (e.transform.position - transform.position).normalized;
+                        en.ApplyKnockbackStun(push, 15f, 0.8f);
+                    }
                 }
             }
             // Heal 10%
@@ -301,7 +275,11 @@ public class CoLoaArrow : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             Enemy e = other.GetComponent<Enemy>();
-            if (e != null) e.TakeDamage(damage);
+            if (e != null) 
+            {
+                e.TakeDamage(damage);
+                e.ApplyKnockbackStun(dir, 5f, 0.2f);
+            }
 
             if (isEvo)
             {
@@ -350,7 +328,12 @@ public class CoLoaShield : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             Enemy e = other.GetComponent<Enemy>();
-            if (e != null) e.TakeDamage(damage);
+            if (e != null) 
+            {
+                e.TakeDamage(damage);
+                Vector3 push = (other.transform.position - transform.position).normalized;
+                e.ApplyKnockbackStun(push, 8f, 0.3f);
+            }
             
             hp--;
             if (hp <= 0)

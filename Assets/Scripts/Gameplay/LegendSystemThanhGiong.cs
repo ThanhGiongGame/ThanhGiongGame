@@ -104,20 +104,22 @@ public class LegendSystemThanhGiong : MonoBehaviour
         
         string prefabName = isEvo ? "ThanhGiong_EvoBamboo" : "ThanhGiong_Bamboo";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        GameObject bamboo = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        // Bamboo stands vertically — no travelDirection needed (it stays still)
+        GameObject bamboo = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cylinder, new Color(0.8f, 0.9f, 0.2f), 0f, billboard: true, spriteScale: isEvo ? 2f : 1.2f);
         bamboo.name = prefabName;
         bamboo.transform.position = pos + Vector3.up * 1f;
-        bamboo.transform.localScale = new Vector3(0.3f, 1.5f, 0.3f);
-        
-        Renderer rend = bamboo.GetComponent<Renderer>();
-        rend.material.color = new Color(0.8f, 0.9f, 0.2f); // Ivory Bamboo
+        if (bamboo.GetComponent<SpriteRenderer>() == null)
+            bamboo.transform.localScale = new Vector3(0.3f, 1.5f, 0.3f);
         
         Collider col = bamboo.GetComponent<Collider>();
-        col.isTrigger = false; // Solid obstacle
+        if (col != null) { col.isTrigger = false; if (col is BoxCollider bc) bc.size = new Vector3(3f, 3f, 3f); } // Solid obstacle with big hitbox
 
         var logic = bamboo.AddComponent<ThanhGiongBamboo>();
         logic.damage = isEvo ? 80f : bambooDamage;
         logic.isEvo = isEvo;
+
+        // Brown ground dust — bamboo stabs into earth
+        LegendParticles.AddGroundDust(bamboo, rate: isEvo ? 18f : 10f);
 
         Rigidbody rb = bamboo.AddComponent<Rigidbody>();
         rb.useGravity = false;
@@ -131,29 +133,20 @@ public class LegendSystemThanhGiong : MonoBehaviour
     {
         string prefabName = isEvo ? "ThanhGiong_EvoFire" : "ThanhGiong_Fire";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        GameObject fire = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Cube);
+        // Fire trail is flat on the ground — no direction needed
+        GameObject fire = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, isEvo ? new Color(1f, 0.5f, 0f, 0.8f) : new Color(1f, 0.2f, 0f, 0.6f), isEvo ? 3f : 1.5f, billboard: false, isFlat: true, spriteScale: isEvo ? 2f : 1.5f);
         fire.name = prefabName;
         fire.transform.position = transform.position + Vector3.up * 0.5f;
-        fire.transform.localScale = isEvo ? new Vector3(1.5f, 3f, 1.5f) : new Vector3(1f, 1f, 1f);
+        if (fire.GetComponent<SpriteRenderer>() == null)
+            fire.transform.localScale = isEvo ? new Vector3(1.5f, 3f, 1.5f) : new Vector3(1f, 1f, 1f);
         
-        Destroy(fire.GetComponent<Collider>());
+        Collider col = fire.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+        
         SphereCollider trigger = fire.AddComponent<SphereCollider>();
         trigger.isTrigger = true;
-        trigger.radius = 1f;
+        trigger.radius = isEvo ? 3f : 2f; // Increased hitbox
         
-        Renderer rend = fire.GetComponent<Renderer>();
-        rend.material.color = isEvo ? new Color(1f, 0.5f, 0f, 0.8f) : new Color(1f, 0.2f, 0f, 0.6f);
-        rend.material.EnableKeyword("_EMISSION");
-        rend.material.SetColor("_EmissionColor", isEvo ? new Color(1f, 0.3f, 0f) : new Color(0.8f, 0.1f, 0f));
-        rend.material.SetFloat("_Mode", 3);
-        rend.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        rend.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        rend.material.SetInt("_ZWrite", 0);
-        rend.material.DisableKeyword("_ALPHATEST_ON");
-        rend.material.EnableKeyword("_ALPHABLEND_ON");
-        rend.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        rend.material.renderQueue = 3000;
-
         var logic = fire.AddComponent<ThanhGiongFire>();
         logic.damage = isEvo ? 60f : fireDamage;
 
@@ -204,7 +197,12 @@ public class ThanhGiongBamboo : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemy"))
         {
             Enemy e = collision.gameObject.GetComponent<Enemy>();
-            if (e != null) e.TakeDamage(damage);
+            if (e != null) 
+            {
+                e.TakeDamage(damage);
+                Vector3 push = (collision.transform.position - transform.position).normalized;
+                e.ApplyKnockbackStun(push, 4f, 0.2f);
+            }
         }
     }
 
@@ -213,7 +211,12 @@ public class ThanhGiongBamboo : MonoBehaviour
         if (isEvo && other.CompareTag("Enemy"))
         {
             Enemy e = other.GetComponent<Enemy>();
-            if (e != null) e.TakeDamage(damage);
+            if (e != null) 
+            {
+                e.TakeDamage(damage);
+                Vector3 push = (other.transform.position - transform.position).normalized;
+                e.ApplyKnockbackStun(push, 6f, 0.3f);
+            }
             Destroy(gameObject);
         }
     }
@@ -233,7 +236,12 @@ public class ThanhGiongFire : MonoBehaviour
             {
                 hitTimer = 0f;
                 Enemy e = other.GetComponent<Enemy>();
-                if (e != null) e.TakeDamage(damage);
+                if (e != null) 
+                {
+                    e.TakeDamage(damage);
+                    Vector3 push = (other.transform.position - transform.position).normalized;
+                    e.ApplyKnockbackStun(push, 2f, 0.1f);
+                }
             }
         }
     }

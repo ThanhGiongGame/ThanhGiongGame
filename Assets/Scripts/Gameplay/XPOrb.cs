@@ -99,13 +99,31 @@ public class XPOrb : MonoBehaviour
             if (shader != null) break;
         }
         Material mat = new Material(shader ?? Shader.Find("Standard"));
-        if (mat.HasProperty("_Color"))     mat.SetColor("_Color",     color);
-        if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
+        
+        // Mild HDR — visible glow without overwhelming scene
+        Color hdrColor = color * 1.5f;
+        hdrColor.a = color.a;
+        
+        if (mat.HasProperty("_Color"))     mat.SetColor("_Color",     hdrColor);
+        if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", hdrColor);
         if (mat.HasProperty("_EmissionColor"))
         {
             mat.EnableKeyword("_EMISSION");
-            mat.SetColor("_EmissionColor", color * 2.5f);
+            mat.SetColor("_EmissionColor", hdrColor);
+            mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
         }
+        
+        // Alpha blend — not additive (additive turned the whole scene orange)
+        if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1f);
+        if (mat.HasProperty("_Blend"))   mat.SetFloat("_Blend",   0f); // Alpha
+        if (mat.HasProperty("_SrcBlend") && mat.HasProperty("_DstBlend"))
+        {
+            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetInt("_ZWrite",   0);
+            mat.renderQueue = 3000;
+        }
+        
         return mat;
     }
 

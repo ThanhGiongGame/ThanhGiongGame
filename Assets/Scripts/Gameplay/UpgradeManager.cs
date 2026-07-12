@@ -5,6 +5,7 @@ using UnityEngine;
 public enum UpgradeType
 {
     StatHealth, StatDamage, StatSpeed,
+    StatXpChance, StatHealthChance,
     Skill1, Skill2,
     
     // Cổ Loa (An Dương Vương)
@@ -62,14 +63,16 @@ public class UpgradeOption
 /// </summary>
 public class UpgradeManager : MonoBehaviour
 {
-    public static UpgradeManager Instance { get; private set; }
+    public static UpgradeManager Instance { get;  set; }
 
     // ---- Upgrade progress ----
-    public int Skill1Level { get; private set; } = 0;  // 0=locked, 1-4=tiers
-    public int Skill2Level { get; private set; } = 0;
-    public int HealthUpgrades { get; private set; } = 0;
-    public int DamageUpgrades { get; private set; } = 0;
-    public int SpeedUpgrades  { get; private set; } = 0;
+    public int Skill1Level { get;  set; } = 0;  // 0=locked, 1-4=tiers
+    public int Skill2Level { get;  set; } = 0;
+    public int HealthUpgrades { get;  set; } = 0;
+    public int DamageUpgrades { get;  set; } = 0;
+    public int SpeedUpgrades  { get;  set; } = 0;
+    public int XpDropChanceLevel { get;  set; } = 0;
+    public int HealthPackDropChanceLevel { get;  set; } = 0;
 
     // ---- Legend Progress ----
     public class LegendProgress
@@ -88,8 +91,10 @@ public class UpgradeManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
+        if (Instance == null) { Instance = this; }
+        else { Destroy(gameObject); return; }
+
+        gameObject.AddComponent<TestModeUI>();
 
         Legends[LegendSystemType.CoLoa] = new LegendProgress { systemType = LegendSystemType.CoLoa };
         Legends[LegendSystemType.DongA] = new LegendProgress { systemType = LegendSystemType.DongA };
@@ -135,12 +140,26 @@ public class UpgradeManager : MonoBehaviour
         var pool = new List<UpgradeOption>
         {
             MakeHealthOption(),
-            new UpgradeOption(UpgradeType.StatDamage, "⚔  Attack Power",
-                "Slash damage +20%.\nStrike harder with every blow.",
-                DamageUpgrades, -1),
-            new UpgradeOption(UpgradeType.StatSpeed, "💨  Swift Feet",
-                "Movement speed +15%.\nLeave your enemies behind.",
-                SpeedUpgrades, -1)
+            new UpgradeOption(UpgradeType.StatDamage, "⚔  Cường Lực",
+                "Tăng sát thương thêm +20%.\nĐòn đánh của bạn sẽ mạnh mẽ hơn.",
+                DamageUpgrades, -1,
+                LegendSystemType.None, "", false,
+                Resources.Load<Sprite>("Icons/StatDamage")),
+            new UpgradeOption(UpgradeType.StatSpeed, "💨  Tốc Hành",
+                "Tăng tốc độ di chuyển thêm +15%.\nDễ dàng né tránh kẻ thù.",
+                SpeedUpgrades, -1,
+                LegendSystemType.None, "", false,
+                Resources.Load<Sprite>("Icons/StatSpeed")),
+            new UpgradeOption(UpgradeType.StatXpChance, "💎  Vận May XP",
+                "Tăng thêm +15% tỷ lệ nhận nhân đôi Ngọc XP khi tiêu diệt quái.",
+                XpDropChanceLevel, -1,
+                LegendSystemType.None, "", false,
+                Resources.Load<Sprite>("Icons/StatXpChance")),
+            new UpgradeOption(UpgradeType.StatHealthChance, "🧪  Dược Lực",
+                "Tăng thêm +8% tỷ lệ rơi Bình Máu hồi phục từ quái vật.",
+                HealthPackDropChanceLevel, -1,
+                LegendSystemType.None, "", false,
+                Resources.Load<Sprite>("Icons/StatHealthChance"))
         };
 
         // Skill 1 — only if not maxed
@@ -149,7 +168,7 @@ public class UpgradeManager : MonoBehaviour
             bool isUnlock = Skill1Level == 0;
             pool.Add(new UpgradeOption(
                 UpgradeType.Skill1,
-                isUnlock ? "🌩  UNLOCK: Sky Plunge" : "⬆  Sky Plunge",
+                isUnlock ? "🌩  MỞ KHÓA: Thiên Đòn Sa" : "⬆  Thiên Đòn Sa",
                 GetSkill1Desc(Skill1Level),
                 Skill1Level, 4,
                 LegendSystemType.None, "", false,
@@ -162,7 +181,7 @@ public class UpgradeManager : MonoBehaviour
             bool isUnlock = Skill2Level == 0;
             pool.Add(new UpgradeOption(
                 UpgradeType.Skill2,
-                isUnlock ? "🔥  UNLOCK: Flame Dash" : "⬆  Flame Dash",
+                isUnlock ? "🔥  MỞ KHÓA: Hỏa Ảnh Bộ" : "⬆  Hỏa Ảnh Bộ",
                 GetSkill2Desc(Skill2Level),
                 Skill2Level, 4,
                 LegendSystemType.None, "", false,
@@ -236,19 +255,21 @@ public class UpgradeManager : MonoBehaviour
     }
 
     private UpgradeOption MakeHealthOption()
-        => new UpgradeOption(UpgradeType.StatHealth, "❤  Vitality",
-            "Max HP +25.\nSurvive more punishment.",
-            HealthUpgrades, -1);
+        => new UpgradeOption(UpgradeType.StatHealth, "❤  Sinh Lực",
+            "Tăng thêm +25 HP tối đa.\nSống sót lâu hơn trong trận chiến.",
+            HealthUpgrades, -1,
+            LegendSystemType.None, "", false,
+            Resources.Load<Sprite>("Icons/StatHealth"));
 
     private string GetSkill1Desc(int level)
     {
         return level switch
         {
-            0 => "Leap into the sky, then slam down at a target\ndealing massive AOE damage, stunning\nand knocking back all nearby enemies.",
-            1 => "Sky Plunge damage +50%.\nHit harder on each descent.",
-            2 => "Impact radius +30%.\nCrush even more enemies per slam.",
-            3 => "Cooldown reduced by 5 seconds.\nRain down more often.",
-            _ => "MAXED"
+            0 => "Nhảy vọt lên không trung, sau đó dậm mạnh xuống mục tiêu\ngây sát thương diện rộng cực lớn, gây choáng\nvà đẩy lùi toàn bộ kẻ địch xung quanh.",
+            1 => "Thiên Đòn Sa tăng +50% sát thương.\nMỗi cú dậm đập tan mọi hàng phòng ngự.",
+            2 => "Bán kính vụ nổ tăng thêm +30%.\nĐè bẹp nhiều kẻ địch hơn trong một lần dậm.",
+            3 => "Thời gian hồi chiêu giảm đi 5 giây.\nMưa thiên thạch trút xuống liên tiếp.",
+            _ => "ĐÃ TỐI ĐA"
         };
     }
 
@@ -256,11 +277,11 @@ public class UpgradeManager : MonoBehaviour
     {
         return level switch
         {
-            0 => "Dash forward through enemies leaving\na scorching flame trail. Finish with\na devastating 360° spin attack.",
-            1 => "Dash damage +40% and trail is wider.\nBurn a broader path of destruction.",
-            2 => "Spin finisher damage +50%.\nLeave nothing standing at the end.",
-            3 => "Cooldown −3s. Trail lasts an extra second.\nTorment enemies longer.",
-            _ => "MAXED"
+            0 => "Lướt nhanh về phía trước xuyên qua kẻ thù,\nđể lại một vệt lửa thiêu đốt phía sau.\nKết thúc bằng một đòn xoay kiếm 360 độ cực mạnh.",
+            1 => "Sát thương lướt tăng +40% và vệt lửa rộng hơn.\nThiêu rụi con đường cản bước bạn.",
+            2 => "Sát thương của đòn xoay kết liễu tăng +50%.\nKhông chừa bất cứ sinh vật nào cản đường.",
+            3 => "Thời gian hồi chiêu giảm 3 giây. Vệt lửa tồn tại lâu hơn.\nHỏa thiêu kẻ thù trong đau đớn.",
+            _ => "ĐÃ TỐI ĐA"
         };
     }
 
@@ -390,6 +411,8 @@ public class UpgradeManager : MonoBehaviour
             case UpgradeType.StatHealth: HealthUpgrades++; ApplyHealth(); break;
             case UpgradeType.StatDamage: DamageUpgrades++; ApplyDamage(); break;
             case UpgradeType.StatSpeed:  SpeedUpgrades++;  ApplySpeed();  break;
+            case UpgradeType.StatXpChance:     XpDropChanceLevel++; break;
+            case UpgradeType.StatHealthChance: HealthPackDropChanceLevel++; break;
             case UpgradeType.Skill1:     Skill1Level++;    ApplySkill1(); break;
             case UpgradeType.Skill2:     Skill2Level++;    ApplySkill2(); break;
             

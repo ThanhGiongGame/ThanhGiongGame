@@ -106,27 +106,19 @@ public class LegendSystemLeLoi : MonoBehaviour
 
         string prefabName = isEvo ? "LeLoi_GiantSword" : "LeLoi_Sword";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        GameObject sword = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Cube);
+        // travelDirection so the sword sprite tip points toward the enemy, spherical faces camera
+        GameObject sword = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.8f, 0.9f, 1f, 0.8f), 3f, billboard: true, travelDirection: dir, spriteScale: isEvo ? 2.5f : 1.5f, spherical: true);
         sword.name = prefabName;
         sword.transform.position = transform.position + Vector3.up * 1.5f;
-        sword.transform.localScale = isEvo ? new Vector3(1f, 0.2f, 4f) : new Vector3(0.2f, 0.1f, 1.5f);
-        sword.transform.rotation = Quaternion.LookRotation(dir);
+        // Only set scale/rotation for 3D fallback, Billboard handles sprite
+        if (sword.GetComponent<SpriteRenderer>() == null)
+        {
+            sword.transform.localScale = isEvo ? new Vector3(1f, 0.2f, 4f) : new Vector3(0.2f, 0.1f, 1.5f);
+            sword.transform.rotation = Quaternion.LookRotation(dir);
+        }
 
         Collider col = sword.GetComponent<Collider>();
-        col.isTrigger = true;
-        
-        Renderer rend = sword.GetComponent<Renderer>();
-        rend.material.color = new Color(0.8f, 0.9f, 1f, 0.8f); // Glowing blue/white
-        rend.material.EnableKeyword("_EMISSION");
-        rend.material.SetColor("_EmissionColor", new Color(0.2f, 0.5f, 1f));
-        rend.material.SetFloat("_Mode", 3);
-        rend.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        rend.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        rend.material.SetInt("_ZWrite", 0);
-        rend.material.DisableKeyword("_ALPHATEST_ON");
-        rend.material.EnableKeyword("_ALPHABLEND_ON");
-        rend.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        rend.material.renderQueue = 3000;
+        if (col != null) { col.isTrigger = true; if (col is BoxCollider bc) bc.size = new Vector3(4f, 4f, 4f); }
 
         var logic = sword.AddComponent<LeLoiSword>();
         logic.damage = isEvo ? 200f : swordDamage;
@@ -144,16 +136,14 @@ public class LegendSystemLeLoi : MonoBehaviour
     {
         string prefabName = isEvo ? "LeLoi_EvoTurtle" : "LeLoi_Turtle";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        turtle = prefab != null ? Instantiate(prefab) : GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        turtle = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Sphere, new Color(0.8f, 0.6f, 0f), 2f, billboard: true, spriteScale: isEvo ? 2f : 1.5f);
         turtle.name = prefabName;
         turtle.transform.position = transform.position + Vector3.right * 2f;
-        turtle.transform.localScale = isEvo ? new Vector3(2f, 1f, 2f) : new Vector3(1f, 0.5f, 1f);
+        if (turtle.GetComponent<SpriteRenderer>() == null)
+            turtle.transform.localScale = isEvo ? new Vector3(2f, 1f, 2f) : new Vector3(1f, 0.5f, 1f);
 
         Collider col = turtle.GetComponent<Collider>();
-        col.isTrigger = true;
-
-        Renderer rend = turtle.GetComponent<Renderer>();
-        rend.material.color = new Color(0.8f, 0.6f, 0f);
+        if (col != null) { col.isTrigger = true; if (col is SphereCollider sc) sc.radius = 2.5f; }
 
         var logic = turtle.AddComponent<LeLoiTurtle>();
         logic.damage = isEvo ? 100f : turtleDamage;
@@ -232,7 +222,11 @@ public class LeLoiSword : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             Enemy e = other.GetComponent<Enemy>();
-            if (e != null) e.TakeDamage(damage);
+            if (e != null) 
+            {
+                e.TakeDamage(damage);
+                e.ApplyKnockbackStun(dir, 8f, 0.3f);
+            }
 
             if (!isEvo && pierceCount >= 2)
             {
@@ -293,7 +287,12 @@ public class LeLoiTurtle : MonoBehaviour
             {
                 hitTimer = 0f;
                 Enemy e = other.GetComponent<Enemy>();
-                if (e != null) e.TakeDamage(damage);
+                if (e != null) 
+                {
+                    e.TakeDamage(damage);
+                    Vector3 push = (other.transform.position - transform.position).normalized;
+                    e.ApplyKnockbackStun(push, 6f, 0.2f);
+                }
             }
         }
     }

@@ -154,7 +154,7 @@ public class HitEffect : MonoBehaviour
 
     private static Material BuildMaterial(Color color)
     {
-        // Priority: URP → Built-in Unlit → Built-in Additive → Sprites/Default
+        // Priority: URP Additive (triggers bloom) → URP Unlit → Legacy
         string[] shaderNames = new[]
         {
             "Universal Render Pipeline/Particles/Unlit",
@@ -179,10 +179,30 @@ public class HitEffect : MonoBehaviour
 
         Material mat = new Material(shader);
 
-        // Set color on the material itself so it tints even without vertex color support
-        if (mat.HasProperty("_Color"))      mat.SetColor("_Color",      color);
-        if (mat.HasProperty("_BaseColor"))  mat.SetColor("_BaseColor",  color); // URP name
-        if (mat.HasProperty("_TintColor"))  mat.SetColor("_TintColor",  color); // Legacy particles
+        // Mild HDR — bright enough to glow without turning the scene orange
+        Color hdrColor = color * 1.5f;
+        hdrColor.a = color.a;
+
+        if (mat.HasProperty("_Color"))      mat.SetColor("_Color",      hdrColor);
+        if (mat.HasProperty("_BaseColor"))  mat.SetColor("_BaseColor",  hdrColor);
+        if (mat.HasProperty("_TintColor"))  mat.SetColor("_TintColor",  color); // legacy particles
+        
+        if (mat.HasProperty("_EmissionColor"))
+        {
+            mat.EnableKeyword("_EMISSION");
+            mat.SetColor("_EmissionColor", hdrColor);
+        }
+
+        // Alpha blend — additive was turning the whole scene orange
+        if (mat.HasProperty("_SrcBlend") && mat.HasProperty("_DstBlend"))
+        {
+            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetInt("_ZWrite",   0);
+            mat.renderQueue = 3000;
+        }
+        if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1f);
+        if (mat.HasProperty("_Blend"))   mat.SetFloat("_Blend",   0f); // Alpha, not Additive
 
         return mat;
     }
