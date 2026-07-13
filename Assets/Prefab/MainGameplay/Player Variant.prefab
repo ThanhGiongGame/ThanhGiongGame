@@ -177,6 +177,11 @@ MonoBehaviour:
   riderAnimator: {fileID: 0}
   horseAnimator: {fileID: 0}
   horseLoader: {fileID: 0}
+  slashSound: {fileID: 8300000, guid: 32ac9809cd1de0849a7d6c0d9eb517d5, type: 3}
+  slashSoundDelay: 0.2
+  footstepSound: {fileID: 8300000, guid: 5d9ae0aa39a055b4a845b2b05bd03048, type: 3}
+  footstepInterval: 0.5
+  isPhase2BuffActive: 0
 --- !u!114 &8748033759799032502
 MonoBehaviour:
   m_ObjectHideFlags: 0

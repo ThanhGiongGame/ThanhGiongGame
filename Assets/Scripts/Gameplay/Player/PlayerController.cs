@@ -25,6 +25,13 @@ public class PlayerController : MonoBehaviour
     public Animator horseAnimator;
     public HorseLoader horseLoader;
 
+    [Header("Audio")]
+    public AudioClip slashSound;
+    public AudioClip footstepSound;
+    public float footstepInterval = 0.5f;
+    private AudioSource audioSource;
+    private float footstepTimer;
+
     // ---- Private references ----
     private CharacterController controller;
     private PlayerHealth playerHealth;
@@ -62,6 +69,13 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         playerHealth = GetComponent<PlayerHealth>();
+        
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+        }
         horseLoader = GetComponent<HorseLoader>();
         horseLoader.LoadHorse();
         weaponDamage = GetComponent<WeaponDamage>();
@@ -308,22 +322,42 @@ public class PlayerController : MonoBehaviour
         }
         if (horseAnimator != null)
         {
-
             if (isKnockedBack)
             {
                 horseAnimator.SetBool("isWalking", false);
                 walkTimer = 0f;
+                
+                if (footstepSound != null && audioSource != null && audioSource.clip == footstepSound && audioSource.isPlaying)
+                {
+                    audioSource.Stop();
+                }
             }
             else
             {
                 bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
                 if (hasHorizontalMovement) {
                     walkTimer += Time.deltaTime;
-
+                    
+                    if (footstepSound != null && audioSource != null)
+                    {
+                        if (audioSource.clip != footstepSound)
+                        {
+                            audioSource.clip = footstepSound;
+                            audioSource.loop = true;
+                        }
+                        if (!audioSource.isPlaying)
+                        {
+                            audioSource.Play();
+                        }
+                    }
                 }
                 else
                 {
                     walkTimer = 0f;
+                    if (footstepSound != null && audioSource != null && audioSource.clip == footstepSound && audioSource.isPlaying)
+                    {
+                        audioSource.Stop();
+                    }
                 }
                 horseAnimator.SetBool("isWalking", hasHorizontalMovement);
             }
@@ -459,6 +493,11 @@ public class PlayerController : MonoBehaviour
             {
                 riderAnimator.SetInteger("AttackDirection", (int)attackDir);
                 riderAnimator.SetTrigger("Attack");
+            }
+            
+            if (slashSound != null && audioSource != null)
+            {
+                audioSource.PlayOneShot(slashSound);
             }
 
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene")
