@@ -22,6 +22,84 @@ public class MessengerShopInteraction : MonoBehaviour
         }
     }
 
+    private Color originalColor = Color.clear;
+
+    private void Update()
+    {
+        // Dev cheats to test SuGia dialogue
+        if (UnityEngine.InputSystem.Keyboard.current != null)
+        {
+            if (UnityEngine.InputSystem.Keyboard.current.f9Key.wasPressedThisFrame)
+            {
+                PlayerPrefs.SetInt("PendingMapUnlock", 1);
+                PlayerPrefs.Save();
+                UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            }
+            if (UnityEngine.InputSystem.Keyboard.current.f10Key.wasPressedThisFrame)
+            {
+                PlayerPrefs.SetInt("PendingMapUnlock", 2);
+                PlayerPrefs.Save();
+                UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            }
+        }
+
+        if (pendingMap > 0 && dialogueCanvas == null)
+        {
+            HandleMouseInteraction();
+        }
+    }
+
+    private void HandleMouseInteraction()
+    {
+        Camera cam = Camera.main;
+        if (cam == null) cam = FindFirstObjectByType<Camera>();
+        
+        if (cam != null && UnityEngine.InputSystem.Mouse.current != null)
+        {
+            Vector2 mousePos = UnityEngine.InputSystem.Mouse.current.position.ReadValue();
+            Ray ray = cam.ScreenPointToRay(mousePos);
+            
+            bool pointerOverUI = UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
+            
+            if (!pointerOverUI && Physics.Raycast(ray, out RaycastHit hit))
+            {
+                if (hit.collider != null && hit.collider.gameObject == gameObject)
+                {
+                    SetHoverEffect(true);
+                    
+                    if (UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame)
+                    {
+                        ShowDialogue();
+                    }
+                }
+                else
+                {
+                    SetHoverEffect(false);
+                }
+            }
+            else
+            {
+                SetHoverEffect(false);
+            }
+        }
+    }
+
+    private void SetHoverEffect(bool hover)
+    {
+        foreach (Renderer rend in GetComponentsInChildren<Renderer>(true))
+        {
+            if (originalColor == Color.clear && rend.material.HasProperty("_Color"))
+            {
+                originalColor = rend.material.color;
+            }
+            
+            if (rend.material.HasProperty("_Color"))
+            {
+                rend.material.color = hover ? Color.yellow : (originalColor != Color.clear ? originalColor : Color.white);
+            }
+        }
+    }
+
     private void SetVisualsActive(bool active)
     {
         foreach (Renderer rend in GetComponentsInChildren<Renderer>(true))
@@ -34,24 +112,16 @@ public class MessengerShopInteraction : MonoBehaviour
         }
     }
 
-    private void OnMouseDown()
-    {
-        if (pendingMap > 0 && dialogueCanvas == null)
-        {
-            ShowDialogue();
-        }
-    }
-
     private void ShowDialogue()
     {
         string dialogueText = "";
         if (pendingMap == 1)
         {
-            dialogueText = "Đây là bản đồ dẫn đến khu rừng...";
+            dialogueText = "Đây là bản đồ dẫn đến khu rừng... Hãy nhanh chóng đến đó và dọn dẹp bọn chúng đi";
         }
         else if (pendingMap == 2)
         {
-            dialogueText = "Đây là rừng tre, con trùm sẽ ở đó nên hãy cẩn thận...";
+            dialogueText = "Đây là bản đồ đến rừng tre, tên trùm sẽ ở đó nên hãy cẩn thận...";
         }
         else
         {

@@ -189,15 +189,15 @@ public class PlayerController : MonoBehaviour
         // 3. Trigger Final Move Animation and Camera Zoom
         if (riderAnimator != null)
         {
-            riderAnimator.Play("Final");
-            riderAnimator.SetTrigger("Final Move");
+            riderAnimator.Play("FinalMove");
+            riderAnimator.SetTrigger("FinalMove");
         }
         
         CameraController cam = Camera.main.GetComponent<CameraController>();
         if (cam != null)
         {
             cam.target = transform;
-            cam.SetCinematicView(new Vector3(0, 5f, -6f), 35f);
+            cam.SetCinematicView(new Vector3(0, 15f, -12f), 45f);
         }
 
         // Timeline:
@@ -457,7 +457,7 @@ public class PlayerController : MonoBehaviour
 
             if (riderAnimator != null)
             {
-                riderAnimator.SetInteger("AttackDirection", (int)attackDir);
+                // riderAnimator.SetInteger("AttackDirection", (int)attackDir);
                 riderAnimator.SetTrigger("Attack");
             }
 

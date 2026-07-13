@@ -67,9 +67,9 @@ public class XPOrb : MonoBehaviour
         }
         else
         {
-            // Gentle bob
+            // Settled on ground, no bouncing
             Vector3 pos = transform.position;
-            pos.y = _spawnY + Mathf.Sin(Time.time * 2.5f + _floatOffset) * 0.12f;
+            pos.y = _spawnY;
             transform.position = pos;
         }
     }

@@ -41,9 +41,9 @@ public class CameraManager : MonoBehaviour
             if (sugia.GetComponent<Collider>() == null)
             {
                 CapsuleCollider col = sugia.AddComponent<CapsuleCollider>();
-                col.center = new Vector3(0f, 1f, 0f);
-                col.height = 2f;
-                col.radius = 0.5f;
+                col.center = new Vector3(0f, 100f, 0f);
+                col.height = 200f;
+                col.radius = 100.0f;
             }
             if (sugia.GetComponent<MessengerShopInteraction>() == null)
             {
