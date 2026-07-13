@@ -25,6 +25,10 @@ public class TutorialController : MonoBehaviour
     private SkillSkyPlunge skill1;
     private SkillFlameDash skill2;
 
+    [Header("Audio")]
+    public AudioSource dialogueAudioSource;
+    public AudioClip[] tutorialVoices;
+
     private Canvas tutorialCanvas;
     private CanvasGroup dialogueGroup;
     private TMP_Text speakerText;
@@ -178,9 +182,9 @@ public class TutorialController : MonoBehaviour
         yield return AutoWalk(player, new Vector3(-2.2f, 0f, -2f), 2.4f);
         if (mother != null) yield return AutoWalk(mother, new Vector3(-5.4f, 0f, -4.6f), 1.8f);
 
-        yield return ShowDialogue("Mẹ Gióng", "Con còn nhỏ, sao lại bước ra sân đình lúc trống trận vang như vậy?");
-        yield return ShowDialogue("Gióng", "Mẹ ra mời sứ giả vào đây. Giặc đến cõi bờ, con xin đi phá giặc, cứu nước.");
-        yield return ShowDialogue("Xứ giả", "Nếu lời ấy là thật, hãy bước đến sân tập. Ta sẽ xem sức con.");
+        yield return ShowDialogue("Mẹ Gióng", "Con còn nhỏ, sao lại bước ra sân đình lúc trống trận vang như vậy?", GetVoiceClip(0));
+        yield return ShowDialogue("Gióng", "Mẹ ra mời sứ giả vào đây. Giặc đến cõi bờ, con xin đi phá giặc, cứu nước.", GetVoiceClip(1));
+        yield return ShowDialogue("Xứ giả", "Nếu lời ấy là thật, hãy bước đến sân tập. Ta sẽ xem sức con.", GetVoiceClip(2));
 
         if (cameraController != null)
         {
@@ -221,7 +225,7 @@ public class TutorialController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.8f);
 
-        yield return ShowDialogue("Xứ giả", "Ngươi nói muốn ra trận? Thế thì hãy chứng minh đi! Hạ con gà trống kia trước đã.");
+        yield return ShowDialogue("Xứ giả", "Ngươi nói muốn ra trận? Thế thì hãy chứng minh đi! Hạ con gà trống kia trước đã.", GetVoiceClip(3));
 
         // Reset camera về player
         if (cameraController != null && player != null)
@@ -292,8 +296,8 @@ public class TutorialController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.6f);
 
-        yield return ShowDialogue("Gióng", "Con làm được rồi đó!");
-        yield return ShowDialogue("Xứ giả", "Tốt! Nhưng chưa đủ. Hãy thử với đàn này xem sao!");
+        yield return ShowDialogue("Gióng", "Con làm được rồi đó!", GetVoiceClip(4));
+        yield return ShowDialogue("Xứ giả", "Tốt! Nhưng chưa đủ. Hãy thử với đàn này xem sao!", GetVoiceClip(5));
 
         if (cameraController != null && player != null)
         {
@@ -348,11 +352,11 @@ public class TutorialController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(2.2f);
 
-        yield return ShowDialogue("Xứ giả", "...");
-        yield return ShowDialogue("Xứ giả", "Ta đã thấy đủ rồi. Sức mạnh ấy... không phải của người thường.");
-        yield return ShowDialogue("Gióng", "Thưa sứ giả, con có thể ra trận không?");
-        yield return ShowDialogue("Xứ giả", "Không chỉ ra trận — ngươi sẽ dẫn đầu. Hãy theo ta vào yết kiến Đức Vua!");
-        yield return ShowDialogue("Mẹ Gióng", "Con... hãy đi đi. Mẹ tin con sẽ trở về.");
+        yield return ShowDialogue("Xứ giả", "...", GetVoiceClip(6));
+        yield return ShowDialogue("Xứ giả", "Ta đã thấy đủ rồi. Sức mạnh ấy... không phải của người thường.", GetVoiceClip(7));
+        yield return ShowDialogue("Gióng", "Thưa sứ giả, con có thể ra trận không?", GetVoiceClip(8));
+        yield return ShowDialogue("Xứ giả", "Không chỉ ra trận — ngươi sẽ dẫn đầu. Hãy theo ta vào yết kiến Đức Vua!", GetVoiceClip(9));
+        yield return ShowDialogue("Mẹ Gióng", "Con... hãy đi đi. Mẹ tin con sẽ trở về.", GetVoiceClip(10));
 
         if (cameraController != null && player != null)
         {
@@ -600,7 +604,14 @@ public class TutorialController : MonoBehaviour
         HideDialogue();
     }
 
-    private IEnumerator ShowDialogue(string speaker, string body)
+    private AudioClip GetVoiceClip(int index)
+    {
+        if (tutorialVoices != null && index >= 0 && index < tutorialVoices.Length)
+            return tutorialVoices[index];
+        return null;
+    }
+
+    private IEnumerator ShowDialogue(string speaker, string body, AudioClip voiceClip = null)
     {
         waitingForDialogue = true;
         typewriterDone = false;
@@ -619,6 +630,13 @@ public class TutorialController : MonoBehaviour
         if (bodyText != null) bodyText.text = string.Empty;
         if (continueIndicator != null) continueIndicator.SetActive(false);
 
+        if (voiceClip != null && dialogueAudioSource != null)
+        {
+            dialogueAudioSource.Stop();
+            dialogueAudioSource.clip = voiceClip;
+            dialogueAudioSource.Play();
+        }
+
         // Typewriter
         if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
         typewriterCoroutine = StartCoroutine(TypewriterEffect(body));
@@ -629,6 +647,7 @@ public class TutorialController : MonoBehaviour
             yield return null;
         }
 
+        if (dialogueAudioSource != null) dialogueAudioSource.Stop();
         if (typewriterCoroutine != null) { StopCoroutine(typewriterCoroutine); typewriterCoroutine = null; }
         HideDialogue();
     }
@@ -667,6 +686,7 @@ public class TutorialController : MonoBehaviour
         {
             // Nhấn lần 1: hiện ngay toàn bộ text
             if (typewriterCoroutine != null) { StopCoroutine(typewriterCoroutine); typewriterCoroutine = null; }
+            if (dialogueAudioSource != null) dialogueAudioSource.Stop();
             if (bodyText != null) bodyText.text = fullDialogueText;
             typewriterDone = true;
             if (continueIndicator != null)
