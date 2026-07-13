@@ -81,8 +81,48 @@ public class MapUnlockItem : MonoBehaviour
         
         PlayerPrefs.Save();
 
-        // 5. Build UI Overlay
-        BuildUnlockUI(nextMap, newLevel);
+        // 5. Show Dialogue if transitioning maps
+        if (currentMap == 0 && DialogueUI.Instance != null)
+        {
+            DialogueData dialogData = ScriptableObject.CreateInstance<DialogueData>();
+            dialogData.lines = new DialogueLine[] {
+                new DialogueLine { characterName = "Sứ giả", text = "Báo…! Tin đại thắng tráng sĩ ơi!", voiceClipPath = "Audio/map1to2/sugia_baotindaithangtrangsioi" },
+                new DialogueLine { characterName = "Sứ giả", text = "Giặc dữ ở khu vực làng ta đã bị ngài đuổi sạch rồi!", voiceClipPath = "Audio/map1to2/sugia_giacdukhuvuclangta" },
+                new DialogueLine { characterName = "Thánh Gióng", text = "Sứ giả chớ vội mừng. Đây mới là bọn lính dọn đường.", voiceClipPath = "Audio/map1to2/sugiachovoimung" },
+                new DialogueLine { characterName = "Thánh Gióng", text = "Đại quân chủ lực của chúng hiện đang ở đâu?", voiceClipPath = "Audio/map1to2/daiquanchuluccuachung" },
+                new DialogueLine { characterName = "Sứ giả", text = "Tráng sĩ anh minh! Bệ hạ sai tôi mang vật này đến.", voiceClipPath = "Audio/map1to2/sugia_trangsianhminh" },
+                new DialogueLine { characterName = "Sứ giả", text = "Đây là Bản đồ Quân cơ Thượng khẩn của triều đình.", voiceClipPath = "Audio/map1to2/sugia_daylabandoquancothuongkhan" },
+                new DialogueLine { characterName = "Thánh Gióng", text = "Phía trước làng ta là vùng đất nào?", voiceClipPath = "Audio/map1to2/phiatruoclangtalavungdatnao" },
+                new DialogueLine { characterName = "Sứ giả", text = "Đó là vùng đồng bằng rộng lớn. Kỵ binh nặng của địch tụ tập ở đó đông như kiến cỏ!", voiceClipPath = "Audio/map1to2/sugia_dolavungdongbangronglon" },
+                new DialogueLine { characterName = "Thánh Gióng", text = "Đất trống sao? Rất tốt!", voiceClipPath = "Audio/map1to2/dattrongsaorattot" },
+                new DialogueLine { characterName = "Thánh Gióng", text = "Đó là nơi thích hợp nhất để ta quét sạch lũ rác rưởi đó!", voiceClipPath = "Audio/map1to2/dolanoithichhopnhatdetaquetsach" }
+            };
+
+            DialogueUI.Instance.onDialogueEnd += () => {
+                BuildUnlockUI(nextMap, newLevel);
+            };
+            DialogueUI.Instance.StartDialogue(dialogData);
+        }
+        else if (currentMap == 1 && DialogueUI.Instance != null)
+        {
+            DialogueData dialogData = ScriptableObject.CreateInstance<DialogueData>();
+            dialogData.lines = new DialogueLine[] {
+                new DialogueLine { characterName = "Thánh Gióng", text = "\"Hahaha! Lũ giặc hèn nhát!\"", voiceClipPath = "Audio/map2to3/hahahalugiachennhat" },
+                new DialogueLine { characterName = "Thánh Gióng", text = "\"Muốn dụ ta vào Rừng Tre để mai phục sao?\"", voiceClipPath = "Audio/map2to3/muodutavaorungtredemaiphucsao" },
+                new DialogueLine { characterName = "Thánh Gióng", text = "\"Các ngươi nghĩ tre nhà đất Nam sẽ đi giúp lũ ngoại bang các ngươi?\"", voiceClipPath = "Audio/map2to3/cacnguoinghirungtredatnamsegiup" },
+                new DialogueLine { characterName = "Thánh Gióng", text = "\"Ta tới đây!\"", voiceClipPath = "Audio/map2to3/tatoiday" }
+            };
+
+            DialogueUI.Instance.onDialogueEnd += () => {
+                BuildUnlockUI(nextMap, newLevel);
+            };
+            DialogueUI.Instance.StartDialogue(dialogData);
+        }
+        else
+        {
+            // 5. Build UI Overlay
+            BuildUnlockUI(nextMap, newLevel);
+        }
     }
     
     private void BuildUnlockUI(int nextMap, int newLevel)
