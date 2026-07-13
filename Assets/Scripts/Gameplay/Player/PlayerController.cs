@@ -313,41 +313,23 @@ public class PlayerController : MonoBehaviour
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) vertical -= 1f;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) vertical += 1f;
 
-            Vector3 moveDir =
-                new Vector3(horizontal, 0f, vertical);
+            Vector3 camForward = mainCamera.transform.forward;
+            Vector3 camRight = mainCamera.transform.right;
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
 
-            if (moveDir.sqrMagnitude > 0.01f)
+            Vector3 moveDir = (camForward * vertical + camRight * horizontal).normalized;
+
+            if (camForward.sqrMagnitude > 0.01f)
             {
-                if (horseAnimator != null)
-                {
-                    Quaternion targetRotation =
-                        Quaternion.LookRotation(moveDir.normalized);
-
-                    transform.rotation =
-                        Quaternion.RotateTowards(
-                            transform.rotation,
-                            targetRotation,
-                            turnSpeed * Time.deltaTime
-                        );
-                }
-            }
-
-            if (horseAnimator == null)
-            {
-                if (TryGetMouseGroundPoint(out Vector3 targetPoint))
-                {
-                    Vector3 direction = (targetPoint - transform.position).normalized;
-                    direction.y = 0;
-                    if (direction.sqrMagnitude > 0.01f)
-                    {
-                        Quaternion targetRot = Quaternion.LookRotation(direction, Vector3.up);
-                        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 15f * Time.deltaTime);
-                    }
-                }
+                Quaternion targetRot = Quaternion.LookRotation(camForward);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 15f * Time.deltaTime);
             }
 
             moveVelocity =
-                moveDir.normalized
+                moveDir
                 * moveSpeed
                 * moveMutiplier;
         }
@@ -443,12 +425,8 @@ public class PlayerController : MonoBehaviour
         if (mainCamera == null)
             return false;
 
-        if (Mouse.current == null)
-            return false;
-
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-
-        Ray ray = mainCamera.ScreenPointToRay(mousePos);
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        Ray ray = mainCamera.ScreenPointToRay(screenCenter);
 
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
 

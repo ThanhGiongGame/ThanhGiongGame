@@ -8,6 +8,7 @@ public class WaveSpawner : MonoBehaviour
 {
     public static bool PauseSpawn = false;
     
+    // Kept for backward compatibility with inspector (though no longer used for logic)
     [System.Serializable]
     public class EnemySpawnInfo
     {
@@ -18,38 +19,31 @@ public class WaveSpawner : MonoBehaviour
     [System.Serializable]
     public class Wave
     {
-        [Header("Wave Info")]
+        [Header("Wave Info (Legacy)")]
         public string waveName;
-
-        [Header("Spawn this wave when total kills reach")]
         public int requiredKills;
-
         public SpecialWaveType specialWaveType;
-
-        [Header("Enemies (Ignored if Special Wave)")]
         public EnemySpawnInfo[] enemies;
-
-        [HideInInspector]
-        public bool hasSpawned = false;
+        [HideInInspector] public bool hasSpawned = false;
     }
 
-    [Header("Wave Settings")]
+    [Header("Legacy Settings")]
     public Wave[] waves;
-
     public float spawnRadius = 10f;
 
     private Transform player;
 
     private int totalKills = 0;
-    private int totalEnemiesToSpawn = 0;
     private bool levelComplete = false;
     
-    // Infinite Mode State
+    // Mode State
     private bool isInfiniteMode = false;
-    private int infiniteWaveIndex = 0;
     private int mapIndex;
     private SpecialWaveManager specialWaveManager;
-    private int infiniteEnemiesAlive = 0;
+
+    // Boss Progression
+    private int killsToSpawnBoss = 20;
+    private bool bossSpawned = false;
 
     private void Start()
     {
@@ -63,82 +57,89 @@ public class WaveSpawner : MonoBehaviour
         specialWaveManager = gameObject.AddComponent<SpecialWaveManager>();
         specialWaveManager.waveSpawner = this;
 
+        // Set kills required to spawn Boss based on map
+        switch (mapIndex)
+        {
+            case 0: killsToSpawnBoss = 20; break;
+            case 1: killsToSpawnBoss = 30; break;
+            case 2: killsToSpawnBoss = 40; break;
+            default: killsToSpawnBoss = 20; break;
+        }
+
+        // Ensure EnemyPool exists
+        EnemyPool.EnsureExists();
+
         // Check if map was finished before
         if (PlayerPrefs.GetInt("MapFinished_" + mapIndex, 0) == 1)
         {
             isInfiniteMode = true;
-            Debug.Log("Map was previously finished. Starting Infinite Mode.");
-            StartCoroutine(InfiniteModeRoutine());
+            Debug.Log("Map was previously finished. Starting Smart Spawner (Infinite Mode).");
+            StartSmartSpawner(storyMode: false);
             return;
         }
 
-        foreach (Wave wave in waves)
+        Debug.Log($"Story Mode Started. Kills to spawn Boss: {killsToSpawnBoss}");
+
+        // Start smart spawner as ambient spawn
+        StartSmartSpawner(storyMode: true);
+    }
+
+    /// <summary>
+    /// Initialize the SmartSpawner system.
+    /// </summary>
+    private void StartSmartSpawner(bool storyMode)
+    {
+        SmartSpawner spawner = gameObject.GetComponent<SmartSpawner>();
+        if (spawner == null)
         {
-            if (wave.specialWaveType != SpecialWaveType.None)
-            {
-                // Special waves might not count towards strict total enemies for level completion,
-                // but let's assume they have a fixed kill requirement that we can optionally track.
-                // For simplicity, we just count standard enemies.
-            }
-
-            if (wave.enemies != null)
-            {
-                foreach (EnemySpawnInfo info in wave.enemies)
-                {
-                    if (info.enemyPrefab == null) continue;
-                    string pName = info.enemyPrefab.name;
-                    if (pName == "EnemyA" || pName == "EnemyB" || pName == "EnemyC" || pName == "chicken" || 
-                        pName == "linh-1" || pName == "linh-2" || pName == "linh-3")
-                    {
-                        totalEnemiesToSpawn += info.count;
-                    }
-                }
-            }
+            spawner = gameObject.AddComponent<SmartSpawner>();
         }
-        
-        // Add a small buffer for special spawned enemies (like chickens in stampede)
-        // actually, we will only check level complete if all specific waves are spawned.
-        Debug.Log("Total enemies to spawn (standard): " + totalEnemiesToSpawn);
-
-        CheckWaveUnlock();
+        spawner.Initialize(mapIndex, storyMode, this, specialWaveManager);
     }
 
     public void OnEnemyKilled(Vector3 deathPos)
     {
-        if (isInfiniteMode)
-        {
-            infiniteEnemiesAlive--;
-            totalKills++;
-            return; // Handled by InfiniteModeRoutine
-        }
-
         totalKills++;
         Debug.Log("Total Kills: " + totalKills);
 
-        CheckWaveUnlock();
-
-        // Level Complete Condition
-        if (!levelComplete && CheckAllWavesSpawned() && GameObject.FindGameObjectsWithTag("Enemy").Length <= 1)
+        if (isInfiniteMode)
         {
-            levelComplete = true;
-            PlayerPrefs.SetInt("MapFinished_" + mapIndex, 1);
-            PlayerPrefs.Save();
-            SpawnMapDrop(deathPos);
+            // Infinite mode just scales up infinitely, no boss win condition
+            return;
+        }
+
+        // Story Mode Progression
+        if (!levelComplete && !bossSpawned && totalKills >= killsToSpawnBoss)
+        {
+            bossSpawned = true;
+            Debug.Log("Boss Spawn Threshold Reached!");
+            
+            // Spawn Boss
+            specialWaveManager.TriggerSpecialWave(SpecialWaveType.FinalBoss);
+            
+            // Stop ambient and special spawns while fighting boss
+            SmartSpawner spawner = GetComponent<SmartSpawner>();
+            if (spawner != null)
+            {
+                spawner.SetActive(false);
+            }
         }
     }
 
-    private bool CheckAllWavesSpawned()
+    public void OnBossKilled(Vector3 deathPos)
     {
-        foreach (Wave wave in waves)
-        {
-            if (!wave.hasSpawned) return false;
-        }
-        return true;
+        if (levelComplete) return;
+
+        levelComplete = true;
+        PlayerPrefs.SetInt("MapFinished_" + mapIndex, 1);
+        PlayerPrefs.Save();
+        
+        Debug.Log("Boss Killed! Level Complete!");
+        SpawnMapDrop(deathPos);
     }
 
     private void SpawnMapDrop(Vector3 pos)
     {
-        Debug.Log("Level Complete! Spawning Map Drop.");
         GameObject mapDrop = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         mapDrop.name = "MapUnlockDrop";
         mapDrop.transform.position = pos + Vector3.up * 1f;
@@ -158,70 +159,7 @@ public class WaveSpawner : MonoBehaviour
         mapDrop.AddComponent<MapUnlockItem>();
     }
 
-    private void CheckWaveUnlock()
-    {
-        if (isInfiniteMode) return;
-
-        for (int i = 0; i < waves.Length; i++)
-        {
-            Wave wave = waves[i];
-
-            if (!wave.hasSpawned && totalKills >= wave.requiredKills)
-            {
-                wave.hasSpawned = true;
-                Debug.Log("Spawn Wave: " + wave.waveName);
-
-                if (wave.specialWaveType != SpecialWaveType.None)
-                {
-                    specialWaveManager.TriggerSpecialWave(wave.specialWaveType);
-                }
-                else
-                {
-                    StartCoroutine(SpawnWave(wave));
-                }
-            }
-        }
-    }
-
-    private IEnumerator SpawnWave(Wave wave)
-    {
-        List<GameObject> enemiesToSpawn = new List<GameObject>();
-
-        if (wave.enemies != null)
-        {
-            foreach (EnemySpawnInfo enemyInfo in wave.enemies)
-            {
-                if (enemyInfo.enemyPrefab == null) continue;
-                for (int i = 0; i < enemyInfo.count; i++)
-                {
-                    enemiesToSpawn.Add(enemyInfo.enemyPrefab);
-                }
-            }
-        }
-
-        // Shuffle
-        for (int i = 0; i < enemiesToSpawn.Count; i++)
-        {
-            int randomIndex = Random.Range(i, enemiesToSpawn.Count);
-            GameObject temp = enemiesToSpawn[i];
-            enemiesToSpawn[i] = enemiesToSpawn[randomIndex];
-            enemiesToSpawn[randomIndex] = temp;
-        }
-
-        foreach (GameObject enemyPrefab in enemiesToSpawn)
-        {
-            while (PauseSpawn)
-            {
-                yield return new WaitForSeconds(5f);
-            }
-
-            SpawnEnemy(enemyPrefab, 1f, 1f); // standard scale
-
-            float randomDelay = Random.Range(0.5f, 2f);
-            yield return new WaitForSeconds(randomDelay);
-        }
-    }
-
+    // Helper for manual spawning (used by SpecialWaveManager)
     public GameObject SpawnEnemy(GameObject enemyPrefab, float healthMultiplier, float speedMultiplier, Vector3? specificPos = null)
     {
         if (player == null || enemyPrefab == null) return null;
@@ -237,7 +175,18 @@ public class WaveSpawner : MonoBehaviour
             spawnPosition = player.position + new Vector3(randomCircle.x, 0f, randomCircle.y);
         }
 
-        GameObject enemyObj = Instantiate(enemyPrefab, spawnPosition, enemyPrefab.transform.rotation);
+        // Use EnemyPool instead of Instantiate
+        GameObject enemyObj;
+        if (EnemyPool.Instance != null)
+        {
+            enemyObj = EnemyPool.Instance.GetEnemy(enemyPrefab, spawnPosition, enemyPrefab.transform.rotation);
+        }
+        else
+        {
+            enemyObj = Instantiate(enemyPrefab, spawnPosition, enemyPrefab.transform.rotation);
+        }
+
+        if (enemyObj == null) return null;
         
         Enemy enemy = enemyObj.GetComponent<Enemy>();
         if (enemy != null)
@@ -249,71 +198,4 @@ public class WaveSpawner : MonoBehaviour
         }
         return enemyObj;
     }
-
-    // --- INFINITE MODE ---
-
-    private IEnumerator InfiniteModeRoutine()
-    {
-        // Load prefabs based on map
-        List<GameObject> nativeEnemies = new List<GameObject>();
-        GameObject chicken = Resources.Load<GameObject>("Prefabs/chicken");
-        GameObject linh1 = Resources.Load<GameObject>("Prefabs/linh-1");
-        GameObject linh2 = Resources.Load<GameObject>("Prefabs/linh-2");
-        GameObject linh3 = Resources.Load<GameObject>("Prefabs/linh-3");
-
-        if (mapIndex == 0) // Map 1
-        {
-            nativeEnemies.Add(chicken);
-            nativeEnemies.Add(linh1);
-        }
-        else if (mapIndex == 1) // Map 2
-        {
-            nativeEnemies.Add(linh1);
-            nativeEnemies.Add(linh2);
-        }
-        else // Map 3
-        {
-            nativeEnemies.Add(linh1);
-            nativeEnemies.Add(linh2);
-            nativeEnemies.Add(linh3);
-        }
-
-        while (true)
-        {
-            while (PauseSpawn) yield return new WaitForSeconds(1f);
-
-            // Wait until enemies are mostly cleared
-            if (infiniteEnemiesAlive <= 5)
-            {
-                infiniteWaveIndex++;
-                Debug.Log("Starting Infinite Wave: " + infiniteWaveIndex);
-
-                float hpMult = 1f + (infiniteWaveIndex * 0.1f);
-                float spdMult = 1f + (infiniteWaveIndex * 0.02f);
-                int spawnCount = 10 + (infiniteWaveIndex * 2);
-
-                if (infiniteWaveIndex % 5 == 0)
-                {
-                    // Special massive wave!
-                    Debug.Log("Massive Infinite Wave!");
-                    GameObject bossPrefab = nativeEnemies[nativeEnemies.Count - 1]; // highest tier
-                    specialWaveManager.SpawnMassiveEnemy(bossPrefab, hpMult * 5f, spdMult * 0.8f);
-                    infiniteEnemiesAlive++;
-                    
-                    // Also spawn normal enemies
-                    spawnCount /= 2;
-                }
-
-                for (int i = 0; i < spawnCount; i++)
-                {
-                    GameObject randomEnemy = nativeEnemies[Random.Range(0, nativeEnemies.Count)];
-                    SpawnEnemy(randomEnemy, hpMult, spdMult);
-                    infiniteEnemiesAlive++;
-                    yield return new WaitForSeconds(Random.Range(0.2f, 1f));
-                }
-            }
-
-            yield return new WaitForSeconds(1f);
-        }
-    }
-}
+}

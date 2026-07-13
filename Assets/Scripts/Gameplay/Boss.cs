@@ -153,7 +153,7 @@ public class Boss : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         if (ind != null) Destroy(ind.gameObject);
 
-        GameObject linh2Prefab = Resources.Load<GameObject>("Prefabs/linh-2");
+        GameObject linh2Prefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("linh-2") : Resources.Load<GameObject>("Prefabs/linh-2");
         if (linh2Prefab != null && waveSpawner != null)
         {
             int count = phase2Active ? 6 : 3;
@@ -196,8 +196,8 @@ public class Boss : MonoBehaviour
 
     private IEnumerator SpecialPhase2Routine()
     {
-        GameObject linh2Prefab = Resources.Load<GameObject>("Prefabs/linh-2");
-        GameObject linh1Prefab = Resources.Load<GameObject>("Prefabs/linh-1");
+        GameObject linh2Prefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("linh-2") : Resources.Load<GameObject>("Prefabs/linh-2");
+        GameObject linh1Prefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("linh-1") : Resources.Load<GameObject>("Prefabs/linh-1");
         
         if (waveSpawner != null)
         {
@@ -277,7 +277,7 @@ public class Boss : MonoBehaviour
         
         if (waveSpawner != null)
         {
-            waveSpawner.OnEnemyKilled(transform.position);
+            waveSpawner.OnBossKilled(transform.position);
         }
         
         Destroy(gameObject);

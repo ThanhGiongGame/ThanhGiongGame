@@ -83,7 +83,7 @@ public class MapManager : MonoBehaviour
 
     private static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
-        if (scene.name == "SampleScene" || scene.name == "map 1" || scene.name == "map2" || scene.name == "map3")
+        if (scene.name == "SampleScene")
         {
             if (FindObjectOfType<MapManager>() == null)
             {
