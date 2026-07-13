@@ -22,14 +22,14 @@ public class LegendHUD : MonoBehaviour
         GameObject containerGO = new GameObject("LegendContainer");
         containerGO.transform.SetParent(canvasGO.transform, false);
         RectTransform rt = containerGO.AddComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0f, 1f);
-        rt.anchorMax = new Vector2(0f, 1f);
-        rt.pivot = new Vector2(0f, 1f);
-        rt.anchoredPosition = new Vector2(20f, -80f); // Top Left below health bar
+        rt.anchorMin = new Vector2(0f, 0f);
+        rt.anchorMax = new Vector2(0f, 0f);
+        rt.pivot = new Vector2(0f, 0f);
+        rt.anchoredPosition = new Vector2(20f, 120f); // Bottom Left above other UI
         
         HorizontalLayoutGroup layout = containerGO.AddComponent<HorizontalLayoutGroup>();
         layout.spacing = 15f;
-        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childAlignment = TextAnchor.LowerLeft;
         layout.childControlWidth = false;
         layout.childControlHeight = false;
         
