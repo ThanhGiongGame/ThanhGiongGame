@@ -112,16 +112,24 @@ public class WaveSpawner : MonoBehaviour
         if (!levelComplete && !bossSpawned && totalKills >= killsToSpawnBoss)
         {
             bossSpawned = true;
-            Debug.Log("Boss Spawn Threshold Reached!");
+            Debug.Log("Boss Spawn/Level Complete Threshold Reached!");
             
-            // Spawn Boss
-            specialWaveManager.TriggerSpecialWave(SpecialWaveType.FinalBoss);
-            
-            // Stop ambient and special spawns while fighting boss
+            // Stop ambient and special spawns while fighting boss or finishing
             SmartSpawner spawner = GetComponent<SmartSpawner>();
             if (spawner != null)
             {
                 spawner.SetActive(false);
+            }
+
+            if (mapIndex == 2)
+            {
+                // Spawn Boss (Map 3 only)
+                specialWaveManager.TriggerSpecialWave(SpecialWaveType.FinalBoss);
+            }
+            else
+            {
+                // Map 1 and 2 finish directly without boss
+                OnBossKilled(player.position);
             }
         }
     }

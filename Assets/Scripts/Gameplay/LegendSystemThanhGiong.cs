@@ -110,7 +110,7 @@ public class LegendSystemThanhGiong : MonoBehaviour
         
         BoxCollider bc = bamboo.GetComponent<BoxCollider>();
         if (bc == null) bc = bamboo.AddComponent<BoxCollider>();
-        bc.isTrigger = false; 
+        bc.isTrigger = true; 
         bc.size = new Vector3(1.5f, 1.5f, 1.5f); // Solid obstacle with big hitbox
 
         var logic = bamboo.AddComponent<ThanhGiongBamboo>();
@@ -252,32 +252,18 @@ public class ThanhGiongBamboo : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            Enemy e = collision.gameObject.GetComponent<Enemy>();
-            if (e != null) 
-            {
-                e.TakeDamage(damage);
-                Vector3 push = (collision.transform.position - transform.position).normalized;
-                e.ApplyKnockbackStun(push, 4f, 0.2f);
-            }
-        }
-    }
-
     void OnTriggerEnter(Collider other)
     {
-        if (isEvo && other.CompareTag("Enemy"))
+        if (other.CompareTag("Enemy"))
         {
             Enemy e = other.GetComponent<Enemy>();
             if (e != null) 
             {
                 e.TakeDamage(damage);
                 Vector3 push = (other.transform.position - transform.position).normalized;
-                e.ApplyKnockbackStun(push, 6f, 0.3f);
+                e.ApplyKnockbackStun(push, isEvo ? 6f : 4f, isEvo ? 0.3f : 0.2f);
             }
-            Destroy(gameObject);
+            if (isEvo) Destroy(gameObject);
         }
     }
 }
