@@ -275,8 +275,11 @@ public class SkillSkyPlunge : MonoBehaviour
             if (dir == Vector3.zero) dir = Random.insideUnitSphere;
             dir.Normalize();
             e.ApplyKnockbackStun(dir, 18f, 1.8f);
-            _horseAnimator.SetInteger("PlungeStart", 0);
+        }
 
+        if (_horseAnimator != null && !isTutorial)
+        {
+            _horseAnimator.SetInteger("PlungeStart", 0);
         }
     }
 

@@ -101,7 +101,7 @@ MonoBehaviour:
   moveSpeed: 3
   damage: 40
   attackRange: 4
-  attackCooldown: 1
+  attackCooldown: 10
   isRanged: 0
   projectileSpeed: 12
   selfKnockbackForce: 0

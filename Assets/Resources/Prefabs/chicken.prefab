@@ -28,7 +28,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 115325263177794035}
@@ -53,8 +53,8 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 3
-  m_Height: 6.22
+  m_Radius: 5.8
+  m_Height: 18.51
   m_Direction: 1
   m_Center: {x: 0, y: 3.11, z: 0}
 --- !u!114 &8201653266545136610
@@ -69,16 +69,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 107606313993d9543a7ce37c6d409cfa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  maxHealth: 30
-  currentHealth: 30
-  moveSpeed: 8
+  maxHealth: 10
+  currentHealth: 10
+  moveSpeed: 2
   damage: 5
   attackRange: 3.5
-  attackCooldown: 1
+  attackCooldown: 4
   isRanged: 0
   projectileSpeed: 12
   selfKnockbackForce: 5
-  selfKnockbackDuration: 0.2
+  selfKnockbackDuration: 5
   personalSpaceRadius: 3
   separationRadius: 3
   separationStrength: 1

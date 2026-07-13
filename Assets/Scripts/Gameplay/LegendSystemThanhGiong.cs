@@ -180,28 +180,41 @@ public class LegendSystemThanhGiong : MonoBehaviour
     {
         string prefabName = isEvo ? "ThanhGiong_EvoFire" : "ThanhGiong_Fire";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        // Fire trail is flat on the ground — no direction needed
-        GameObject fire = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, isEvo ? new Color(1f, 0.5f, 0f, 0.8f) : new Color(1f, 0.2f, 0f, 0.6f), isEvo ? 3f : 1.5f, billboard: false, isFlat: true, spriteScale: isEvo ? 1f : 0.75f);
-        fire.name = prefabName;
-        fire.transform.position = transform.position + Vector3.up * 0.5f;
-        if (fire.GetComponent<SpriteRenderer>() == null)
-            fire.transform.localScale = isEvo ? new Vector3(0.75f, 1.5f, 0.75f) : new Vector3(0.5f, 0.5f, 0.5f);
         
-        Collider col = fire.GetComponent<Collider>();
-        if (col != null) Destroy(col);
-        
-        SphereCollider trigger = fire.AddComponent<SphereCollider>();
-        trigger.isTrigger = true;
-        trigger.radius = isEvo ? 1.5f : 1f; // Increased hitbox
-        
-        var logic = fire.AddComponent<ThanhGiongFire>();
-        logic.damage = isEvo ? 120f : fireDamage;
+        int count = isEvo ? 3 + w2Level : 1 + (w2Level / 2);
+        float spreadRadius = 0.5f + (w2Level * 0.4f);
 
-        Rigidbody rb = fire.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.isKinematic = false;
-        
-        Destroy(fire, 3f);
+        for (int i = 0; i < count; i++)
+        {
+            // Fire trail is flat on the ground — no direction needed
+            // Use Color.white and 0f emission to prevent the orange tinting effect
+            GameObject fire = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, Color.white, 0f, billboard: false, isFlat: true, spriteScale: isEvo ? 1f : 0.75f);
+            
+            fire.name = prefabName;
+            Vector2 rand = Random.insideUnitCircle * spreadRadius;
+            if (i == 0) rand = Vector2.zero; // Always drop one directly on the path
+            
+            fire.transform.position = transform.position + new Vector3(rand.x, 0.5f, rand.y);
+            
+            if (fire.GetComponent<SpriteRenderer>() == null)
+                fire.transform.localScale = isEvo ? new Vector3(0.75f, 1.5f, 0.75f) : new Vector3(0.5f, 0.5f, 0.5f);
+            
+            Collider col = fire.GetComponent<Collider>();
+            if (col != null) Destroy(col);
+            
+            SphereCollider trigger = fire.AddComponent<SphereCollider>();
+            trigger.isTrigger = true;
+            trigger.radius = isEvo ? 1.5f : 1f; // Hitbox stays consistent, since we are spawning more instances
+            
+            var logic = fire.AddComponent<ThanhGiongFire>();
+            logic.damage = isEvo ? 120f : fireDamage;
+
+            Rigidbody rb = fire.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            rb.isKinematic = false;
+            
+            Destroy(fire, 3f);
+        }
     }
 }
 

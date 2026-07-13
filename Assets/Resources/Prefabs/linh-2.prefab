@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -6769691430286951708, guid: 92597b39fff11e94b9d7775bf4e3063e, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.04
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 92597b39fff11e94b9d7775bf4e3063e, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.04
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 92597b39fff11e94b9d7775bf4e3063e, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.04
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 92597b39fff11e94b9d7775bf4e3063e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -160,7 +160,7 @@ MonoBehaviour:
   moveSpeed: 5
   damage: 15
   attackRange: 4
-  attackCooldown: 1
+  attackCooldown: 2
   isRanged: 0
   projectileSpeed: 12
   selfKnockbackForce: 5

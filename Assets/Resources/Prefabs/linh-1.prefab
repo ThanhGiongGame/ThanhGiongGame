@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -6769691430286951708, guid: 2037b645a50fe0447969e79eeb98802b, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.04
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 2037b645a50fe0447969e79eeb98802b, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.04
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 2037b645a50fe0447969e79eeb98802b, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.04
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 2037b645a50fe0447969e79eeb98802b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -246,7 +246,7 @@ MonoBehaviour:
   moveSpeed: 3
   damage: 10
   attackRange: 4
-  attackCooldown: 1
+  attackCooldown: 3
   isRanged: 0
   projectileSpeed: 12
   selfKnockbackForce: 5
@@ -277,7 +277,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 50
+  m_Radius: 63.2
   m_Height: 263.6602
   m_Direction: 1
   m_Center: {x: 0, y: 78.26016, z: 0}
