@@ -11,8 +11,9 @@ public class GameplayPauseMenu : MonoBehaviour
 {
     private const string MainMenuSceneName = "MainMenuScene";
     private const string ShopSceneName = "GameShopScene";
-    private const string GameplaySceneName = "SampleScene";
+    private const string Map1SceneName = "map 1";
     private const string Map2SceneName = "map2";
+    private const string Map3SceneName = "map3";
 
     private Canvas canvas;
     private GameObject pausePanel;
@@ -38,7 +39,7 @@ public class GameplayPauseMenu : MonoBehaviour
 
     private static void EnsurePauseMenuForScene(Scene scene)
     {
-        if (scene.name != GameplaySceneName && scene.name != Map2SceneName)
+        if (scene.name != Map1SceneName && scene.name != Map2SceneName && scene.name != Map3SceneName && scene.name != "SampleScene")
         {
             return;
         }
@@ -217,17 +218,21 @@ public class GameplayPauseMenu : MonoBehaviour
             "PauseCard",
             Vector2.zero,
             new Vector2(720f, 680f),
-            new Color(0.09f, 0.1f, 0.13f, 0.96f)
+            new Color(0.04f, 0.05f, 0.08f, 0.96f) // Premium dark navy
         );
+        
+        Outline outline = card.AddComponent<Outline>();
+        outline.effectColor = new Color(1f, 0.8f, 0.2f, 0.2f); // Glow
+        outline.effectDistance = new Vector2(2f, -2f);
 
-        CreateText(card.transform, "TẠM DỪNG", new Vector2(0f, 250f), new Vector2(620f, 80f), 52, FontStyle.Bold, new Color(1f, 0.86f, 0.25f));
+        CreateText(card.transform, "TẠM DỪNG", new Vector2(0f, 250f), new Vector2(620f, 80f), 52, FontStyle.Bold, new Color(1f, 0.85f, 0.3f, 1f)); // Gold title
         CreateText(card.transform, "Chỉnh âm lượng hoặc rời trận", new Vector2(0f, 195f), new Vector2(620f, 50f), 24, FontStyle.Normal, new Color(0.82f, 0.82f, 0.86f));
 
         BuildSettingsRow(card.transform);
 
-        CreateButton(card.transform, "TIẾP TỤC", new Vector2(0f, 60f), new Vector2(460f, 74f), new Color(0.18f, 0.58f, 0.36f), ResumeGame);
-        CreateButton(card.transform, "VỀ SHOP / ĐỔI TRANG BỊ", new Vector2(0f, -35f), new Vector2(460f, 74f), new Color(0.2f, 0.42f, 0.78f), BackToShop);
-        CreateButton(card.transform, "VỀ MENU CHÍNH", new Vector2(0f, -130f), new Vector2(460f, 74f), new Color(0.34f, 0.34f, 0.4f), BackToMainMenu);
+        CreateButton(card.transform, "TIẾP TỤC", new Vector2(0f, 60f), new Vector2(460f, 74f), new Color(0.08f, 0.09f, 0.12f, 0.9f), ResumeGame);
+        CreateButton(card.transform, "VỀ SHOP / ĐỔI TRANG BỊ", new Vector2(0f, -35f), new Vector2(460f, 74f), new Color(0.08f, 0.09f, 0.12f, 0.9f), BackToShop);
+        CreateButton(card.transform, "VỀ MENU CHÍNH", new Vector2(0f, -130f), new Vector2(460f, 74f), new Color(0.08f, 0.09f, 0.12f, 0.9f), BackToMainMenu);
         CreateText(card.transform, "ESC hoặc = để đóng/mở", new Vector2(0f, -260f), new Vector2(620f, 42f), 22, FontStyle.Italic, new Color(0.62f, 0.62f, 0.68f));
     }
 
@@ -348,13 +353,17 @@ public class GameplayPauseMenu : MonoBehaviour
 
         Image image = buttonObject.AddComponent<Image>();
         image.color = color;
+        
+        Outline outline = buttonObject.AddComponent<Outline>();
+        outline.effectColor = new Color(1f, 0.8f, 0.2f, 0.3f);
+        outline.effectDistance = new Vector2(2f, -2f);
 
         Button button = buttonObject.AddComponent<Button>();
         button.targetGraphic = image;
         button.onClick.AddListener(action);
         ConfigureButtonColors(button, color);
 
-        CreateText(buttonObject.transform, label, Vector2.zero, size, 25, FontStyle.Bold, Color.white);
+        CreateText(buttonObject.transform, label, Vector2.zero, size, 25, FontStyle.Bold, new Color(1f, 0.9f, 0.6f, 1f));
         return button;
     }
 

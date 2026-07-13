@@ -10,7 +10,7 @@ public class LegendSystemDongA : MonoBehaviour
 
     // W1: Hịch Tướng Sĩ
     private List<GameObject> ribbons = new List<GameObject>();
-    private float ribbonRadius => 3f + (w1Level * 0.5f);
+    private float ribbonRadius => 7f + (w1Level * 0.5f); // Increased from 3f
     private float ribbonSpeed = 120f;
     private float ribbonDamage => 10f + (w1Level * 5f);
     

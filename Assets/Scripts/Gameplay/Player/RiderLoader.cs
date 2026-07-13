@@ -55,12 +55,13 @@ public class RiderLoader : MonoBehaviour
 
         }
 
-        GameObject rider = Instantiate(
+        if (currentRider != null) Destroy(currentRider);
+        currentRider = Instantiate(
             prefab,
             transform
         );
         Animator anim =
-    rider.GetComponentInChildren<Animator>();
+    currentRider.GetComponentInChildren<Animator>();
 
         PlayerController player =
             GetComponentInParent<PlayerController>();

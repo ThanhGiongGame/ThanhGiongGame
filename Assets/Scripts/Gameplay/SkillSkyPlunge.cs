@@ -76,13 +76,16 @@ public class SkillSkyPlunge : MonoBehaviour
         }
     }
 
-    // ---- Set level (called by UpgradeManager) ----
     public void SetLevel(int level)
     {
         _level        = Mathf.Clamp(level, 0, 4);
         if (_level == 0) return;
         _damage       = Damages[_level];
         _impactRadius = Radii[_level]*2;
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene")
+        {
+            _impactRadius = 3f;
+        }
         _cooldown     = Cooldowns[_level];
     }
 
@@ -118,7 +121,7 @@ public class SkillSkyPlunge : MonoBehaviour
         // Confirm
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            _indicator.SetVisible(false);
+            // Indicator stays visible during the plunge to show where it lands!
             StartCoroutine(PlungeRoutine());
             return;
         }
@@ -156,11 +159,20 @@ public class SkillSkyPlunge : MonoBehaviour
         // ---- Phase 1: Ascend ----
         float t0 = 0f;
         Vector3 startP = transform.position;
-        Vector3 highP = startP + Vector3.up * AscendHeight;
         Vector3 startS = _originalScale;
         Vector3 tinyS = _originalScale * 0.05f;
-        _horseAnimator.SetInteger("PlungeStart",1);
-        _horseAnimator.SetBool("isWaling", false);
+        
+        bool isTutorial = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene";
+        
+        if (_horseAnimator != null && !isTutorial)
+        {
+            _horseAnimator.SetInteger("PlungeStart", 1);
+            _horseAnimator.SetBool("isWaling", false);
+        }
+        
+        float tutorialAscendHeight = isTutorial ? 4f : AscendHeight;
+        Vector3 highP = startP + Vector3.up * tutorialAscendHeight;
+        
         while (t0 < AscendTime)
         {
             t0 += Time.deltaTime;
@@ -177,9 +189,16 @@ public class SkillSkyPlunge : MonoBehaviour
 
         // ---- Phase 3: Plunge ----
         // Teleport above target
-        transform.position = _targetPos + Vector3.up * AscendHeight;
+        isTutorial = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene";
+        tutorialAscendHeight = isTutorial ? 4f : AscendHeight;
+        transform.position = _targetPos + Vector3.up * tutorialAscendHeight;
         transform.localScale = _originalScale;
-        _horseAnimator.SetInteger("PlungeStart", 2);
+        
+        if (_horseAnimator != null && !isTutorial)
+        {
+            _horseAnimator.SetInteger("PlungeStart", 2);
+        }
+        
         float t1 = 0f;
         Vector3 top = transform.position;
         while (t1 < PlungeTime)
@@ -215,6 +234,7 @@ public class SkillSkyPlunge : MonoBehaviour
         }
 
         // --- KẾT THÚC SKILL ---
+        _indicator.SetVisible(false); // Hide indicator after landing
         _pc.IsInvulnerable = false;
         _pc.IsPerformingSkill = false;
         _state = State.Idle;
@@ -227,7 +247,11 @@ public class SkillSkyPlunge : MonoBehaviour
     private void DoLandingImpact()
     {
         // Camera shake
-        _horseAnimator.SetInteger("PlungeStart", 3);
+        bool isTutorial = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene";
+        if (_horseAnimator != null && !isTutorial)
+        {
+            _horseAnimator.SetInteger("PlungeStart", 3);
+        }
 
 
         if (_cam != null) _cam.Shake(0.6f, 0.35f);

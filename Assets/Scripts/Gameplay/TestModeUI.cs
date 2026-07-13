@@ -99,6 +99,25 @@ public class TestModeUI : MonoBehaviour
             }
         }
 
+        GUILayout.Space(15);
+        GUILayout.Label("--- Map 3 Final Boss Test ---");
+        
+        if (GUILayout.Button("Trigger Cinematic Transformation"))
+        {
+            var ph = FindObjectOfType<PlayerHealth>();
+            if (ph != null)
+            {
+                Boss.IsSpecialFinalScene = true;
+                ph.TakeDamage(99999f, Vector3.zero, 0f); // Triggers the <1 HP cinematic
+            }
+        }
+        
+        if (GUILayout.Button("Trigger Ascension Ending"))
+        {
+            var pc = FindObjectOfType<PlayerController>();
+            if (pc != null) pc.AscendToSky();
+        }
+
         GUILayout.EndScrollView();
         GUI.DragWindow();
     }

@@ -50,22 +50,22 @@ public class MapSelectionUI : MonoBehaviour
         Transform canvasTransform = transform;
 
         // 1. Tạo Panel chính (Modal Container)
-        _panelInstance = CreatePanel(canvasTransform, Vector2.zero, new Vector2(1050f, 680f), new Color(0.06f, 0.08f, 0.10f, 0.98f));
+        _panelInstance = CreatePanel(canvasTransform, Vector2.zero, new Vector2(1050f, 680f), new Color(0.04f, 0.05f, 0.08f, 0.95f)); // Dark Navy
         _panelInstance.name = "MapSelectionOverlayPanel";
 
         // Viền vàng cổ kính
-        GameObject outline = CreatePanel(_panelInstance.transform, Vector2.zero, new Vector2(1050f, 680f), new Color(0.85f, 0.72f, 0.42f, 0.06f));
+        GameObject outline = CreatePanel(_panelInstance.transform, Vector2.zero, new Vector2(1050f, 680f), new Color(1f, 0.8f, 0.2f, 0.12f)); // Glowing gold
         outline.transform.SetAsFirstSibling();
         outline.name = "GoldOutlineBorder";
 
         // 2. Tiêu đề
-        CreateText(_panelInstance.transform, "― CHỌN BẢN ĐỒ ―", new Vector2(0f, 270f), 32, FontStyle.Bold, new Color(0.90f, 0.80f, 0.50f));
+        CreateText(_panelInstance.transform, "― CHỌN BẢN ĐỒ ―", new Vector2(0f, 270f), 32, FontStyle.Bold, new Color(1f, 0.85f, 0.3f, 1f)); // Vivid Gold
 
         // 3. Nội dung 3 bản đồ
         RefreshPage();
 
         // 4. Nút Đóng / Quay Lại
-        CreateButton(_panelInstance.transform, "QUAY LẠI", new Vector2(0f, -280f), new Vector2(250f, 55f), new Color(0.22f, 0.24f, 0.28f), () =>
+        CreateButton(_panelInstance.transform, "QUAY LẠI", new Vector2(0f, -280f), new Vector2(250f, 55f), new Color(0.08f, 0.09f, 0.12f, 0.9f), () =>
         {
             Hide();
             _onCloseCallback?.Invoke();
@@ -162,11 +162,20 @@ public class MapSelectionUI : MonoBehaviour
             ? new Color(0.75f, 0.75f, 0.75f)
             : new Color(0.40f, 0.40f, 0.40f);
 
-        TMP_Text descText = CreateText(textGroup.transform, mapDesc, new Vector2(0f, -12f), 13, FontStyle.Normal, descColor);
+        TMP_Text descText = CreateText(textGroup.transform, mapDesc, new Vector2(0f, -4f), 13, FontStyle.Normal, descColor);
         descText.alignment = TextAlignmentOptions.Left;
         RectTransform descRt = descText.rectTransform;
         descRt.anchorMin = new Vector2(0f, 0.5f); descRt.anchorMax = new Vector2(1f, 0.5f);
         descRt.pivot = new Vector2(0f, 0.5f); descRt.sizeDelta = new Vector2(0f, 40f);
+
+        // Kỷ lục sinh tồn
+        float maxTime = PlayerPrefs.GetFloat("MaxTimeMap_" + index, 0f);
+        string scoreStr = maxTime > 0 ? $"Kỷ lục sinh tồn: {maxTime:F0} giây" : "Chưa có kỷ lục";
+        TMP_Text scoreText = CreateText(textGroup.transform, scoreStr, new Vector2(0f, -24f), 13, FontStyle.Bold, new Color(1f, 0.85f, 0.3f));
+        scoreText.alignment = TextAlignmentOptions.Left;
+        RectTransform scoreRt = scoreText.rectTransform;
+        scoreRt.anchorMin = new Vector2(0f, 0.5f); scoreRt.anchorMax = new Vector2(1f, 0.5f);
+        scoreRt.pivot = new Vector2(0f, 0.5f); scoreRt.sizeDelta = new Vector2(0f, 20f);
 
         // Thông tin mở khóa (nếu có)
         if (!string.IsNullOrEmpty(unlockInfo))
@@ -184,28 +193,45 @@ public class MapSelectionUI : MonoBehaviour
         // Nút bấm
         if (isUnlocked)
         {
-            string btnLabel = isSelected ? "ĐÃ CHỌN" : "CHỌN ẢI";
+            string btnLabel = isSelected ? "BẮT ĐẦU" : "CHỌN ẢI";
             Button btn = CreateButton(row.transform, btnLabel, new Vector2(370f, 0f), new Vector2(180f, 50f), Color.gray, null);
             TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>();
             Image btnImg = btn.GetComponent<Image>();
 
             if (isSelected)
             {
-                if (btnText != null) btnText.color = Color.white;
-                btnImg.color = new Color(0.15f, 0.50f, 0.35f, 1f);
+                if (btnText != null) btnText.color = new Color(0.05f, 0.05f, 0.05f, 1f); // Dark text on gold
+                btnImg.color = new Color(1f, 0.85f, 0.3f, 1f); // Vibrant Gold
+                
+                Outline outline = btn.gameObject.GetComponent<Outline>();
+                if (outline == null) outline = btn.gameObject.AddComponent<Outline>();
+                outline.effectColor = new Color(1f, 1f, 1f, 0.5f);
+                outline.effectDistance = new Vector2(1f, -1f);
             }
             else
             {
-                if (btnText != null) btnText.color = new Color(0.9f, 0.9f, 0.9f, 1f);
-                btnImg.color = new Color(0.22f, 0.25f, 0.28f, 1f);
+                if (btnText != null) btnText.color = new Color(1f, 0.9f, 0.6f, 1f); // Pale gold text
+                btnImg.color = new Color(0.1f, 0.12f, 0.15f, 1f); // Dark navy
+                
+                Outline outline = btn.gameObject.GetComponent<Outline>();
+                if (outline != null) Destroy(outline);
             }
 
             btn.onClick.AddListener(() =>
             {
-                Debug.Log($"[MapSelectionUI] Chọn bản đồ: {index}");
-                PlayerPrefs.SetInt("SelectedMap", index);
-                PlayerPrefs.Save();
-                RefreshPage();
+                if (!isSelected)
+                {
+                    Debug.Log($"[MapSelectionUI] Chọn bản đồ: {index}");
+                    PlayerPrefs.SetInt("SelectedMap", index);
+                    PlayerPrefs.Save();
+                    RefreshPage();
+                }
+                else
+                {
+                    // Start Game!
+                    var camManager = FindObjectOfType<CameraManager>();
+                    if (camManager != null) camManager.ChangeGameplayScene();
+                }
             });
         }
         else

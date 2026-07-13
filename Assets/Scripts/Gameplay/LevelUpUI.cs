@@ -14,18 +14,18 @@ public class LevelUpUI : MonoBehaviour
     private static readonly Color TitleColor    = new Color(0.92f, 0.84f, 0.64f, 1.00f); // Dong Son bronze gold
     private static readonly Color SubtitleColor = new Color(0.80f, 0.78f, 0.72f, 1.00f);
 
-    // Stat card (Sleek Cyan Tech theme)
-    private static readonly Color StatBg     = new Color(0.04f, 0.07f, 0.08f, 0.98f);
+    // Stat card
+    private static readonly Color StatBg     = new Color(0.04f, 0.05f, 0.08f, 0.96f);
     private static readonly Color StatBorder = new Color(0.20f, 0.75f, 0.95f, 1.00f);
     private static readonly Color StatTitle  = new Color(0.40f, 0.85f, 1.00f, 1.00f);
 
-    // Skill card (Fiery Golden Amber theme)
-    private static readonly Color SkillBg     = new Color(0.12f, 0.07f, 0.05f, 0.98f);
+    // Skill card
+    private static readonly Color SkillBg     = new Color(0.04f, 0.05f, 0.08f, 0.96f);
     private static readonly Color SkillBorder = new Color(1.00f, 0.45f, 0.10f, 1.00f);
     private static readonly Color SkillTitle  = new Color(1.00f, 0.70f, 0.20f, 1.00f);
 
-    // Legend card (Mythic Gold theme)
-    private static readonly Color LegendBg       = new Color(0.10f, 0.08f, 0.04f, 0.98f);
+    // Legend card
+    private static readonly Color LegendBg       = new Color(0.04f, 0.05f, 0.08f, 0.96f);
     private static readonly Color LegendBorder   = new Color(1.00f, 0.85f, 0.20f, 1.00f);
     private static readonly Color LegendTitle    = new Color(1.00f, 0.90f, 0.40f, 1.00f);
     private static readonly Color LegendEvoBorder = new Color(0.90f, 0.20f, 0.90f, 1.00f);

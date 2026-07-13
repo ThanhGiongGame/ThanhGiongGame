@@ -138,7 +138,7 @@ public class LegendSystemLeLoi : MonoBehaviour
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
         turtle = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Sphere, new Color(0.8f, 0.6f, 0f), 2f, billboard: true, spriteScale: isEvo ? 2f : 1.5f);
         turtle.name = prefabName;
-        turtle.transform.position = transform.position + Vector3.right * 2f;
+        turtle.transform.position = transform.position + Vector3.right * 2f + Vector3.up * 4.5f; // Raised Y
         if (turtle.GetComponent<SpriteRenderer>() == null)
             turtle.transform.localScale = isEvo ? new Vector3(2f, 1f, 2f) : new Vector3(1f, 0.5f, 1f);
 
@@ -274,6 +274,8 @@ public class LeLoiTurtle : MonoBehaviour
                 targetEnemy = null;
             }
         }
+        
+        targetPos.y += 1.5f; // Raise Y so turtle hovers
 
         transform.position = Vector3.MoveTowards(transform.position, targetPos, 8f * Time.deltaTime);
     }

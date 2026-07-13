@@ -85,6 +85,17 @@ public class PlayerHealth : MonoBehaviour
         }
         if (currentHealth <= 0f)
         {
+            if (Boss.IsSpecialFinalScene)
+            {
+                currentHealth = 1f;
+                if (_pc != null && !_pc.IsInvulnerable)
+                {
+                    _pc.IsInvulnerable = true;
+                    _pc.StartFinalMoveCinematic();
+                }
+                return;
+            }
+
             var leLoi = GetComponent<LegendSystemLeLoi>();
             if (leLoi != null && leLoi.CanRevive())
             {

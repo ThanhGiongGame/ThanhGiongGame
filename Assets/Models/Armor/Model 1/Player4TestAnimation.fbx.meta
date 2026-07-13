@@ -54,7 +54,21 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.13911211
+        functionName: EnableWeaponDamage
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c6f5e8ca3c8a86640a2d73da41a2170d, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.6849981
+        functionName: DisableWeaponDamage
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c6f5e8ca3c8a86640a2d73da41a2170d, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -170,7 +184,21 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0
+        functionName: EnableWeaponDamage
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c6f5e8ca3c8a86640a2d73da41a2170d, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.49253735
+        functionName: DisableWeaponDamage
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c6f5e8ca3c8a86640a2d73da41a2170d, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -199,7 +227,21 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0
+        functionName: EnableWeaponDamage
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c6f5e8ca3c8a86640a2d73da41a2170d, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.57213944
+        functionName: DisableWeaponDamage
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c6f5e8ca3c8a86640a2d73da41a2170d, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}

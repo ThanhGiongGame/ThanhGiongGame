@@ -14,7 +14,7 @@ public class LegendSystemCoLoa : MonoBehaviour
     
     // W2: Mai Rùa Vàng
     private List<GameObject> shields = new List<GameObject>();
-    private float shieldRadius = 2.5f;
+    private float shieldRadius = 6f;
     private float shieldRotSpeed = 90f;
 
     public void UpdateLevels(int w1, int w2, int evo)

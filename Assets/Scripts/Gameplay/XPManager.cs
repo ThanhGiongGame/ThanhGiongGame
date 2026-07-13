@@ -38,6 +38,8 @@ public class XPManager : MonoBehaviour
     /// <summary>Call to award XP to the player.</summary>
     public void AddXP(float amount)
     {
+        if (!this.enabled || !gameObject.activeInHierarchy) return;
+
         _currentXP += amount;
 
         // Accumulate all levels first, then raise events one at a time

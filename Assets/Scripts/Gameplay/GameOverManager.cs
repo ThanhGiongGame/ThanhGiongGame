@@ -48,6 +48,14 @@ public class GameOverManager : MonoBehaviour
         int totalKills = PlayerPrefs.GetInt("TotalEnemiesKilled", 0);
         PlayerPrefs.SetInt("TotalEnemiesKilled", totalKills + enemiesKilled);
 
+        // Lưu kỷ lục sinh tồn theo map
+        int mapIndex = PlayerPrefs.GetInt("SelectedMap", 0);
+        float currentMaxTime = PlayerPrefs.GetFloat("MaxTimeMap_" + mapIndex, 0f);
+        if (timeSurvived > currentMaxTime)
+        {
+            PlayerPrefs.SetFloat("MaxTimeMap_" + mapIndex, timeSurvived);
+        }
+
         PlayerPrefs.Save();
 
         // Build UI
@@ -113,8 +121,12 @@ public class GameOverManager : MonoBehaviour
             bg.transform,
             Vector2.zero,
             new Vector2(950f, 700f),
-            new Color(0.1f, 0.11f, 0.14f)
+            new Color(0.04f, 0.05f, 0.08f, 0.96f) // Premium dark navy
         );
+        
+        Outline outline = panel.AddComponent<Outline>();
+        outline.effectColor = new Color(1f, 0.8f, 0.2f, 0.2f); // Glow
+        outline.effectDistance = new Vector2(2f, -2f);
 
         // =========================
         // TITLE
@@ -147,7 +159,7 @@ public class GameOverManager : MonoBehaviour
             panel.transform,
             new Vector2(0f, 30f),
             new Vector2(780f, 260f),
-            new Color(0.14f, 0.15f, 0.19f)
+            new Color(0.08f, 0.09f, 0.12f, 0.8f) // Inner dark panel
         );
 
         // Enemy Killed
@@ -200,7 +212,7 @@ public class GameOverManager : MonoBehaviour
             "CHƠI LẠI",
             new Vector2(-170f, -260f),
             new Vector2(280f, 75f),
-            new Color(0.2f, 0.55f, 0.95f),
+            new Color(0.1f, 0.12f, 0.15f, 0.9f),
             () =>
             {
                 Time.timeScale = 1f;
@@ -216,7 +228,7 @@ public class GameOverManager : MonoBehaviour
             "SHOP",
             new Vector2(170f, -260f),
             new Vector2(280f, 75f),
-            new Color(0.18f, 0.7f, 0.45f),
+            new Color(0.1f, 0.12f, 0.15f, 0.9f),
             () =>
             {
                 Time.timeScale = 1f;
@@ -230,7 +242,7 @@ public class GameOverManager : MonoBehaviour
             "MENU",
             new Vector2(0f, -360f),
             new Vector2(220f, 60f),
-            new Color(0.3f, 0.3f, 0.35f),
+            new Color(0.1f, 0.12f, 0.15f, 0.9f),
             () =>
             {
                 Time.timeScale = 1f;
@@ -408,6 +420,10 @@ public class GameOverManager : MonoBehaviour
         btn.colors = cb;
 
         btn.onClick.AddListener(action);
+        
+        Outline outline = go.AddComponent<Outline>();
+        outline.effectColor = new Color(1f, 0.8f, 0.2f, 0.3f);
+        outline.effectDistance = new Vector2(2f, -2f);
 
         CreateText(
             go.transform,
@@ -415,7 +431,7 @@ public class GameOverManager : MonoBehaviour
             Vector2.zero,
             26,
             FontStyle.Bold,
-            Color.white
+            new Color(1f, 0.9f, 0.6f, 1f)
         );
 
         return btn;

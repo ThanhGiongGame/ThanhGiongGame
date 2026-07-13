@@ -66,7 +66,7 @@ public class MapUnlockItem : MonoBehaviour
         int currentMap = PlayerPrefs.GetInt("SelectedMap", 0);
         int nextMap = currentMap + 1;
         
-        PlayerPrefs.SetInt("UnlockedMap_" + nextMap, 1);
+        PlayerPrefs.SetInt("PendingMapUnlock", nextMap);
         
         // Update persistent level
         int newLevel = 1;
@@ -123,7 +123,7 @@ public class MapUnlockItem : MonoBehaviour
         outlineImg.color = new Color(0.9f, 0.8f, 0.4f, 0.1f);
         
         // Title text
-        CreateText(modalGO.transform, "BẢN ĐỒ MỚI ĐÃ MỞ KHÓA!", new Vector2(0f, 130f), 32, new Color(0.9f, 0.8f, 0.5f), FontStyles.Bold);
+        CreateText(modalGO.transform, "BẠN ĐÃ TÌM THẤY BẢN ĐỒ MỚI!", new Vector2(0f, 130f), 32, new Color(0.9f, 0.8f, 0.5f), FontStyles.Bold);
         
         string mapName = nextMap == 1 ? "Đồng Bằng (Chiến Trường)" : nextMap == 2 ? "Rừng Tre (Bamboo Forest)" : "Chương Cuối";
         

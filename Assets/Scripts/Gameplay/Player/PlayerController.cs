@@ -42,6 +42,8 @@ public class PlayerController : MonoBehaviour
     private Transform enemyTransform;
 
     public bool IsPerformingSkill { get; set; }
+    public bool isPhase2BuffActive = false;
+    private float phase2AuraTimer = 0f;
     public bool IsInvulnerable
     {
         get => _isInvulnerable;
@@ -110,6 +112,147 @@ public class PlayerController : MonoBehaviour
         }
         HandleMovement();
 
+        if (isPhase2BuffActive)
+        {
+            HandlePhase2Buffs();
+        }
+    }
+
+    private void HandlePhase2Buffs()
+    {
+        // Massive health regeneration
+        if (playerHealth != null)
+        {
+            playerHealth.Heal(50f * Time.deltaTime);
+        }
+
+        // Circular aura fire damage
+        phase2AuraTimer -= Time.deltaTime;
+        if (phase2AuraTimer <= 0f)
+        {
+            phase2AuraTimer = 0.5f;
+            Collider[] hits = Physics.OverlapSphere(transform.position, 6f);
+            foreach (Collider hit in hits)
+            {
+                if (hit.CompareTag("Enemy"))
+                {
+                    Enemy e = hit.GetComponent<Enemy>();
+                    if (e != null)
+                    {
+                        e.TakeDamage(100f);
+                    }
+                }
+            }
+        }
+    }
+
+    public void StartFinalMoveCinematic()
+    {
+        StartCoroutine(FinalMoveCinematicCoroutine());
+    }
+
+    private IEnumerator FinalMoveCinematicCoroutine()
+    {
+        IsPerformingSkill = true;
+        
+        // 1. Knockback all enemies and glowing particle
+        HitEffect.Spawn(transform.position + Vector3.up, Color.yellow, 5f);
+        Collider[] hits = Physics.OverlapSphere(transform.position, 15f);
+        foreach (Collider hit in hits)
+        {
+            if (hit.CompareTag("Enemy"))
+            {
+                Enemy e = hit.GetComponent<Enemy>();
+                if (e != null)
+                {
+                    Vector3 dir = (e.transform.position - transform.position).normalized;
+                    dir.y = 0;
+                    e.ApplyKnockbackStun(dir, 30f, 2f);
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        // 2. Change to Tier 4
+        PlayerPrefs.SetString("EquippedHorse", "Horse_Tier4");
+        PlayerPrefs.SetString("EquippedCharacter", "Character_Tier4");
+        PlayerPrefs.SetString("EquippedWeapon", "Weapon_Tier4");
+        
+        if (horseLoader != null)
+        {
+            horseLoader.LoadHorse();
+        }
+        
+        yield return new WaitForSeconds(0.1f);
+
+        // 3. Trigger Final Move Animation and Camera Zoom
+        if (riderAnimator != null)
+        {
+            riderAnimator.Play("Final");
+            riderAnimator.SetTrigger("Final Move");
+        }
+        
+        CameraController cam = Camera.main.GetComponent<CameraController>();
+        if (cam != null)
+        {
+            cam.target = transform;
+            cam.SetCinematicView(new Vector3(0, 5f, -6f), 35f);
+        }
+
+        // Timeline:
+        // + 0:10 enlarge himself
+        yield return new WaitForSeconds(10f);
+        transform.localScale = new Vector3(3f, 3f, 3f);
+        if (cam != null) cam.ResetView();
+
+        // + 0:30 prepare to attack
+        yield return new WaitForSeconds(20f);
+        // Add any prepare visuals here if needed
+        HitEffect.Spawn(transform.position + Vector3.up * 2f, Color.red, 3f);
+
+        // + 1:00 attack, shake, damage all enemies
+        yield return new WaitForSeconds(30f);
+        if (cam != null) cam.Shake(2f, 1f);
+        
+        hits = Physics.OverlapSphere(transform.position, 100f);
+        foreach (Collider hit in hits)
+        {
+            if (hit.CompareTag("Enemy"))
+            {
+                Enemy e = hit.GetComponent<Enemy>();
+                if (e != null && !e.isBoss)
+                {
+                    e.TakeDamage(999999f);
+                }
+            }
+        }
+
+        // + 1:10 return to normal
+        yield return new WaitForSeconds(10f);
+        transform.localScale = Vector3.one;
+
+        // End cinematic, start phase 2 buffs
+        IsPerformingSkill = false;
+        
+        // Massive health buff
+        if (playerHealth != null)
+        {
+            playerHealth.maxHealth = 9999f;
+            playerHealth.currentHealth = 9999f;
+        }
+        
+        // Golden Trail
+        TrailRenderer tr = gameObject.AddComponent<TrailRenderer>();
+        tr.startWidth = 2f;
+        tr.endWidth = 0f;
+        tr.time = 2f;
+        tr.material = new Material(Shader.Find("Sprites/Default"));
+        tr.material.color = new Color(1f, 0.8f, 0.2f, 0.5f);
+        tr.startColor = new Color(1f, 0.8f, 0.2f, 0.5f);
+        tr.endColor = new Color(1f, 0.8f, 0.2f, 0f);
+        
+        isPhase2BuffActive = true;
     }
 
     private void HandleMovement()
@@ -240,7 +383,7 @@ public class PlayerController : MonoBehaviour
     }
     private bool TryGetMouseGroundPoint(out Vector3 point)
     {
-        point = Vector3.zero;
+        point = transform.position + transform.forward * 5f;
 
         if (mainCamera == null)
             mainCamera = Camera.main;
@@ -308,8 +451,7 @@ public class PlayerController : MonoBehaviour
 
         try
         {
-            if (!TryGetMouseGroundPoint(out Vector3 targetPoint))
-                yield break;
+            TryGetMouseGroundPoint(out Vector3 targetPoint);
 
             AttackDirection attackDir = GetAttackDirection();
 
@@ -317,6 +459,11 @@ public class PlayerController : MonoBehaviour
             {
                 riderAnimator.SetInteger("AttackDirection", (int)attackDir);
                 riderAnimator.SetTrigger("Attack");
+            }
+
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene")
+            {
+                SpawnBasicSlash(targetPoint);
             }
 
             // Chờ animation kết thúc
@@ -337,5 +484,103 @@ public class PlayerController : MonoBehaviour
     {
         weaponDamage.EndAttack();
         weaponTrail.EndTrail();
+    }
+
+    private void SpawnBasicSlash(Vector3 targetPoint)
+    {
+        Vector3 dir = (targetPoint - transform.position);
+        dir.y = 0;
+        if (dir.sqrMagnitude > 0.01f) dir.Normalize();
+        else dir = transform.forward;
+        
+        // Spawn a transparent hitbox instead of a white cube
+        GameObject slash = new GameObject("BasicSlash");
+        slash.transform.position = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position + Vector3.up * 1.2f + dir * 1.5f;
+        slash.transform.rotation = Quaternion.LookRotation(dir);
+        
+        // Quick visual effect
+        HitEffect.Spawn(slash.transform.position, new Color(1f, 0.8f, 0.2f), 1.5f);
+        
+        BoxCollider col = slash.AddComponent<BoxCollider>();
+        col.size = new Vector3(3f, 0.5f, 0.5f);
+        col.isTrigger = true;
+        
+        var logic = slash.AddComponent<BasicSlashProjectile>();
+        logic.damage = slashDamageMultiplier * 20f;
+        logic.dir = dir;
+        
+        Rigidbody rb = slash.AddComponent<Rigidbody>();
+        rb.useGravity = false;
+        rb.isKinematic = true; // No physics movement
+        
+        Destroy(slash, 0.25f); // Short duration melee swipe
+    }
+
+    public void AscendToSky()
+    {
+        StartCoroutine(AscendToSkyCoroutine());
+    }
+    
+    private IEnumerator AscendToSkyCoroutine()
+    {
+        IsPerformingSkill = true; // disable control
+        isPhase2BuffActive = false; // turn off damage aura so it's peaceful
+        
+        if (riderAnimator != null)
+        {
+            riderAnimator.enabled = false;
+        }
+
+        if (horseAnimator != null)
+        {
+            horseAnimator.SetBool("isWalking", true);
+        }
+        
+        float t = 0;
+        float effectTimer = 0;
+        while (t < 6f)
+        {
+            t += Time.deltaTime;
+            effectTimer += Time.deltaTime;
+            
+            // Spawn glow effect periodically
+            if (effectTimer > 0.15f)
+            {
+                effectTimer = 0f;
+                HitEffect.Spawn(transform.position, new Color(1f, 0.9f, 0.2f, 0.5f), 1.5f);
+            }
+            
+            // Move up and slightly forward into the sky
+            transform.position += (transform.forward * 2f + Vector3.up * 3f) * Time.deltaTime;
+            
+            yield return null;
+        }
+        
+        // Load Win Screen or Main Menu
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
+    }
+}
+
+public class BasicSlashProjectile : MonoBehaviour
+{
+    public float damage;
+    public Vector3 dir;
+
+    void Update()
+    {
+        // Stationary melee slash, no movement
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            Enemy e = other.GetComponent<Enemy>();
+            if (e != null)
+            {
+                e.TakeDamage(damage);
+                e.ApplyKnockbackStun(dir, 8f, 0.2f);
+            }
+        }
     }
 }

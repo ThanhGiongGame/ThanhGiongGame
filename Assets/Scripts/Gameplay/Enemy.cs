@@ -44,8 +44,17 @@ public class Enemy : MonoBehaviour
     private float initialRotationZ;
 
     public static bool GlobalFreeze = false;
+    
+    [HideInInspector]
+    public bool isStampeding = false;
+    [HideInInspector]
+    public Vector3 stampedeTarget;
+    [HideInInspector]
+    public bool isBoss = false;
+
     private void Start()
     {
+        gameObject.tag = "Enemy";
         currentHealth = maxHealth;
         initialRotationX = transform.eulerAngles.x;
         initialRotationZ = transform.eulerAngles.z;
@@ -148,6 +157,8 @@ public class Enemy : MonoBehaviour
             return;
         if (player == null) return;
 
+        if (isBoss) return; // Let Boss.cs handle AI
+
         if (knockbackTimer > 0f)
         {
             HandleKnockback();
@@ -166,19 +177,27 @@ public class Enemy : MonoBehaviour
 
     private void MoveTowardPlayer()
     {
-        Vector3 toPlayer =
-            player.position - transform.position;
+        Vector3 targetPos = isStampeding ? stampedeTarget : player.position;
+        Vector3 toTarget = targetPos - transform.position;
 
-        toPlayer.y = 0f;
+        toTarget.y = 0f;
 
-        float distance = toPlayer.magnitude;
+        float distance = toTarget.magnitude;
 
         Vector3 moveDirection = Vector3.zero;
 
-        // Only move if outside attack range
-        if (distance > attackRange * 0.9f)
+        if (isStampeding)
         {
-            moveDirection = toPlayer.normalized;
+            moveDirection = toTarget.normalized;
+            if (distance < 1f)
+            {
+                Die(); // Despawn gracefully when reaching the end of the line
+            }
+        }
+        // Only move if outside attack range
+        else if (distance > attackRange * 0.9f)
+        {
+            moveDirection = toTarget.normalized;
         }
 
         Vector3 finalDirection = moveDirection.normalized;
@@ -380,6 +399,15 @@ public class Enemy : MonoBehaviour
 
         if (currentHealth <= 0f)
         {
+            if (isBoss && Boss.IsSpecialFinalScene)
+            {
+                Boss bossScript = GetComponent<Boss>();
+                if (bossScript != null)
+                {
+                    bossScript.TriggerBossDeathCinematic();
+                    return;
+                }
+            }
             Die();
         }
     }

@@ -499,6 +499,7 @@ public class MainMenuManager : MonoBehaviour
             label.alignment = TextAlignmentOptions.Center;
             label.margin = Vector4.zero;
             label.raycastTarget = false;
+            label.color = new Color(1f, 0.85f, 0.3f, 1f); // Gold title
         }
     }
 
@@ -524,8 +525,13 @@ public class MainMenuManager : MonoBehaviour
         Image image = buttonObject.GetComponent<Image>();
         if (image != null)
         {
-            image.color = new Color(0.43f, 0.19f, 0.08f, 0.62f);
+            image.color = new Color(0.08f, 0.09f, 0.12f, 0.9f); // Sleek dark navy button
             image.raycastTarget = true;
+            
+            Outline outline = buttonObject.GetComponent<Outline>();
+            if (outline == null) outline = buttonObject.AddComponent<Outline>();
+            outline.effectColor = new Color(1f, 0.8f, 0.2f, 0.5f); // Gold outline
+            outline.effectDistance = new Vector2(2f, -2f);
         }
 
         TMP_Text label = buttonObject.GetComponentInChildren<TMP_Text>(true);
@@ -538,6 +544,7 @@ public class MainMenuManager : MonoBehaviour
             label.fontSizeMax = 44f;
             label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
+            label.color = new Color(1f, 0.9f, 0.6f, 1f); // Pale gold text
 
             RectTransform labelRect = label.GetComponent<RectTransform>();
             if (labelRect != null)
@@ -572,7 +579,7 @@ public class MainMenuManager : MonoBehaviour
         Image panelImage = settingsPanel.GetComponent<Image>();
         if (panelImage != null)
         {
-            panelImage.color = new Color(0.02f, 0.018f, 0.018f, 0.86f);
+            panelImage.color = new Color(0.04f, 0.05f, 0.08f, 0.95f); // Premium dark navy
             panelImage.raycastTarget = true;
         }
 

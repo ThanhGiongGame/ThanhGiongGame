@@ -51,6 +51,7 @@ public class HorseLoader : MonoBehaviour
                 bonusSpeed += 8;
                 break;
         }
+        if (currentHorse != null) Destroy(currentHorse);
         currentHorse =
         Instantiate(
             prefab,

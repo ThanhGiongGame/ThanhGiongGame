@@ -5,8 +5,9 @@ using UnityEngine.UI;
 
 public class CameraManager : MonoBehaviour
 {
-    private const string GameplaySceneName = "SampleScene";
+    private const string Map1SceneName = "map 1";
     private const string Map2SceneName = "map2";
+    private const string Map3SceneName = "map3";
 
     [SerializeField] private Camera shopCamera;
     [SerializeField] private Camera equipmentCamera;
@@ -24,7 +25,31 @@ public class CameraManager : MonoBehaviour
         ResolveSceneCameras();
         shopUI = FindFirstObjectByType<ShopUI>(FindObjectsInactive.Include);
         SetupMapSelection();
+        SetupMessenger();
         ShowEquipment();
+    }
+
+    private void SetupMessenger()
+    {
+        GameObject sugia = GameObject.Find("sugia");
+        if (sugia == null) sugia = GameObject.Find("SuGia");
+        if (sugia == null) sugia = GameObject.Find("SuGiaPosition/sugia");
+        if (sugia == null) sugia = GameObject.Find("SuGiaPosition/SuGia");
+        
+        if (sugia != null)
+        {
+            if (sugia.GetComponent<Collider>() == null)
+            {
+                CapsuleCollider col = sugia.AddComponent<CapsuleCollider>();
+                col.center = new Vector3(0f, 1f, 0f);
+                col.height = 2f;
+                col.radius = 0.5f;
+            }
+            if (sugia.GetComponent<MessengerShopInteraction>() == null)
+            {
+                sugia.AddComponent<MessengerShopInteraction>();
+            }
+        }
     }
 
     public void ShowEquipment()
@@ -38,8 +63,19 @@ public class CameraManager : MonoBehaviour
     public void ChangeGameplayScene()
     {
         Time.timeScale = 1f;
-        string sceneName = PlayerPrefs.GetInt("SelectedMap", 0) == 1 ? Map2SceneName : GameplaySceneName;
+        int mapIndex = PlayerPrefs.GetInt("SelectedMap", 0);
+        string sceneName = Map1SceneName;
+        if (mapIndex == 1) sceneName = Map2SceneName;
+        else if (mapIndex == 2) sceneName = Map3SceneName;
         SceneManager.LoadScene(sceneName);
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 
     private void NormalizeShopLayout()
@@ -57,8 +93,21 @@ public class CameraManager : MonoBehaviour
         EnsureMapButton();
         ConfigureBottomButton("BtnShop", new Vector2(-525f, 32f), "CỬA HÀNG");
         ConfigureBottomButton("BtnEquipment", new Vector2(-175f, 32f), "TRANG BỊ");
-        ConfigureBottomButton("BtnGame", new Vector2(175f, 32f), "VÀO TRẬN");
-        ConfigureBottomButton("BtnMap", new Vector2(525f, 32f), "BẢN ĐỒ");
+        ConfigureBottomButton("BtnGame", new Vector2(175f, 32f), "THOÁT"); // Was "VÀO TRẬN", now Quit
+        ConfigureBottomButton("BtnMap", new Vector2(525f, 32f), "VÀO TRẬN"); // Was "BẢN ĐỒ", now starts map selection
+        
+        // Re-bind BtnGame to quit
+        GameObject btnGameObj = FindByName("BtnGame");
+        if (btnGameObj != null)
+        {
+            Button btnGame = btnGameObj.GetComponent<Button>();
+            if (btnGame != null)
+            {
+                btnGame.onClick.RemoveAllListeners();
+                btnGame.onClick.AddListener(QuitGame);
+            }
+        }
+
         StretchScrollView();
     }
 
@@ -147,7 +196,7 @@ public class CameraManager : MonoBehaviour
         Image image = buttonObject.GetComponent<Image>();
         if (image != null)
         {
-            image.color = new Color(0.28f, 0.58f, 0.28f, 0.96f);
+            image.color = new Color(1f, 0.85f, 0.3f, 1f); // Vibrant Gold
             image.raycastTarget = true;
         }
 
@@ -160,6 +209,7 @@ public class CameraManager : MonoBehaviour
             label.alignment = TextAlignmentOptions.Center;
             label.margin = Vector4.zero;
             label.raycastTarget = false;
+            label.color = new Color(0.05f, 0.05f, 0.05f, 1f); // Dark text on gold
             Stretch(label.GetComponent<RectTransform>(), 10f, 4f);
         }
     }
@@ -183,8 +233,12 @@ public class CameraManager : MonoBehaviour
         Image image = buttonObject.GetComponent<Image>();
         if (image != null)
         {
-            image.color = new Color(0.62f, 0.88f, 0.9f, 0.98f);
+            image.color = new Color(0.08f, 0.09f, 0.12f, 0.95f); // Dark navy
             image.raycastTarget = true;
+            Outline outline = buttonObject.GetComponent<Outline>();
+            if (outline == null) outline = buttonObject.AddComponent<Outline>();
+            outline.effectColor = new Color(1f, 0.8f, 0.2f, 0.5f); // Gold outline
+            outline.effectDistance = new Vector2(2f, -2f);
         }
 
         TMP_Text label = buttonObject.GetComponentInChildren<TMP_Text>(true);
@@ -197,6 +251,7 @@ public class CameraManager : MonoBehaviour
             label.alignment = TextAlignmentOptions.Center;
             label.margin = Vector4.zero;
             label.raycastTarget = false;
+            label.color = new Color(1f, 0.85f, 0.3f, 1f); // Gold text
             Stretch(label.GetComponent<RectTransform>(), 8f, 4f);
         }
 
@@ -227,7 +282,7 @@ public class CameraManager : MonoBehaviour
 
         if (image != null)
         {
-            image.color = new Color(0.03f, 0.035f, 0.035f, 0.93f);
+            image.color = new Color(0.04f, 0.05f, 0.08f, 0.95f); // Premium Dark Navy
             image.raycastTarget = false;
         }
 
@@ -237,7 +292,7 @@ public class CameraManager : MonoBehaviour
             outline = panel.AddComponent<Outline>();
         }
 
-        outline.effectColor = new Color(1f, 0.86f, 0.42f, 0.45f);
+        outline.effectColor = new Color(1f, 0.8f, 0.2f, 0.15f); // Glowing gold border
         outline.effectDistance = new Vector2(2f, -2f);
         panel.transform.SetAsFirstSibling();
     }

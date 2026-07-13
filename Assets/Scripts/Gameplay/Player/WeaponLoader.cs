@@ -53,12 +53,13 @@ public class WeaponLoader : MonoBehaviour
         }
 
 
-        var weapon = Instantiate(
+        if (currentWeapon != null) Destroy(currentWeapon);
+        currentWeapon = Instantiate(
             prefab,
             transform
         );
-        var weaponDmg = weapon.GetComponentInChildren<WeaponDamage>();
-        var weaponTrl = weapon.GetComponentInChildren<WeaponTrail>();
+        var weaponDmg = currentWeapon.GetComponentInChildren<WeaponDamage>();
+        var weaponTrl = currentWeapon.GetComponentInChildren<WeaponTrail>();
         PlayerController player =
     GetComponentInParent<PlayerController>();
         player.weaponDamage = weaponDmg;

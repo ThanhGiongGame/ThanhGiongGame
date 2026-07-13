@@ -132,7 +132,7 @@ public class SkillFlameDash : MonoBehaviour
         // Confirm
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            _indicator.SetVisible(false);
+            // Indicator stays visible during dash and spin to show impact zone
             StartCoroutine(DashRoutine(_dashDirection.normalized));
             return;
         }
@@ -236,6 +236,7 @@ public class SkillFlameDash : MonoBehaviour
         }
 
         // --- KẾT THÚC SKILL ---
+        _indicator.SetVisible(false); // Hide indicator after spin
         _pc.IsInvulnerable = false;
         _pc.IsPerformingSkill = false;
         _state = State.Idle;

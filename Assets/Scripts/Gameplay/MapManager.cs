@@ -83,7 +83,7 @@ public class MapManager : MonoBehaviour
 
     private static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
-        if (scene.name == "SampleScene")
+        if (scene.name == "SampleScene" || scene.name == "map 1" || scene.name == "map2" || scene.name == "map3")
         {
             if (FindObjectOfType<MapManager>() == null)
             {
@@ -178,11 +178,13 @@ public class MapManager : MonoBehaviour
 
     private int GetPropsPerChunk()
     {
+        if (_mapIndex == 0 || _mapIndex == 1) return 0;
         return _mapIndex == 2 ? MAP3_PROPS_PER_CHUNK : PROPS_PER_CHUNK;
     }
 
     private int GetGroundCoverPerChunk()
     {
+        if (_mapIndex == 0 || _mapIndex == 1) return 0;
         return _mapIndex == 2 ? MAP3_GROUND_COVER_PER_CHUNK : GROUND_COVER_PER_CHUNK;
     }
 

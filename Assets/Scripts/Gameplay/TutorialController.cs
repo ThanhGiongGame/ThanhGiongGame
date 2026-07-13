@@ -37,6 +37,18 @@ public class TutorialController : MonoBehaviour
     private bool typewriterDone;
     private string fullDialogueText;
 
+    private static TutorialController instance;
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+    }
+
     private Transform moveMarker;
     private Transform fightMarker;
     private Transform gateMarker;
@@ -65,7 +77,14 @@ public class TutorialController : MonoBehaviour
         EnsureGameplayHud();
         BuildTutorialCanvas();
 
+        XPManager.OnLevelUp += HandleTutorialLevelUp;
+
         StartCoroutine(OpeningSequence());
+    }
+
+    private void OnDestroy()
+    {
+        XPManager.OnLevelUp -= HandleTutorialLevelUp;
     }
 
     private void Update()
@@ -239,11 +258,6 @@ public class TutorialController : MonoBehaviour
 
         yield return new WaitUntil(() => Time.timeScale > 0f);
 
-        if (skill1 != null && skill1.Level <= 0)
-        {
-            skill1.SetLevel(1);
-        }
-
         if (skill2 != null)
         {
             skill2.SetLevel(0);
@@ -409,6 +423,23 @@ public class TutorialController : MonoBehaviour
             {
                 playerController.moveSpeed = 5.5f;
             }
+
+            // Disable Legend weapons so the player only has the basic slash in the tutorial
+            var legendSystems = player.GetComponents<MonoBehaviour>();
+            foreach (var comp in legendSystems)
+            {
+                if (comp.GetType().Name.StartsWith("LegendSystem"))
+                {
+                    comp.enabled = false;
+                }
+            }
+        }
+
+        WaveSpawner spawner = FindFirstObjectByType<WaveSpawner>();
+        if (spawner != null)
+        {
+            spawner.enabled = false;
+            Destroy(spawner.gameObject);
         }
 
         if (skill1 != null) skill1.SetLevel(0);
@@ -450,9 +481,10 @@ public class TutorialController : MonoBehaviour
             new GameObject("PlayerLevelUI").AddComponent<PlayerLevelUI>();
         }
 
-        if (FindFirstObjectByType<LevelUpUI>() == null)
+        LevelUpUI lvlUI = FindFirstObjectByType<LevelUpUI>();
+        if (lvlUI != null)
         {
-            new GameObject("LevelUpUI").AddComponent<LevelUpUI>();
+            Destroy(lvlUI.gameObject);
         }
 
         if (FindFirstObjectByType<SkillCooldownUI>() == null)
@@ -796,6 +828,163 @@ public class TutorialController : MonoBehaviour
             playerController.enabled = enabled;
         }
     }
+
+    // ========================================================================
+    // Custom Tutorial Level Up
+    // ========================================================================
+    private GameObject tutorialLevelUpPanel;
+
+    private void HandleTutorialLevelUp()
+    {
+        Time.timeScale = 0f;
+        
+        tutorialLevelUpPanel = new GameObject("TutorialLevelUpPanel");
+        tutorialLevelUpPanel.transform.SetParent(tutorialCanvas.transform, false);
+        
+        RectTransform pr = tutorialLevelUpPanel.AddComponent<RectTransform>();
+        pr.anchorMin = Vector2.zero;
+        pr.anchorMax = Vector2.one;
+        pr.offsetMin = pr.offsetMax = Vector2.zero;
+        
+        Image bgImg = tutorialLevelUpPanel.AddComponent<Image>();
+        bgImg.color = new Color(0.02f, 0.02f, 0.03f, 0.95f); // Dark overlay
+
+        // Title
+        TMP_Text titleText = CreateText(tutorialLevelUpPanel.transform, "HỆ THỐNG NÂNG CẤP", Vector2.zero, Vector2.zero, 40, FontStyle.Bold, new Color(1f, 0.85f, 0.2f));
+        titleText.alignment = TextAlignmentOptions.Center;
+        RectTransform titleRt = titleText.GetComponent<RectTransform>();
+        titleRt.anchorMin = new Vector2(0f, 0.85f);
+        titleRt.anchorMax = new Vector2(1f, 0.95f);
+        titleRt.offsetMin = titleRt.offsetMax = Vector2.zero;
+        
+        // Subtitle
+        TMP_Text subText = CreateText(tutorialLevelUpPanel.transform, "Trong thực chiến, bạn sẽ nhận được 3 lựa chọn mỗi khi lên cấp.\n(Nhấn vào KỸ NĂNG để tiếp tục bài hướng dẫn)", Vector2.zero, Vector2.zero, 26, FontStyle.Italic, new Color(0.8f, 0.8f, 0.8f));
+        subText.alignment = TextAlignmentOptions.Center;
+        RectTransform subRt = subText.GetComponent<RectTransform>();
+        subRt.anchorMin = new Vector2(0f, 0.75f);
+        subRt.anchorMax = new Vector2(1f, 0.85f);
+        subRt.offsetMin = subRt.offsetMax = Vector2.zero;
+
+        // Skill Card (Clickable)
+        BuildTutorialCard("🌩 MỞ KHÓA: Thiên Đòn Sa", "Nhảy vọt lên không trung, sau đó dậm mạnh xuống mục tiêu\ngây sát thương diện rộng cực lớn, gây choáng\nvà đẩy lùi toàn bộ kẻ địch xung quanh.", "Icons/Skill1", new Vector2(0.05f, 0.2f), new Vector2(0.32f, 0.7f), new Color(0.1f, 0.15f, 0.2f), new Color(0.2f, 0.75f, 0.95f), true);
+
+        // Legend Card (Blocked)
+        BuildTutorialCard("MỚI: Tre Ngà", "Gióng nhổ những bụi tre ngà bên đường làm vũ khí. Tạo ra chướng ngại vật mọc lên từ lòng đất chặn đánh quân thù.", "Icons/ThanhGiong_W1", new Vector2(0.36f, 0.2f), new Vector2(0.64f, 0.7f), new Color(0.04f, 0.05f, 0.08f), new Color(1f, 0.85f, 0.2f), false);
+
+        // Stat Card (Blocked)
+        BuildTutorialCard("⚔ Cường Lực", "Tăng sát thương thêm +20%.\nĐòn đánh của bạn sẽ mạnh mẽ hơn.", "Icons/StatDamage", new Vector2(0.68f, 0.2f), new Vector2(0.95f, 0.7f), new Color(0.04f, 0.05f, 0.08f), new Color(1f, 0.45f, 0.1f), false);
+    }
+
+    private void BuildTutorialCard(string title, string desc, string iconPath, Vector2 anchorMin, Vector2 anchorMax, Color bgColor, Color borderColor, bool isClickable)
+    {
+        GameObject card = new GameObject("Card_" + title);
+        card.transform.SetParent(tutorialLevelUpPanel.transform, false);
+        
+        RectTransform cr = card.AddComponent<RectTransform>();
+        cr.anchorMin = anchorMin;
+        cr.anchorMax = anchorMax;
+        cr.offsetMin = cr.offsetMax = Vector2.zero;
+        
+        Image cImg = card.AddComponent<Image>();
+        cImg.color = borderColor;
+
+        GameObject inner = new GameObject("Inner");
+        inner.transform.SetParent(card.transform, false);
+        RectTransform ir = inner.AddComponent<RectTransform>();
+        ir.anchorMin = Vector2.zero;
+        ir.anchorMax = Vector2.one;
+        ir.offsetMin = new Vector2(4f, 4f);
+        ir.offsetMax = new Vector2(-4f, -4f);
+        Image iImg = inner.AddComponent<Image>();
+        iImg.color = bgColor;
+        iImg.raycastTarget = false; // Prevent blocking clicks!
+
+        // Title
+        TMP_Text tTitle = CreateText(inner.transform, title, Vector2.zero, Vector2.zero, 24, FontStyle.Bold, borderColor);
+        tTitle.alignment = TextAlignmentOptions.Center;
+        tTitle.enableWordWrapping = false;
+        RectTransform rtTitle = tTitle.GetComponent<RectTransform>();
+        rtTitle.anchorMin = new Vector2(0f, 0.7f);
+        rtTitle.anchorMax = new Vector2(1f, 0.95f);
+        rtTitle.offsetMin = rtTitle.offsetMax = Vector2.zero;
+        
+        // Description
+        TMP_Text tDesc = CreateText(inner.transform, desc, Vector2.zero, Vector2.zero, 18, FontStyle.Normal, new Color(0.85f, 0.85f, 0.9f));
+        tDesc.alignment = TextAlignmentOptions.Center;
+        RectTransform rtDesc = tDesc.GetComponent<RectTransform>();
+
+        // Icon
+        Sprite icon = Resources.Load<Sprite>(iconPath);
+        if (icon != null)
+        {
+            GameObject iconGO = new GameObject("Icon");
+            iconGO.transform.SetParent(inner.transform, false);
+            RectTransform iRect = iconGO.AddComponent<RectTransform>();
+            iRect.anchorMin = new Vector2(0.05f, 0.1f);
+            iRect.anchorMax = new Vector2(0.3f, 0.5f);
+            iRect.offsetMin = iRect.offsetMax = Vector2.zero;
+            Image img = iconGO.AddComponent<Image>();
+            img.sprite = icon;
+            img.preserveAspect = true;
+            img.raycastTarget = false;
+
+            rtDesc.anchorMin = new Vector2(0.35f, 0.05f);
+            rtDesc.anchorMax = new Vector2(0.95f, 0.65f);
+        }
+        else
+        {
+            rtDesc.anchorMin = new Vector2(0.05f, 0.05f);
+            rtDesc.anchorMax = new Vector2(0.95f, 0.65f);
+        }
+        rtDesc.offsetMin = rtDesc.offsetMax = Vector2.zero;
+
+        if (isClickable)
+        {
+            Button btn = card.AddComponent<Button>();
+            btn.targetGraphic = cImg;
+            btn.onClick.AddListener(OnTutorialSkillClicked);
+        }
+        else
+        {
+            // Blocked overlay
+            GameObject overlay = new GameObject("LockOverlay");
+            overlay.transform.SetParent(card.transform, false);
+            RectTransform or = overlay.AddComponent<RectTransform>();
+            or.anchorMin = Vector2.zero;
+            or.anchorMax = Vector2.one;
+            or.offsetMin = or.offsetMax = Vector2.zero;
+            Image oImg = overlay.AddComponent<Image>();
+            oImg.color = new Color(0f, 0f, 0f, 0.6f);
+            oImg.raycastTarget = false;
+            
+            TMP_Text tLock = CreateText(overlay.transform, "(BỊ KHÓA)", Vector2.zero, Vector2.zero, 28, FontStyle.Bold, new Color(1f, 0.3f, 0.3f));
+            tLock.alignment = TextAlignmentOptions.Center;
+            RectTransform rtLock = tLock.GetComponent<RectTransform>();
+            rtLock.anchorMin = new Vector2(0f, 0.4f);
+            rtLock.anchorMax = new Vector2(1f, 0.6f);
+            rtLock.offsetMin = rtLock.offsetMax = Vector2.zero;
+        }
+    }
+
+    private void OnTutorialSkillClicked()
+    {
+        if (tutorialLevelUpPanel != null)
+        {
+            Destroy(tutorialLevelUpPanel);
+        }
+        
+        Time.timeScale = 1f;
+        
+        if (skill1 != null) skill1.SetLevel(1);
+
+        if (XPManager.Instance != null)
+        {
+            XPManager.OnLevelUp -= HandleTutorialLevelUp;
+            XPManager.Instance.enabled = false;
+            XPManager.Instance.gameObject.SetActive(false); 
+        }
+    }
+    // ========================================================================
 
     private void SetGameplayHudVisible(bool visible)
     {

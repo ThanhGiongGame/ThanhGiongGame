@@ -14,15 +14,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4342625665046173530, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.822408
+      value: -132.03246
       objectReference: {fileID: 0}
     - target: {fileID: 4342625665046173530, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 14.11
+      value: 5.04
       objectReference: {fileID: 0}
     - target: {fileID: 4342625665046173530, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -9.95
+      value: -3.77
       objectReference: {fileID: 0}
     - target: {fileID: 4342625665046173530, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
       propertyPath: m_LocalRotation.w
@@ -54,7 +54,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
       propertyPath: offset.z
-      value: -10
+      value: -15
       objectReference: {fileID: 0}
     - target: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
       propertyPath: pitchAngle
@@ -62,7 +62,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
       propertyPath: smoothSpeed
-      value: 5
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8269687159426395731, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
+      propertyPath: field of view
+      value: 50
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
