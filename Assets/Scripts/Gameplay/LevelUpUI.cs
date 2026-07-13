@@ -1,7 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem.UI;
+#endif
 
 /// <summary>
 /// Listens for XPManager.OnLevelUp, freezes time, and shows 3 upgrade cards.
@@ -52,6 +56,8 @@ public class LevelUpUI : MonoBehaviour
         if (_isShowing) return;
         _isShowing    = true;
         Time.timeScale = 0f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
         BuildPanel();
         _panel.SetActive(true);
     }
@@ -72,15 +78,7 @@ public class LevelUpUI : MonoBehaviour
 
         cgo.AddComponent<GraphicRaycaster>();
 
-        // --- TỰ ĐỘNG KHỞI TẠO EVENT SYSTEM TƯƠNG THÍCH INPUT SYSTEM MỚI ---
-        if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
-        {
-            GameObject eventSystemGO = new GameObject("EventSystem");
-            eventSystemGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
-
-            // Sử dụng module tương thích với New Input System
-            eventSystemGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
-        }
+        EnsureEventSystem();
     }    // ---- Panel ----
     private void BuildPanel()
     {
@@ -228,6 +226,28 @@ public class LevelUpUI : MonoBehaviour
         Time.timeScale = 1f;
         _isShowing     = false;
         if (XPManager.Instance != null) XPManager.Instance.ResumeFromLevelUp();
+    }
+
+    private static void EnsureEventSystem()
+    {
+        EventSystem eventSystem = FindFirstObjectByType<EventSystem>();
+        if (eventSystem == null)
+        {
+            GameObject eventSystemObject = new GameObject("EventSystem");
+            eventSystem = eventSystemObject.AddComponent<EventSystem>();
+        }
+
+#if ENABLE_INPUT_SYSTEM
+        if (eventSystem.GetComponent<InputSystemUIInputModule>() == null)
+        {
+            eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
+        }
+#else
+        if (eventSystem.GetComponent<StandaloneInputModule>() == null)
+        {
+            eventSystem.gameObject.AddComponent<StandaloneInputModule>();
+        }
+#endif
     }
 
     // ---- Text helper ----

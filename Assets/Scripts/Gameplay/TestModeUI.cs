@@ -1,5 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 public class TestModeUI : MonoBehaviour
 {
@@ -9,7 +12,7 @@ public class TestModeUI : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (WasCheatMenuPressed())
         {
             isVisible = !isVisible;
         }
@@ -32,7 +35,7 @@ public class TestModeUI : MonoBehaviour
 
         scrollPos = GUILayout.BeginScrollView(scrollPos);
 
-        GUILayout.Label("Press ESC to toggle this menu.");
+        GUILayout.Label("Press F2 to toggle this menu.");
         GUILayout.Space(10);
 
         if (GUILayout.Button("Reset Player Health"))
@@ -131,5 +134,20 @@ public class TestModeUI : MonoBehaviour
         if (legendMgr == null) legendMgr = pc.gameObject.AddComponent<LegendaryUpgradeSystem>();
         
         legendMgr.UpdateLegendLevels(sys, prog.weapon1Level, prog.weapon2Level, prog.evoLevel);
+    }
+
+    private static bool WasCheatMenuPressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current != null && Keyboard.current.f2Key.wasPressedThisFrame)
+        {
+            return true;
+        }
+#endif
+#if ENABLE_LEGACY_INPUT_MANAGER
+        return Input.GetKeyDown(KeyCode.F2);
+#else
+        return false;
+#endif
     }
 }

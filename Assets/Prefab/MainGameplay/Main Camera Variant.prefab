@@ -61,6 +61,18 @@ PrefabInstance:
       value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
+      propertyPath: followHeight
+      value: 3.83
+      objectReference: {fileID: 0}
+    - target: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
+      propertyPath: thirdPersonDistance
+      value: 8.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
+      propertyPath: thirdPersonPitch
+      value: 16.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6967303524099682642, guid: 635b6da63ca11a64992dc2d72d652eba, type: 3}
       propertyPath: smoothSpeed
       value: 10
       objectReference: {fileID: 0}

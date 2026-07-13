@@ -131,7 +131,7 @@ public class MapUnlockItem : MonoBehaviour
         CreateText(modalGO.transform, "Cấp độ trang bị mới: " + newLevel, new Vector2(0f, -10f), 20, new Color(0.4f, 0.8f, 0.4f), FontStyles.Normal);
         
         // Return button
-        CreateButton(modalGO.transform, "TIẾP TỤC", new Vector2(0f, -110f), new Vector2(200f, 55f), () => {
+        CreateButton(modalGO.transform, "VỀ TRANG BỊ", new Vector2(0f, -110f), new Vector2(240f, 55f), () => {
             Time.timeScale = 1f;
             SceneManager.LoadScene("GameShopScene");
         });

@@ -13,6 +13,7 @@ public class GameOverManager : MonoBehaviour
     [HideInInspector] public float timeSurvived = 120f;
 
     private Canvas _canvas;
+    private string retrySceneName;
 
     private void Awake()
     {
@@ -27,6 +28,8 @@ public class GameOverManager : MonoBehaviour
         // Tránh gọi nhiều lần
         if (_canvas != null)
             return;
+
+        retrySceneName = SceneManager.GetActiveScene().name;
 
         // Pause game
         Time.timeScale = 0f;
@@ -220,9 +223,7 @@ public class GameOverManager : MonoBehaviour
             () =>
             {
                 Time.timeScale = 1f;
-                SceneManager.LoadScene(
-                    SceneManager.GetActiveScene().name
-                );
+                SceneManager.LoadScene(retrySceneName);
             }
         );
 

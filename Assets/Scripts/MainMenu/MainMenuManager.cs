@@ -292,7 +292,7 @@ public class MainMenuManager : MonoBehaviour
         PlayerPrefs.Save();
 
         Time.timeScale = 1f;
-        SceneManager.LoadScene(TutorialSceneName);
+        SceneLoadingScreen.Load(TutorialSceneName);
         yield break;
     }
 
@@ -311,7 +311,7 @@ public class MainMenuManager : MonoBehaviour
             || PlayerPrefs.GetInt(HasSeenIntroKey, 0) == 1
             || PlayerPrefs.GetInt(VinhDanhTotalKey, 0) > 0;
 
-        SceneManager.LoadScene(hasProgress ? ShopSceneName : TutorialSceneName);
+        SceneLoadingScreen.Load(hasProgress ? ShopSceneName : TutorialSceneName);
     }
 
     private void ResolveReferences()
@@ -892,5 +892,145 @@ public class MainMenuManager : MonoBehaviour
         {
             _mapSelectionUI.Show();
         }
+    }
+}
+
+public sealed class SceneLoadingScreen : MonoBehaviour
+{
+    private const float MinimumVisibleSeconds = 0.8f;
+    private static SceneLoadingScreen activeLoader;
+
+    private TMP_Text progressText;
+    private Image progressFill;
+
+    public static void Load(string sceneName)
+    {
+        if (activeLoader != null)
+        {
+            return;
+        }
+
+        GameObject loaderObject = new GameObject("SceneLoadingScreen");
+        activeLoader = loaderObject.AddComponent<SceneLoadingScreen>();
+        DontDestroyOnLoad(loaderObject);
+        activeLoader.StartCoroutine(activeLoader.LoadRoutine(sceneName));
+    }
+
+    private void Awake()
+    {
+        GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform));
+        canvasObject.transform.SetParent(transform, false);
+
+        Canvas canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 5000;
+
+        CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.matchWidthOrHeight = 0.5f;
+
+        Image background = canvasObject.AddComponent<Image>();
+        background.color = new Color(0.025f, 0.02f, 0.015f, 1f);
+        background.raycastTarget = false;
+        Stretch(background.rectTransform, 0f, 0f, 0f, 0f);
+
+        TMP_Text title = CreateText(canvasObject.transform, "Title", "ĐANG CHUẨN BỊ HÀNH TRÌNH", 38f, FontStyles.Bold, new Color(1f, 0.82f, 0.22f, 1f));
+        SetRect(title.rectTransform, new Vector2(0f, 64f), new Vector2(850f, 64f));
+
+        GameObject trackObject = new GameObject("ProgressTrack", typeof(RectTransform), typeof(Image));
+        trackObject.transform.SetParent(canvasObject.transform, false);
+        Image track = trackObject.GetComponent<Image>();
+        track.color = new Color(1f, 1f, 1f, 0.16f);
+        track.raycastTarget = false;
+        SetRect(track.rectTransform, new Vector2(0f, -4f), new Vector2(620f, 16f));
+
+        GameObject fillObject = new GameObject("ProgressFill", typeof(RectTransform), typeof(Image));
+        fillObject.transform.SetParent(trackObject.transform, false);
+        progressFill = fillObject.GetComponent<Image>();
+        progressFill.color = new Color(1f, 0.72f, 0.14f, 1f);
+        progressFill.raycastTarget = false;
+        RectTransform fillRect = progressFill.rectTransform;
+        fillRect.anchorMin = new Vector2(0f, 0f);
+        fillRect.anchorMax = new Vector2(0f, 1f);
+        fillRect.pivot = new Vector2(0f, 0.5f);
+        fillRect.anchoredPosition = Vector2.zero;
+        fillRect.sizeDelta = Vector2.zero;
+
+        progressText = CreateText(canvasObject.transform, "ProgressText", "Đang tải... 0%", 22f, FontStyles.Normal, new Color(0.92f, 0.9f, 0.84f, 1f));
+        SetRect(progressText.rectTransform, new Vector2(0f, -48f), new Vector2(620f, 38f));
+    }
+
+    private IEnumerator LoadRoutine(string sceneName)
+    {
+        // Render the overlay before starting heavier scene work.
+        yield return new WaitForEndOfFrame();
+
+        float startedAt = Time.unscaledTime;
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
+        operation.allowSceneActivation = false;
+
+        while (operation.progress < 0.9f || Time.unscaledTime - startedAt < MinimumVisibleSeconds)
+        {
+            UpdateProgress(Mathf.Clamp01(operation.progress / 0.9f));
+            yield return null;
+        }
+
+        UpdateProgress(1f);
+        yield return new WaitForEndOfFrame();
+        operation.allowSceneActivation = true;
+
+        while (!operation.isDone)
+        {
+            yield return null;
+        }
+
+        yield return new WaitForEndOfFrame();
+        activeLoader = null;
+        Destroy(gameObject);
+    }
+
+    private void UpdateProgress(float value)
+    {
+        if (progressFill != null)
+        {
+            progressFill.rectTransform.anchorMax = new Vector2(value, 1f);
+        }
+
+        if (progressText != null)
+        {
+            progressText.text = $"Đang tải... {Mathf.RoundToInt(value * 100f)}%";
+        }
+    }
+
+    private static TMP_Text CreateText(Transform parent, string name, string content, float fontSize, FontStyles style, Color color)
+    {
+        GameObject textObject = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObject.transform.SetParent(parent, false);
+        TMP_Text text = textObject.GetComponent<TMP_Text>();
+        text.text = content;
+        text.fontSize = fontSize;
+        text.fontStyle = style;
+        text.color = color;
+        text.alignment = TextAlignmentOptions.Center;
+        text.raycastTarget = false;
+        return text;
+    }
+
+    private static void Stretch(RectTransform rect, float left, float bottom, float right, float top)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = new Vector2(left, bottom);
+        rect.offsetMax = new Vector2(-right, -top);
+    }
+
+    private static void SetRect(RectTransform rect, Vector2 position, Vector2 size)
+    {
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
     }
 }

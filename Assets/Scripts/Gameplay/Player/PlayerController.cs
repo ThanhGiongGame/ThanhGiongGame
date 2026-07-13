@@ -9,12 +9,16 @@ public class PlayerController : MonoBehaviour
     private int attackId = 0;
     [Header("Movement")]
     public float moveSpeed = 5f;
+    public float sprintMultiplier = 1.8f;
     [HideInInspector]
     public float slashDamageMultiplier = 1.0f; // Defaults to 100% damage base
     [Header("Attack")]
     public GameObject slashPrefab;
+    [Range(0.001f, 0.1f)] public float attackArcMouseSensitivity = 0.015f;
+    [Min(1f)] public float attackArcMoveSpeed = 4f;
     [Header("Horse Rotation")]
     public float turnSpeed = 300f;
+    public float mountedTurnSpeed = 150f;
     public Transform attackSpawnPoint;
     public float attackInterval = 1.2f;   // 0.2s wind-up + 1.0s swing
     public float attackWindUp = 0.2f;   // delay before slash spawns
@@ -29,8 +33,10 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private PlayerHealth playerHealth;
     private Camera mainCamera;
-    private float walkTimer = 0f;
     private bool isAttacking;
+    private float attackArcPosition;
+    private float attackArcTarget;
+    private AttackDirection mountedAttackDirection = AttackDirection.North;
 
     // ---- Attack timer ----
     private float attackTimer;
@@ -84,6 +90,10 @@ public class PlayerController : MonoBehaviour
         }
 
         attackTimer = attackInterval;
+        if (GetComponent<AttackArcIndicator>() == null)
+        {
+            gameObject.AddComponent<AttackArcIndicator>();
+        }
 
         // --- Đọc dữ liệu Loadout từ Shop Menu ---
         if (PlayerPrefs.GetInt("Item_DamageBuff", 0) == 2)
@@ -127,7 +137,7 @@ public class PlayerController : MonoBehaviour
 
         if (!IsPerformingSkill)
         {
-            //HandleRotation();
+            UpdateAttackArcInput();
             HandleAttack();
         }
         HandleMovement();
@@ -302,36 +312,58 @@ public class PlayerController : MonoBehaviour
         {
             float horizontal = 0f;
             float vertical = 0f;
-            float moveMutiplier = 1f;
-            if (walkTimer > 3)
-            {
-                moveMutiplier = 1.8f;
-            }
-            else moveMutiplier = 1;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) horizontal -= 1f;
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) horizontal += 1f;
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) vertical -= 1f;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) vertical += 1f;
 
-            Vector3 camForward = mainCamera.transform.forward;
-            Vector3 camRight = mainCamera.transform.right;
-            camForward.y = 0f;
-            camRight.y = 0f;
-            camForward.Normalize();
-            camRight.Normalize();
+            bool wantsSprint = vertical > 0f
+                && (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
+            float moveMultiplier = wantsSprint ? sprintMultiplier : 1f;
 
-            Vector3 moveDir = (camForward * vertical + camRight * horizontal).normalized;
+            CameraController cameraController = mainCamera != null
+                ? mainCamera.GetComponent<CameraController>()
+                : null;
+            bool mountedThirdPerson = cameraController != null && cameraController.IsThirdPerson;
+            Vector3 moveDir;
 
-            if (camForward.sqrMagnitude > 0.01f)
+            if (mountedThirdPerson)
             {
-                Quaternion targetRot = Quaternion.LookRotation(camForward);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 15f * Time.deltaTime);
+                bool alignToCamera = Mouse.current != null && Mouse.current.rightButton.isPressed;
+                if (alignToCamera)
+                {
+                    RotateTowards(cameraController.GetPlanarForward());
+                }
+                else if (Mathf.Abs(horizontal) > 0.01f)
+                {
+                    transform.Rotate(Vector3.up, horizontal * mountedTurnSpeed * Time.deltaTime, Space.World);
+                }
+
+                // Mounted controls: W/S move along the horse's own heading; A/D steer it.
+                moveDir = transform.forward * vertical;
+                moveDir.y = 0f;
+                moveDir.Normalize();
+            }
+            else
+            {
+                Vector3 camForward = mainCamera.transform.forward;
+                Vector3 camRight = mainCamera.transform.right;
+                camForward.y = 0f;
+                camRight.y = 0f;
+                camForward.Normalize();
+                camRight.Normalize();
+
+                moveDir = (camForward * vertical + camRight * horizontal).normalized;
+                if (moveDir.sqrMagnitude > 0.01f)
+                {
+                    RotateTowards(moveDir);
+                }
             }
 
             moveVelocity =
                 moveDir
                 * moveSpeed
-                * moveMutiplier;
+                * moveMultiplier;
         }
         if (isKnockedBack)
         {
@@ -342,18 +374,10 @@ public class PlayerController : MonoBehaviour
                 Animator anim = GetComponentInChildren<Animator>();
                 if (anim != null) anim.SetBool("isWalking", false);
             }
-            walkTimer = 0f;
         }
         else
         {
             bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
-            if (hasHorizontalMovement) {
-                walkTimer += Time.deltaTime;
-            }
-            else
-            {
-                walkTimer = 0f;
-            }
             if (horseAnimator != null) horseAnimator.SetBool("isWalking", hasHorizontalMovement);
             if (riderAnimator != null) riderAnimator.SetBool("isWalking", hasHorizontalMovement);
             if (horseAnimator == null && riderAnimator == null)
@@ -464,6 +488,80 @@ public class PlayerController : MonoBehaviour
         // nửa trái
         return AttackDirection.West;
     }
+
+    public AttackDirection GetMountedAttackDirection()
+    {
+        return mountedAttackDirection;
+    }
+
+    public float MountedAttackArcPosition => attackArcPosition;
+
+    public string GetMountedAttackDirectionLabel()
+    {
+        return GetMountedAttackDirection() switch
+        {
+            AttackDirection.West => "TRÁI",
+            AttackDirection.East => "PHẢI",
+            _ => "GIỮA"
+        };
+    }
+
+    private void UpdateAttackArcInput()
+    {
+        CameraController cameraController = mainCamera != null
+            ? mainCamera.GetComponent<CameraController>()
+            : null;
+
+        if (cameraController == null || !cameraController.IsThirdPerson || Mouse.current == null)
+        {
+            return;
+        }
+
+        float horizontalMouseDelta = Mouse.current.delta.ReadValue().x;
+        if (Mathf.Abs(horizontalMouseDelta) > 0.001f)
+        {
+            attackArcTarget = Mathf.Clamp(
+                attackArcTarget + horizontalMouseDelta * attackArcMouseSensitivity,
+                -1f,
+                1f);
+        }
+
+        attackArcPosition = Mathf.MoveTowards(
+            attackArcPosition,
+            attackArcTarget,
+            attackArcMoveSpeed * Time.unscaledDeltaTime);
+        UpdateMountedAttackDirection();
+    }
+
+    private void UpdateMountedAttackDirection()
+    {
+        // Hysteresis stops the attack lane from flickering at a boundary.
+        switch (mountedAttackDirection)
+        {
+            case AttackDirection.West:
+                if (attackArcPosition > -0.2f)
+                {
+                    mountedAttackDirection = AttackDirection.North;
+                }
+                break;
+            case AttackDirection.East:
+                if (attackArcPosition < 0.2f)
+                {
+                    mountedAttackDirection = AttackDirection.North;
+                }
+                break;
+            default:
+                if (attackArcPosition <= -0.45f)
+                {
+                    mountedAttackDirection = AttackDirection.West;
+                }
+                else if (attackArcPosition >= 0.45f)
+                {
+                    mountedAttackDirection = AttackDirection.East;
+                }
+                break;
+        }
+    }
     private void HandleAttack()
     {
         attackTimer -= Time.deltaTime;
@@ -481,9 +579,29 @@ public class PlayerController : MonoBehaviour
 
         try
         {
-            TryGetMouseGroundPoint(out Vector3 targetPoint);
+            Vector3 targetPoint;
+            AttackDirection attackDir;
+            CameraController cameraController = mainCamera != null
+                ? mainCamera.GetComponent<CameraController>()
+                : null;
 
-            AttackDirection attackDir = GetAttackDirection();
+            if (cameraController != null && cameraController.IsThirdPerson)
+            {
+                attackDir = GetMountedAttackDirection();
+                float attackAngle = attackDir switch
+                {
+                    AttackDirection.West => -45f,
+                    AttackDirection.East => 45f,
+                    _ => 0f
+                };
+                Vector3 attackForward = Quaternion.Euler(0f, attackAngle, 0f) * transform.forward;
+                targetPoint = transform.position + attackForward * 6f;
+            }
+            else
+            {
+                TryGetMouseGroundPoint(out targetPoint);
+                attackDir = GetAttackDirection();
+            }
 
             if (riderAnimator != null)
             {
@@ -507,6 +625,21 @@ public class PlayerController : MonoBehaviour
             isAttacking = false;
         }
     }
+
+    private void RotateTowards(Vector3 direction)
+    {
+        if (direction.sqrMagnitude <= 0.01f)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.RotateTowards(
+            transform.rotation,
+            targetRotation,
+            turnSpeed * Time.deltaTime);
+    }
+
     public void EnableWeaponDamage()
     {
         weaponDamage.BeginAttack();
@@ -630,5 +763,69 @@ public class BasicSlashProjectile : MonoBehaviour
                 e.ApplyKnockbackStun(dir, 8f, 0.2f);
             }
         }
+    }
+}
+
+public class AttackArcIndicator : MonoBehaviour
+{
+    private const int ArcSegments = 25;
+    private const float ArcRadius = 3.4f;
+    private const float ArcHalfAngle = 55f;
+
+    private PlayerController playerController;
+    private LineRenderer arcLine;
+    private LineRenderer markerLine;
+
+    private void Start()
+    {
+        playerController = GetComponent<PlayerController>();
+        arcLine = CreateLine("AttackArc", 0.07f, new Color(1f, 0.68f, 0.12f, 0.42f));
+        markerLine = CreateLine("AttackArcMarker", 0.14f, new Color(1f, 0.92f, 0.28f, 0.95f));
+        arcLine.positionCount = ArcSegments;
+        markerLine.positionCount = 2;
+    }
+
+    private void Update()
+    {
+        CameraController cameraController = Camera.main != null
+            ? Camera.main.GetComponent<CameraController>()
+            : null;
+        bool visible = playerController != null && cameraController != null && cameraController.IsThirdPerson;
+
+        if (arcLine != null) arcLine.enabled = visible;
+        if (markerLine != null) markerLine.enabled = visible;
+        if (!visible)
+        {
+            return;
+        }
+
+        Vector3 origin = transform.position + Vector3.up * 0.08f;
+        for (int i = 0; i < ArcSegments; i++)
+        {
+            float t = i / (float)(ArcSegments - 1);
+            float angle = Mathf.Lerp(-ArcHalfAngle, ArcHalfAngle, t);
+            Vector3 direction = Quaternion.Euler(0f, angle, 0f) * transform.forward;
+            arcLine.SetPosition(i, origin + direction * ArcRadius);
+        }
+
+        float markerAngle = playerController.MountedAttackArcPosition * ArcHalfAngle;
+        Vector3 markerDirection = Quaternion.Euler(0f, markerAngle, 0f) * transform.forward;
+        markerLine.SetPosition(0, origin + markerDirection * 0.8f);
+        markerLine.SetPosition(1, origin + markerDirection * ArcRadius);
+    }
+
+    private LineRenderer CreateLine(string objectName, float width, Color color)
+    {
+        GameObject lineObject = new GameObject(objectName);
+        lineObject.transform.SetParent(transform, false);
+        LineRenderer line = lineObject.AddComponent<LineRenderer>();
+        line.material = new Material(Shader.Find("Sprites/Default"));
+        line.widthMultiplier = width;
+        line.startColor = color;
+        line.endColor = color;
+        line.useWorldSpace = true;
+        line.alignment = LineAlignment.View;
+        line.numCapVertices = 3;
+        return line;
     }
 }

@@ -27,6 +27,7 @@ public class ShopUI : MonoBehaviour
 
     private RectTransform root;
     private RectTransform listContent;
+    private RectTransform levelBadge;
     private TMP_Text titleText;
     private TMP_Text hintText;
     private TMP_Text currencyText;
@@ -150,7 +151,9 @@ public class ShopUI : MonoBehaviour
         RectTransform leftPanel = CreatePanel(root, "CleanLeftPanel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(36f, -86f), new Vector2(560f, 700f), new Vector2(0f, 1f));
         RectTransform rightPanel = CreatePanel(root, "CleanRightPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-36f, -86f), new Vector2(500f, 700f), new Vector2(1f, 1f));
 
-        currencyText = CreateText(root, "CurrencyText", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -28f), new Vector2(520f, 44f), new Vector2(0f, 1f), 28f, new Color(1f, 0.86f, 0.18f, 1f), FontStyles.Bold, TextAlignmentOptions.Left);
+        levelBadge = CreatePanel(root, "LevelBadge", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -28f), new Vector2(360f, 58f), new Vector2(0f, 1f), new Color(0.03f, 0.025f, 0.01f, 0.86f));
+        levelBadge.GetComponent<Image>().raycastTarget = false;
+        currencyText = CreateText(levelBadge, "CurrencyText", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), 28f, new Color(1f, 0.86f, 0.18f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
         escButton = CreateButton(root, "EscButton", "=", new Vector2(-34f, -28f), new Vector2(58f, 50f), ToggleEscMenu, new Color(0.05f, 0.045f, 0.025f, 0.96f), 34f, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f));
         StyleIconButton(escButton);
 
@@ -287,6 +290,7 @@ public class ShopUI : MonoBehaviour
         }
 
         listContent = FindRect(root, "ListContent");
+        levelBadge = FindRect(root, "LevelBadge");
         titleText = FindText(root, "PanelTitle");
         hintText = FindText(root, "PanelHint");
         currencyText = FindText(root, "CurrencyText");
@@ -322,7 +326,18 @@ public class ShopUI : MonoBehaviour
         RectTransform leftPanel = FindRect(root, "CleanLeftPanel");
         RectTransform rightPanel = FindRect(root, "CleanRightPanel");
 
-        currencyText ??= CreateText(root, "CurrencyText", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -28f), new Vector2(520f, 44f), new Vector2(0f, 1f), 28f, new Color(1f, 0.86f, 0.18f, 1f), FontStyles.Bold, TextAlignmentOptions.Left);
+        levelBadge ??= CreatePanel(root, "LevelBadge", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(38f, -28f), new Vector2(360f, 58f), new Vector2(0f, 1f), new Color(0.03f, 0.025f, 0.01f, 0.86f));
+        Image levelBadgeImage = levelBadge.GetComponent<Image>();
+        if (levelBadgeImage != null)
+        {
+            levelBadgeImage.raycastTarget = false;
+        }
+
+        currencyText ??= CreateText(levelBadge, "CurrencyText", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), 28f, new Color(1f, 0.86f, 0.18f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
+        if (currencyText.transform.parent != levelBadge)
+        {
+            currencyText.transform.SetParent(levelBadge, false);
+        }
 
         if (leftPanel != null)
         {
@@ -366,11 +381,16 @@ public class ShopUI : MonoBehaviour
         SetAnchorBox(rightPanel, new Vector2(0.695f, 0.24f), new Vector2(0.965f, 0.82f), Vector2.zero, Vector2.zero);
         SetAnchorBox(bottomNav, new Vector2(0.07f, 0.035f), new Vector2(0.93f, 0.14f), Vector2.zero, Vector2.zero);
 
+        if (levelBadge != null)
+        {
+            SetAnchorBox(levelBadge, new Vector2(0.04f, 0.885f), new Vector2(0.28f, 0.955f), Vector2.zero, Vector2.zero);
+        }
+
         if (currencyText != null)
         {
-            SetAnchorBox(currencyText.rectTransform, new Vector2(0.04f, 0.885f), new Vector2(0.33f, 0.955f), Vector2.zero, Vector2.zero);
+            SetAnchorBox(currencyText.rectTransform, Vector2.zero, Vector2.one, new Vector2(14f, 6f), new Vector2(-14f, -6f));
             currencyText.fontSize = 24f;
-            currencyText.alignment = TextAlignmentOptions.Left;
+            currencyText.alignment = TextAlignmentOptions.Center;
         }
 
         if (escButton != null)
@@ -438,9 +458,8 @@ public class ShopUI : MonoBehaviour
             SetAnchorBox(actionButton.GetComponent<RectTransform>(), new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.18f), Vector2.zero, Vector2.zero);
         }
 
-        LayoutBottomButton(equipmentTabButton, 0, 3);
-        LayoutBottomButton(mapTabButton, 1, 3);
-        LayoutBottomButton(FindButton(root, "PlayTab"), 2, 3);
+        LayoutBottomButton(equipmentTabButton, 0, 2);
+        LayoutBottomButton(mapTabButton, 1, 2);
 
         if (escMenuPanel != null)
         {
