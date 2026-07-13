@@ -10,14 +10,14 @@ public class LegendSystemSonTinh : MonoBehaviour
 
     // W1: Falling Rock
     private float rockTimer = 0f;
-    private float rockRate => 3f - (w1Level * 0.2f);
-    private float rockRadius => 6f + (w1Level * 1.0f); // Increased radius
-    private float rockDamage => 50f + (w1Level * 20f);
+    private float rockRate => 1.8f - (w1Level * 0.15f);
+    private float rockRadius => 3f + (w1Level * 0.5f); // Smaller radius
+    private float rockDamage => 100f + (w1Level * 40f);
 
-    // W2: Water Wave (Crosses right to left every 30s)
+    // W2: Water Wave (Crosses right to left)
     private float waveTimer = 0f;
-    private float waveRate => 30f;
-    private float waveDamage => 100f + (w2Level * 50f);
+    private float waveRate => 15f;
+    private float waveDamage => 200f + (w2Level * 100f);
 
     public void UpdateLevels(int w1, int w2, int evo)
     {
@@ -62,14 +62,14 @@ public class LegendSystemSonTinh : MonoBehaviour
     private void EvoUpdate()
     {
         rockTimer += Time.deltaTime;
-        if (rockTimer >= 2f)
+        if (rockTimer >= 1f)
         {
             rockTimer = 0f;
             DropRock(true);
         }
 
         waveTimer += Time.deltaTime;
-        if (waveTimer >= 4f)
+        if (waveTimer >= 2f)
         {
             waveTimer = 0f;
             SpawnWave(true);
@@ -93,10 +93,10 @@ public class LegendSystemSonTinh : MonoBehaviour
             string prefabName = isEvo ? "SonTinh_EvoRock" : "SonTinh_Rock";
             GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
             // spherical=true: rock faces camera, travelDirection=down so bottom of sprite points at ground
-            GameObject rock = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.3f, 0.3f, 0.3f), 0f, billboard: true, travelDirection: Vector3.down, spriteScale: isEvo ? 2.5f : 1.5f, spherical: true);
+            GameObject rock = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.3f, 0.3f, 0.3f), 0f, billboard: true, travelDirection: Vector3.down, spriteScale: isEvo ? 1.25f : 0.75f, spherical: true);
             rock.name = prefabName;
             rock.transform.position = target.position + Vector3.up * 10f; // Drop from sky
-            float radius = isEvo ? 8f : rockRadius;
+            float radius = isEvo ? 4f : rockRadius;
             if (rock.GetComponent<SpriteRenderer>() == null)
                 rock.transform.localScale = new Vector3(radius, radius, radius);
             
@@ -104,7 +104,7 @@ public class LegendSystemSonTinh : MonoBehaviour
             if (col != null) col.isTrigger = true;
 
             var logic = rock.AddComponent<SonTinhRock>();
-            logic.damage = isEvo ? 150f : rockDamage;
+            logic.damage = isEvo ? 300f : rockDamage;
             logic.isEvo = isEvo;
             logic.radius = radius;
             logic.groundY = 0f;
@@ -116,17 +116,17 @@ public class LegendSystemSonTinh : MonoBehaviour
         string prefabName = isEvo ? "SonTinh_EvoWave" : "SonTinh_Wave";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
         
-        // Spawn wave far to the right of the player
-        Vector3 spawnPos = transform.position + new Vector3(35f, 0.5f, 0f);
+        // Spawn wave far to the right and slightly behind the player
+        Vector3 spawnPos = transform.position + new Vector3(35f, 2.5f, 5f);
         
         // Spherical = false (cylindrical) so it stands upright. travelDirection = Vector3.left so its tip points left
-        GameObject wave = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.2f, 0.5f, 1f, 0.8f), 0f, billboard: true, travelDirection: Vector3.left, spriteScale: isEvo ? 8f : 5f, spherical: false);
+        GameObject wave = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.2f, 0.5f, 1f, 0.35f), 0f, billboard: true, travelDirection: Vector3.left, spriteScale: isEvo ? 4f : 2.5f, spherical: false);
         wave.name = prefabName;
         wave.transform.position = spawnPos;
 
         // If fallback primitive, make it a wide wall
         if (wave.GetComponent<SpriteRenderer>() == null)
-            wave.transform.localScale = new Vector3(2f, 5f, 30f);
+            wave.transform.localScale = new Vector3(1f, 2.5f, 15f);
         
         Collider col = wave.GetComponent<Collider>();
         if (col != null) col.isTrigger = true;
@@ -149,7 +149,7 @@ public class SonTinhRock : MonoBehaviour
 
     void Update()
     {
-        transform.position += Vector3.down * 20f * Time.deltaTime;
+        transform.position += Vector3.down * 40f * Time.deltaTime;
         
         if (transform.position.y <= groundY)
         {
@@ -227,12 +227,12 @@ public class SonTinhWave : MonoBehaviour
     void Update()
     {
         // Move horizontally from right to left
-        float speed = isEvo ? 20f : 12f;
+        float speed = isEvo ? 40f : 24f;
         transform.position += Vector3.left * speed * Time.deltaTime;
         lifeTime += Time.deltaTime;
 
         // Hit box: wide in Z, narrow in X
-        Vector3 boxSize = new Vector3(2f, 5f, 40f);
+        Vector3 boxSize = new Vector3(1f, 2.5f, 30f);
         Collider[] hits = Physics.OverlapBox(transform.position, boxSize / 2f, Quaternion.identity);
         foreach(var h in hits)
         {

@@ -10,12 +10,12 @@ public class LegendSystemLeLoi : MonoBehaviour
 
     // W1: Flying Swords
     private float swordTimer = 0f;
-    private float swordRate => 2f - (w1Level * 0.2f);
-    private float swordDamage => 35f + (w1Level * 10f);
+    private float swordRate => 1.2f - (w1Level * 0.15f);
+    private float swordDamage => 70f + (w1Level * 20f);
 
     // W2: Golden Turtle
     private GameObject turtle;
-    private float turtleDamage => 25f + (w2Level * 5f);
+    private float turtleDamage => 50f + (w2Level * 10f);
     private bool hasRevived = false;
 
     public void UpdateLevels(int w1, int w2, int evo)
@@ -83,7 +83,7 @@ public class LegendSystemLeLoi : MonoBehaviour
     private void EvoUpdate()
     {
         swordTimer += Time.deltaTime;
-        if (swordTimer >= 3f) // Slower but massive
+        if (swordTimer >= 1.5f) // Slower but massive
         {
             swordTimer = 0f;
             SpawnSword(true);
@@ -107,21 +107,21 @@ public class LegendSystemLeLoi : MonoBehaviour
         string prefabName = isEvo ? "LeLoi_GiantSword" : "LeLoi_Sword";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
         // travelDirection so the sword sprite tip points toward the enemy, spherical faces camera
-        GameObject sword = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.8f, 0.9f, 1f, 0.8f), 3f, billboard: true, travelDirection: dir, spriteScale: isEvo ? 2.5f : 1.5f, spherical: true);
+        GameObject sword = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.8f, 0.9f, 1f, 0.8f), 3f, billboard: true, travelDirection: dir, spriteScale: isEvo ? 1.5f : 1f, spherical: true);
         sword.name = prefabName;
         sword.transform.position = transform.position + Vector3.up * 1.5f;
         // Only set scale/rotation for 3D fallback, Billboard handles sprite
         if (sword.GetComponent<SpriteRenderer>() == null)
         {
-            sword.transform.localScale = isEvo ? new Vector3(1f, 0.2f, 4f) : new Vector3(0.2f, 0.1f, 1.5f);
+            sword.transform.localScale = isEvo ? new Vector3(0.5f, 0.1f, 2f) : new Vector3(0.1f, 0.05f, 0.75f);
             sword.transform.rotation = Quaternion.LookRotation(dir);
         }
 
         Collider col = sword.GetComponent<Collider>();
-        if (col != null) { col.isTrigger = true; if (col is BoxCollider bc) bc.size = new Vector3(4f, 4f, 4f); }
+        if (col != null) { col.isTrigger = true; if (col is BoxCollider bc) bc.size = new Vector3(2f, 2f, 2f); }
 
         var logic = sword.AddComponent<LeLoiSword>();
-        logic.damage = isEvo ? 200f : swordDamage;
+        logic.damage = isEvo ? 400f : swordDamage;
         logic.dir = dir;
         logic.isEvo = isEvo;
 
@@ -136,17 +136,17 @@ public class LegendSystemLeLoi : MonoBehaviour
     {
         string prefabName = isEvo ? "LeLoi_EvoTurtle" : "LeLoi_Turtle";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        turtle = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Sphere, new Color(0.8f, 0.6f, 0f), 2f, billboard: true, spriteScale: isEvo ? 2f : 1.5f);
+        turtle = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Sphere, new Color(0.8f, 0.6f, 0f), 2f, billboard: true, spriteScale: isEvo ? 1f : 0.75f);
         turtle.name = prefabName;
         turtle.transform.position = transform.position + Vector3.right * 2f + Vector3.up * 4.5f; // Raised Y
         if (turtle.GetComponent<SpriteRenderer>() == null)
-            turtle.transform.localScale = isEvo ? new Vector3(2f, 1f, 2f) : new Vector3(1f, 0.5f, 1f);
+            turtle.transform.localScale = isEvo ? new Vector3(1f, 0.5f, 1f) : new Vector3(0.5f, 0.25f, 0.5f);
 
         Collider col = turtle.GetComponent<Collider>();
-        if (col != null) { col.isTrigger = true; if (col is SphereCollider sc) sc.radius = 2.5f; }
+        if (col != null) { col.isTrigger = true; if (col is SphereCollider sc) sc.radius = 1.25f; }
 
         var logic = turtle.AddComponent<LeLoiTurtle>();
-        logic.damage = isEvo ? 100f : turtleDamage;
+        logic.damage = isEvo ? 200f : turtleDamage;
         logic.player = transform;
 
         Rigidbody rb = turtle.AddComponent<Rigidbody>();
@@ -214,7 +214,7 @@ public class LeLoiSword : MonoBehaviour
 
     void Update()
     {
-        transform.position += dir * (isEvo ? 15f : 25f) * Time.deltaTime;
+        transform.position += dir * (isEvo ? 30f : 50f) * Time.deltaTime;
     }
 
     void OnTriggerEnter(Collider other)
@@ -277,7 +277,7 @@ public class LeLoiTurtle : MonoBehaviour
         
         targetPos.y += 1.5f; // Raise Y so turtle hovers
 
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, 8f * Time.deltaTime);
+        transform.position = Vector3.MoveTowards(transform.position, targetPos, 16f * Time.deltaTime);
     }
 
     void OnTriggerStay(Collider other)

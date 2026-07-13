@@ -10,13 +10,13 @@ public class LegendSystemThanhGiong : MonoBehaviour
 
     // W1: Tre Ngà
     private float bambooTimer = 0f;
-    private float bambooRate => 2.5f - (w1Level * 0.2f);
-    private float bambooDamage => 20f + (w1Level * 10f);
+    private float bambooRate => 1.5f - (w1Level * 0.15f);
+    private float bambooDamage => 40f + (w1Level * 20f);
 
     // W2: Ngựa Sắt Phun Lửa (Fire Trail)
     private float fireTimer = 0f;
-    private float fireRate = 0.5f;
-    private float fireDamage => 15f + (w2Level * 5f);
+    private float fireRate = 0.3f;
+    private float fireDamage => 30f + (w2Level * 10f);
     private Vector3 lastFirePos;
 
     private PlayerController pc;
@@ -82,14 +82,14 @@ public class LegendSystemThanhGiong : MonoBehaviour
     private void EvoUpdate()
     {
         bambooTimer += Time.deltaTime;
-        if (bambooTimer >= 1.5f)
+        if (bambooTimer >= 1.0f)
         {
             bambooTimer = 0f;
             SpawnBamboo(true);
         }
 
         fireTimer += Time.deltaTime;
-        if (fireTimer >= 0.3f && Vector3.Distance(transform.position, lastFirePos) > 1.5f)
+        if (fireTimer >= 0.15f && Vector3.Distance(transform.position, lastFirePos) > 1.5f)
         {
             fireTimer = 0f;
             lastFirePos = transform.position;
@@ -104,18 +104,17 @@ public class LegendSystemThanhGiong : MonoBehaviour
         
         string prefabName = isEvo ? "ThanhGiong_EvoBamboo" : "ThanhGiong_Bamboo";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        // Bamboo stands vertically — no travelDirection needed (it stays still)
-        GameObject bamboo = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cylinder, new Color(0.8f, 0.9f, 0.2f), 0f, billboard: true, spriteScale: isEvo ? 2f : 1.2f);
-        bamboo.name = prefabName;
-        bamboo.transform.position = pos + Vector3.up * 1f;
-        if (bamboo.GetComponent<SpriteRenderer>() == null)
-            bamboo.transform.localScale = new Vector3(0.3f, 1.5f, 0.3f);
         
-        Collider col = bamboo.GetComponent<Collider>();
-        if (col != null) { col.isTrigger = false; if (col is BoxCollider bc) bc.size = new Vector3(3f, 3f, 3f); } // Solid obstacle with big hitbox
+        GameObject bamboo = prefab != null ? Instantiate(prefab) : Create3DBamboo(prefabName, isEvo);
+        bamboo.transform.position = pos + Vector3.up * (isEvo ? 1f : 0.75f);
+        
+        BoxCollider bc = bamboo.GetComponent<BoxCollider>();
+        if (bc == null) bc = bamboo.AddComponent<BoxCollider>();
+        bc.isTrigger = false; 
+        bc.size = new Vector3(1.5f, 1.5f, 1.5f); // Solid obstacle with big hitbox
 
         var logic = bamboo.AddComponent<ThanhGiongBamboo>();
-        logic.damage = isEvo ? 80f : bambooDamage;
+        logic.damage = isEvo ? 150f : bambooDamage;
         logic.isEvo = isEvo;
 
         // Brown ground dust — bamboo stabs into earth
@@ -129,26 +128,74 @@ public class LegendSystemThanhGiong : MonoBehaviour
         Destroy(bamboo, 10f);
     }
 
+    private GameObject Create3DBamboo(string prefabName, bool isEvo)
+    {
+        GameObject bamboo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        bamboo.name = prefabName;
+        bamboo.transform.localScale = isEvo ? new Vector3(0.5f, 2f, 0.5f) : new Vector3(0.3f, 1.5f, 0.3f);
+        
+        Renderer rend = bamboo.GetComponent<Renderer>();
+        if (rend != null)
+        {
+            Shader urpShader = Shader.Find("Universal Render Pipeline/Lit");
+            Shader stdShader = Shader.Find("Standard");
+            Shader shaderToUse = urpShader != null ? urpShader : stdShader;
+            
+            Material mat = new Material(shaderToUse);
+            Sprite sprite = Resources.Load<Sprite>("Sprites/" + prefabName);
+            
+            if (sprite != null)
+            {
+                if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", sprite.texture);
+                if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", sprite.texture);
+                
+                if (urpShader != null)
+                {
+                    mat.SetFloat("_AlphaClip", 1f);
+                    mat.SetFloat("_Cutoff", 0.5f);
+                }
+                else
+                {
+                    mat.SetFloat("_Mode", 1f);
+                    mat.EnableKeyword("_ALPHATEST_ON");
+                    mat.renderQueue = 2450;
+                }
+            }
+            else
+            {
+                Color fbColor = new Color(0.8f, 0.9f, 0.2f);
+                if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", fbColor);
+                if (mat.HasProperty("_Color")) mat.SetColor("_Color", fbColor);
+            }
+            
+            rend.material = mat;
+            rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+            rend.receiveShadows = true;
+        }
+        
+        return bamboo;
+    }
+
     private void SpawnFire(bool isEvo)
     {
         string prefabName = isEvo ? "ThanhGiong_EvoFire" : "ThanhGiong_Fire";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
         // Fire trail is flat on the ground — no direction needed
-        GameObject fire = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, isEvo ? new Color(1f, 0.5f, 0f, 0.8f) : new Color(1f, 0.2f, 0f, 0.6f), isEvo ? 3f : 1.5f, billboard: false, isFlat: true, spriteScale: isEvo ? 2f : 1.5f);
+        GameObject fire = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, isEvo ? new Color(1f, 0.5f, 0f, 0.8f) : new Color(1f, 0.2f, 0f, 0.6f), isEvo ? 3f : 1.5f, billboard: false, isFlat: true, spriteScale: isEvo ? 1f : 0.75f);
         fire.name = prefabName;
         fire.transform.position = transform.position + Vector3.up * 0.5f;
         if (fire.GetComponent<SpriteRenderer>() == null)
-            fire.transform.localScale = isEvo ? new Vector3(1.5f, 3f, 1.5f) : new Vector3(1f, 1f, 1f);
+            fire.transform.localScale = isEvo ? new Vector3(0.75f, 1.5f, 0.75f) : new Vector3(0.5f, 0.5f, 0.5f);
         
         Collider col = fire.GetComponent<Collider>();
         if (col != null) Destroy(col);
         
         SphereCollider trigger = fire.AddComponent<SphereCollider>();
         trigger.isTrigger = true;
-        trigger.radius = isEvo ? 3f : 2f; // Increased hitbox
+        trigger.radius = isEvo ? 1.5f : 1f; // Increased hitbox
         
         var logic = fire.AddComponent<ThanhGiongFire>();
-        logic.damage = isEvo ? 60f : fireDamage;
+        logic.damage = isEvo ? 120f : fireDamage;
 
         Rigidbody rb = fire.AddComponent<Rigidbody>();
         rb.useGravity = false;
@@ -188,7 +235,7 @@ public class ThanhGiongBamboo : MonoBehaviour
     {
         if (isEvo && target != null)
         {
-            transform.position = Vector3.MoveTowards(transform.position, target.position, 15f * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, target.position, 30f * Time.deltaTime);
         }
     }
 

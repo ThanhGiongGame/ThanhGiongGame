@@ -15,7 +15,7 @@ public class LegendSystemCoLoa : MonoBehaviour
     // W2: Mai Rùa Vàng
     private List<GameObject> shields = new List<GameObject>();
     private float shieldRadius = 6f;
-    private float shieldRotSpeed = 90f;
+    private float shieldRotSpeed = 200f;
 
     public void UpdateLevels(int w1, int w2, int evo)
     {
@@ -124,8 +124,8 @@ public class LegendSystemCoLoa : MonoBehaviour
 
         var proj = arrow.AddComponent<CoLoaArrow>();
         proj.dir = dir;
-        proj.speed = 20f;
-        proj.damage = isEvo ? 50f : 15f + (w1Level * 5f);
+        proj.speed = 40f;
+        proj.damage = isEvo ? 100f : 30f + (w1Level * 10f);
         proj.isEvo = isEvo;
     }
 
@@ -138,13 +138,13 @@ public class LegendSystemCoLoa : MonoBehaviour
             GameObject prefab = Resources.Load<GameObject>("Prefabs/CoLoa_Shield");
             GameObject shield = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual("CoLoa_Shield", PrimitiveType.Sphere, new Color(1f, 0.9f, 0f, 0.5f), 1.5f, billboard: true);
             shield.name = "CoLoa_Shield";
-            shield.transform.localScale = new Vector3(1f, 1f, 1f);
+            shield.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
             
             Collider col = shield.GetComponent<Collider>();
             if (col != null) col.isTrigger = true;
             
             var logic = shield.AddComponent<CoLoaShield>();
-            logic.damage = 10f + (w2Level * 5f);
+            logic.damage = 20f + (w2Level * 10f);
             logic.parentSystem = this;
 
             shields.Add(shield);
@@ -159,13 +159,13 @@ public class LegendSystemCoLoa : MonoBehaviour
             GameObject prefab = Resources.Load<GameObject>("Prefabs/CoLoa_EvoShield");
             GameObject shield = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual("CoLoa_EvoShield", PrimitiveType.Sphere, new Color(1f, 0.5f, 0f, 0.6f), 2.5f, billboard: true);
             shield.name = "CoLoa_EvoShield";
-            shield.transform.localScale = new Vector3(2.5f, 2.5f, 2.5f); // Increased hitbox
+            shield.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f); // Increased hitbox
             
             Collider col = shield.GetComponent<Collider>();
             if (col != null) { col.isTrigger = true; ((SphereCollider)col).radius = 0.8f; }
             
             var logic = shield.AddComponent<CoLoaShield>();
-            logic.damage = 80f;
+            logic.damage = 160f;
             logic.parentSystem = this;
             logic.isEvo = true;
             logic.hp = 10; // Extra durability for evo
@@ -182,7 +182,8 @@ public class LegendSystemCoLoa : MonoBehaviour
         {
             if (shields[i] == null) continue;
             float angle = (Time.time * shieldRotSpeed) + (i * angleStep);
-            Vector3 offset = new Vector3(Mathf.Sin(angle * Mathf.Deg2Rad), 0f, Mathf.Cos(angle * Mathf.Deg2Rad)) * shieldRadius;
+            float radius = evoLevel > 0 ? shieldRadius + 3f : shieldRadius;
+            Vector3 offset = new Vector3(Mathf.Sin(angle * Mathf.Deg2Rad), 0f, Mathf.Cos(angle * Mathf.Deg2Rad)) * radius;
             shields[i].transform.position = transform.position + Vector3.up * 1f + offset;
         }
     }

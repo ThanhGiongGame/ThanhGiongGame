@@ -11,13 +11,13 @@ public class LegendSystemDongA : MonoBehaviour
     // W1: Hịch Tướng Sĩ
     private List<GameObject> ribbons = new List<GameObject>();
     private float ribbonRadius => 7f + (w1Level * 0.5f); // Increased from 3f
-    private float ribbonSpeed = 120f;
-    private float ribbonDamage => 10f + (w1Level * 5f);
+    private float ribbonSpeed = 250f;
+    private float ribbonDamage => 20f + (w1Level * 10f);
     
     // W2: Cọc Bạch Đằng
     private float stakeTimer = 0f;
-    private float stakeInterval => 2f - (w2Level * 0.2f);
-    private float stakeDamage => 30f + (w2Level * 10f);
+    private float stakeInterval => 1.2f - (w2Level * 0.15f);
+    private float stakeDamage => 60f + (w2Level * 20f);
 
     public void UpdateLevels(int w1, int w2, int evo)
     {
@@ -63,16 +63,16 @@ public class LegendSystemDongA : MonoBehaviour
             Color col = isEvo ? new Color(1f, 0.2f, 0f, 0.8f) : new Color(0.9f, 0.9f, 0.9f, 0.8f);
             GameObject ribbon = prefab != null ? Instantiate(prefab) :
                 LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, col,
-                    isEvo ? 2f : 1f, billboard: true, spriteScale: isEvo ? 2.5f : 1.8f);
+                    isEvo ? 2f : 1f, billboard: true, spriteScale: isEvo ? 1.5f : 1f);
             ribbon.name = prefabName;
             if (ribbon.GetComponent<SpriteRenderer>() == null)
-                ribbon.transform.localScale = new Vector3(0.2f, 2f, 0.2f);
+                ribbon.transform.localScale = new Vector3(0.1f, 1f, 0.1f);
             
             Collider col2 = ribbon.GetComponent<Collider>();
-            if (col2 != null) { col2.isTrigger = true; ((BoxCollider)col2).size = new Vector3(3f, 3f, 3f); } // Huge hitbox for ribbon
+            if (col2 != null) { col2.isTrigger = true; ((BoxCollider)col2).size = new Vector3(1.5f, 1.5f, 1.5f); } // Huge hitbox for ribbon
             
             var logic = ribbon.AddComponent<DongARibbon>();
-            logic.damage = isEvo ? 80f : ribbonDamage;
+            logic.damage = isEvo ? 160f : ribbonDamage;
             logic.isEvo = isEvo;
             
             Rigidbody rb = ribbon.AddComponent<Rigidbody>();
@@ -87,7 +87,7 @@ public class LegendSystemDongA : MonoBehaviour
     {
         if (ribbons.Count == 0) return;
         Camera cam = Camera.main;
-        float currentRadius = isEvo ? 4f : ribbonRadius;
+        float currentRadius = isEvo ? 8f : ribbonRadius;
         float angleStep = 360f / ribbons.Count;
         for (int i = 0; i < ribbons.Count; i++)
         {
@@ -114,17 +114,17 @@ public class LegendSystemDongA : MonoBehaviour
         string prefabName = isEvo ? "DongA_EvoStake" : "DongA_Stake";
         GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
         // Stakes rise from ground — sprite tip points upward (Vector3.up)
-        GameObject stake = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cylinder, new Color(0.4f, 0.2f, 0.1f), isEvo ? 2f : 0f, billboard: true, travelDirection: Vector3.up, spriteScale: isEvo ? 2f : 1.2f);
+        GameObject stake = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cylinder, new Color(0.4f, 0.2f, 0.1f), isEvo ? 2f : 0f, billboard: true, travelDirection: Vector3.up, spriteScale: isEvo ? 1f : 0.6f);
         stake.name = prefabName;
         stake.transform.position = transform.position + Vector3.up * 0.5f;
         if (stake.GetComponent<SpriteRenderer>() == null)
-            stake.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            stake.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
         
         Collider col = stake.GetComponent<Collider>();
-        if (col != null) { col.isTrigger = true; if (col is BoxCollider bc) bc.size = new Vector3(4f, 4f, 4f); } // Huge hitbox
+        if (col != null) { col.isTrigger = true; if (col is BoxCollider bc) bc.size = new Vector3(2f, 2f, 2f); } // Huge hitbox
         
         var logic = stake.AddComponent<DongAStake>();
-        logic.damage = isEvo ? 150f : stakeDamage;
+        logic.damage = isEvo ? 300f : stakeDamage;
         logic.isEvo = isEvo;
 
         Rigidbody rb = stake.AddComponent<Rigidbody>();
