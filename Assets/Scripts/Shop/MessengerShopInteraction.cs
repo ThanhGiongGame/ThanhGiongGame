@@ -4,8 +4,19 @@ using TMPro;
 
 public class MessengerShopInteraction : MonoBehaviour
 {
+    [Header("Audio")]
+    public AudioSource dialogueAudioSource;
+    public AudioClip voiceMap1;
+    public AudioClip voiceMap2;
+    public AudioClip voiceDefault;
+
     private int pendingMap;
     private GameObject dialogueCanvas;
+    private Coroutine typewriterCoroutine;
+    private TextMeshProUGUI bodyTextTMP;
+    private GameObject continueIndicator;
+    private bool typewriterDone;
+    private string fullDialogueText;
 
     private void Start()
     {
@@ -192,10 +203,27 @@ public class MessengerShopInteraction : MonoBehaviour
         bodyRT.offsetMin = new Vector2(30f, 70f);
         bodyRT.offsetMax = new Vector2(-30f, -60f);
         TextMeshProUGUI bodyTMP = bodyGO.AddComponent<TextMeshProUGUI>();
-        bodyTMP.text = dialogueText;
+        bodyTMP.text = "";
         bodyTMP.fontSize = 24;
         bodyTMP.color = Color.white;
         bodyTMP.enableWordWrapping = true;
+        bodyTextTMP = bodyTMP;
+
+        // Continue Indicator
+        continueIndicator = new GameObject("ContinueIndicator");
+        continueIndicator.transform.SetParent(boxGO.transform, false);
+        RectTransform indRT = continueIndicator.AddComponent<RectTransform>();
+        indRT.anchorMin = new Vector2(0.5f, 0f);
+        indRT.anchorMax = new Vector2(0.5f, 0f);
+        indRT.pivot = new Vector2(0.5f, 0f);
+        indRT.anchoredPosition = new Vector2(0f, 70f);
+        indRT.sizeDelta = new Vector2(40f, 32f);
+        TextMeshProUGUI indTMP = continueIndicator.AddComponent<TextMeshProUGUI>();
+        indTMP.text = "...";
+        indTMP.fontSize = 24f;
+        indTMP.color = new Color(1f, 0.85f, 0.3f, 1f);
+        indTMP.alignment = TextAlignmentOptions.Center;
+        continueIndicator.SetActive(false);
 
         // Continue Button
         GameObject btnGO = new GameObject("ContinueButton");
@@ -209,7 +237,7 @@ public class MessengerShopInteraction : MonoBehaviour
         Image btnImg = btnGO.AddComponent<Image>();
         btnImg.color = new Color(0.2f, 0.2f, 0.2f, 1f);
         Button btn = btnGO.AddComponent<Button>();
-        btn.onClick.AddListener(OnDialogueComplete);
+        btn.onClick.AddListener(OnContinueClicked);
 
         GameObject btnTextGO = new GameObject("BtnText");
         btnTextGO.transform.SetParent(btnGO.transform, false);
@@ -223,6 +251,72 @@ public class MessengerShopInteraction : MonoBehaviour
         btnTMP.color = Color.white;
         btnTMP.alignment = TextAlignmentOptions.Center;
         btnTMP.fontStyle = FontStyles.Bold;
+
+        // Play audio
+        AudioClip clipToPlay = voiceDefault;
+        if (pendingMap == 1) clipToPlay = voiceMap1;
+        else if (pendingMap == 2) clipToPlay = voiceMap2;
+
+        if (dialogueAudioSource != null && clipToPlay != null)
+        {
+            dialogueAudioSource.Stop();
+            dialogueAudioSource.clip = clipToPlay;
+            dialogueAudioSource.Play();
+        }
+
+        fullDialogueText = dialogueText;
+        typewriterDone = false;
+        if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
+        typewriterCoroutine = StartCoroutine(TypewriterEffect(dialogueText));
+    }
+
+    private System.Collections.IEnumerator TypewriterEffect(string text)
+    {
+        if (bodyTextTMP == null) yield break;
+        bodyTextTMP.text = string.Empty;
+        for (int i = 0; i < text.Length; i++)
+        {
+            bodyTextTMP.text += text[i];
+            yield return new WaitForSecondsRealtime(0.038f);
+        }
+        typewriterDone = true;
+        if (continueIndicator != null)
+        {
+            continueIndicator.SetActive(true);
+            StartCoroutine(BlinkIndicator());
+        }
+    }
+
+    private System.Collections.IEnumerator BlinkIndicator()
+    {
+        while (continueIndicator != null && continueIndicator.activeSelf)
+        {
+            continueIndicator.SetActive(false);
+            yield return new WaitForSecondsRealtime(0.38f);
+            if (continueIndicator != null) continueIndicator.SetActive(true);
+            yield return new WaitForSecondsRealtime(0.38f);
+        }
+    }
+
+    private void OnContinueClicked()
+    {
+        if (!typewriterDone)
+        {
+            // Bỏ qua hiệu ứng gõ phím
+            if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
+            if (dialogueAudioSource != null) dialogueAudioSource.Stop();
+            if (bodyTextTMP != null) bodyTextTMP.text = fullDialogueText;
+            typewriterDone = true;
+            if (continueIndicator != null)
+            {
+                continueIndicator.SetActive(true);
+                StartCoroutine(BlinkIndicator());
+            }
+        }
+        else
+        {
+            OnDialogueComplete();
+        }
     }
 
     private void OnDialogueComplete()
