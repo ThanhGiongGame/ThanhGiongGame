@@ -1,4 +1,6 @@
 using System.Collections;
+using System;
+using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,11 +12,8 @@ using UnityEngine.InputSystem;
 
 public class MainMenuManager : MonoBehaviour
 {
-    private const string ShopSceneName = "GameShopScene";
     private const string TutorialSceneName = "TutorialScene";
-    private const string TutorialCompleteKey = "TutorialComplete";
     private const string HasSeenIntroKey = "HasSeenIntro";
-    private const string VinhDanhTotalKey = "VinhDanhTotal";
 
     [Header("UI Panels")]
     public GameObject settingsPanel;
@@ -134,6 +133,8 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
 
+        GameProgressSave.BeginNewGame();
+
         if (introVideoPanel == null || introVideoPlayer == null)
         {
             LoadNextScene();
@@ -164,7 +165,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void ContinueGame()
     {
-        if (isLoadingScene)
+        if (isLoadingScene || !GameProgressSave.HasSave)
         {
             return;
         }
@@ -283,11 +284,6 @@ public class MainMenuManager : MonoBehaviour
 
     private IEnumerator LoadNextSceneAfterUiEvent()
     {
-        if (!PlayerPrefs.HasKey(VinhDanhTotalKey))
-        {
-            PlayerPrefs.SetInt(VinhDanhTotalKey, 0);
-        }
-
         PlayerPrefs.SetInt(HasSeenIntroKey, 1);
         PlayerPrefs.Save();
 
@@ -300,18 +296,12 @@ public class MainMenuManager : MonoBehaviour
     {
         yield return null;
 
-        if (!PlayerPrefs.HasKey(VinhDanhTotalKey))
-        {
-            PlayerPrefs.SetInt(VinhDanhTotalKey, 0);
-            PlayerPrefs.Save();
-        }
-
         Time.timeScale = 1f;
-        bool hasProgress = PlayerPrefs.GetInt(TutorialCompleteKey, 0) == 1
-            || PlayerPrefs.GetInt(HasSeenIntroKey, 0) == 1
-            || PlayerPrefs.GetInt(VinhDanhTotalKey, 0) > 0;
-
-        SceneLoadingScreen.Load(hasProgress ? ShopSceneName : TutorialSceneName);
+        string sceneName = GameProgressSave.GetContinueSceneName();
+        if (!string.IsNullOrEmpty(sceneName))
+        {
+            SceneLoadingScreen.Load(sceneName);
+        }
     }
 
     private void ResolveReferences()
@@ -367,6 +357,13 @@ public class MainMenuManager : MonoBehaviour
             EnsureMenuButtonClone(settingsBtnGO, "QUIT", QuitGame);
         }
 
+        bool hasSave = GameProgressSave.HasSave;
+        GameObject continueButtonObject = FindByName("CONTINUE");
+        if (continueButtonObject != null)
+        {
+            continueButtonObject.SetActive(hasSave);
+        }
+
         GameObject mapButtonObject = FindByName("MAP_SELECT");
         if (mapButtonObject != null)
         {
@@ -374,10 +371,10 @@ public class MainMenuManager : MonoBehaviour
         }
 
         // 2. Định vị lại menu chính cho flow rõ hơn.
-        ConfigureMenuButton("PLAY", new Vector2(0f, 168f), "BẮT ĐẦU HÀNH TRÌNH");
-        ConfigureMenuButton("CONTINUE", new Vector2(0f, 56f), "TIẾP TỤC");
-        ConfigureMenuButton("SETTINGS", new Vector2(0f, -56f), "CÀI ĐẶT");
-        ConfigureMenuButton("QUIT", new Vector2(0f, -168f), "THOÁT GAME");
+        ConfigureMenuButton("PLAY", new Vector2(0f, hasSave ? 238f : 168f), "BẮT ĐẦU MỚI");
+        ConfigureMenuButton("CONTINUE", new Vector2(0f, 98f), "TIẾP TỤC");
+        ConfigureMenuButton("SETTINGS", new Vector2(0f, hasSave ? -42f : 28f), "CÀI ĐẶT");
+        ConfigureMenuButton("QUIT", new Vector2(0f, hasSave ? -182f : -112f), "THOÁT GAME");
         NormalizeSettingsPanel();
         NormalizeIntroVideoPanel();
     }
@@ -1032,5 +1029,122 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         rect.pivot = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = position;
         rect.sizeDelta = size;
+    }
+}
+
+[Serializable]
+public class GameProgressData
+{
+    public int version = 1;
+    public bool hasStartedGame;
+    public bool tutorialComplete;
+    public string checkpointScene;
+}
+
+public static class GameProgressSave
+{
+    public const string TutorialSceneName = "TutorialScene";
+    public const string ShopSceneName = "GameShopScene";
+
+    private const string FileName = "thanh-giong-progress.json";
+
+    private static string SavePath => Path.Combine(Application.persistentDataPath, FileName);
+
+    public static bool HasSave
+    {
+        get
+        {
+            GameProgressData data = Load();
+            return data != null && data.hasStartedGame;
+        }
+    }
+
+    public static void BeginNewGame()
+    {
+        ResetGameplayPreferences();
+        Write(new GameProgressData
+        {
+            hasStartedGame = true,
+            tutorialComplete = false,
+            checkpointScene = TutorialSceneName
+        });
+    }
+
+    public static void MarkTutorialComplete()
+    {
+        GameProgressData data = Load() ?? new GameProgressData();
+        data.hasStartedGame = true;
+        data.tutorialComplete = true;
+        data.checkpointScene = ShopSceneName;
+        Write(data);
+    }
+
+    public static string GetContinueSceneName()
+    {
+        GameProgressData data = Load();
+        if (data == null || !data.hasStartedGame)
+        {
+            return null;
+        }
+
+        return data.tutorialComplete ? ShopSceneName : TutorialSceneName;
+    }
+
+    private static GameProgressData Load()
+    {
+        if (!File.Exists(SavePath))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonUtility.FromJson<GameProgressData>(File.ReadAllText(SavePath));
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"[GameProgressSave] Could not read save file: {exception.Message}");
+            return null;
+        }
+    }
+
+    private static void Write(GameProgressData data)
+    {
+        Directory.CreateDirectory(Application.persistentDataPath);
+        File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
+    }
+
+    private static void ResetGameplayPreferences()
+    {
+        string[] keys =
+        {
+            "TutorialComplete",
+            "HasSeenIntro",
+            "VinhDanhTotal",
+            "TotalEnemiesKilled",
+            "PersistentPlayerLevel",
+            "SelectedMap",
+            "PendingMapUnlock",
+            "EquippedCharacter",
+            "EquippedHorse",
+            "EquippedWeapon",
+            "Item_DamageBuff",
+            "Item_HealthBuff",
+            "Item_SpeedBuff"
+        };
+
+        foreach (string key in keys)
+        {
+            PlayerPrefs.DeleteKey(key);
+        }
+
+        for (int mapIndex = 0; mapIndex < 3; mapIndex++)
+        {
+            PlayerPrefs.DeleteKey("UnlockedMap_" + mapIndex);
+            PlayerPrefs.DeleteKey("MapFinished_" + mapIndex);
+            PlayerPrefs.DeleteKey("MaxTimeMap_" + mapIndex);
+        }
+
+        PlayerPrefs.Save();
     }
 }

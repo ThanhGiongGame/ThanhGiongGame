@@ -97,6 +97,7 @@ public class TutorialController : MonoBehaviour
         PulseMarker(moveMarker, new Vector3(1.2f, 0.04f, 1.2f));
         PulseMarker(fightMarker, new Vector3(1.25f, 0.04f, 1.25f));
         PulseMarker(gateMarker, new Vector3(1.4f, 0.04f, 1.4f));
+        SetChickenSkipVisible(phase >= 3 && phase <= 6 && !routineRunning);
 
         if (waitingForDialogue && WasConfirmPressed())
         {
@@ -375,6 +376,7 @@ public class TutorialController : MonoBehaviour
         yield return new WaitForSecondsRealtime(0.8f);
 
         yield return FadeToWhite();
+        GameProgressSave.MarkTutorialComplete();
         PlayerPrefs.SetInt("TutorialComplete", 1);
         PlayerPrefs.Save();
         SceneManager.LoadScene(ShopSceneName);
@@ -576,8 +578,9 @@ public class TutorialController : MonoBehaviour
         objectiveRect.pivot = new Vector2(0.5f, 1f);
         objectiveRect.anchoredPosition = new Vector2(0f, -34f);
 
-        // ── Skip button ───────────────────────────────────────────────────────
-        skipButton = CreateButton(canvasObject.transform, "BỎ QUA", Vector2.zero, new Vector2(170f, 50f), new Color(0.13f, 0.15f, 0.18f), FinishTutorialNow);
+        // ── Chicken challenge skip ────────────────────────────────────────────
+        // Only appears during combat. It preserves the opening and envoy dialogue.
+        skipButton = CreateButton(canvasObject.transform, "BỎ QUA ĐÁNH GÀ", Vector2.zero, new Vector2(250f, 52f), new Color(0.13f, 0.15f, 0.18f), SkipChickenChallenge);
         RectTransform skipRect = skipButton.GetComponent<RectTransform>();
         skipRect.anchorMin = new Vector2(1f, 1f);
         skipRect.anchorMax = new Vector2(1f, 1f);
@@ -1053,8 +1056,47 @@ public class TutorialController : MonoBehaviour
         if (objectiveText != null) objectiveText.gameObject.SetActive(false);
     }
 
+    private void SetChickenSkipVisible(bool visible)
+    {
+        if (skipButton != null && skipButton.gameObject.activeSelf != visible)
+        {
+            skipButton.gameObject.SetActive(visible);
+        }
+    }
+
+    private void SkipChickenChallenge()
+    {
+        if (routineRunning || phase < 3 || phase > 6)
+        {
+            return;
+        }
+
+        // Finish this combat section cleanly, then use the normal envoy sequence.
+        if (firstChicken != null)
+        {
+            firstChicken.enabled = false;
+            firstChicken.gameObject.SetActive(false);
+        }
+
+        foreach (Enemy chicken in activeWave)
+        {
+            if (chicken != null)
+            {
+                Destroy(chicken.gameObject);
+            }
+        }
+
+        activeWave.Clear();
+        skillOneWaveActive = false;
+        wave2Active = false;
+        wave3Active = false;
+        SetChickenSkipVisible(false);
+        StartCoroutine(EndingSequence());
+    }
+
     private void FinishTutorialNow()
     {
+        GameProgressSave.MarkTutorialComplete();
         PlayerPrefs.SetInt("TutorialComplete", 1);
         PlayerPrefs.Save();
         SceneManager.LoadScene(ShopSceneName);
