@@ -22,7 +22,7 @@ public class GameOverManager : MonoBehaviour
     // =========================================================
     // PLAYER DIE
     // =========================================================
-    public void OnPlayerDeath()
+    public void OnPlayerDeath(bool isVictory = false)
     {
         // Tránh gọi nhiều lần
         if (_canvas != null)
@@ -59,7 +59,7 @@ public class GameOverManager : MonoBehaviour
         PlayerPrefs.Save();
 
         // Build UI
-        BuildGameOverUI(vinhDanhEarned);
+        BuildGameOverUI(vinhDanhEarned, isVictory);
 
         // Unlock chuột
         Cursor.lockState = CursorLockMode.None;
@@ -69,7 +69,7 @@ public class GameOverManager : MonoBehaviour
     // =========================================================
     // UI
     // =========================================================
-    private void BuildGameOverUI(int scoreEarned)
+    private void BuildGameOverUI(int scoreEarned, bool isVictory = false)
     {
         SetupEventSystem();
 
@@ -131,13 +131,17 @@ public class GameOverManager : MonoBehaviour
         // =========================
         // TITLE
         // =========================
+        string titleText = isVictory ? "CHIẾN THẮNG" : "THẤT BẠI";
+        Color titleColor = isVictory ? new Color(1f, 0.85f, 0.2f) : new Color(1f, 0.25f, 0.25f);
+        string subtitleText = isVictory ? "Thánh Gióng bay về trời, để lại huyền thoại ngàn thu" : "Bạn đã bị hạ gục trên chiến trường";
+
         CreateText(
             panel.transform,
-            "THẤT BẠI",
+            titleText,
             new Vector2(0f, 250f),
             56,
             FontStyle.Bold,
-            new Color(1f, 0.25f, 0.25f)
+            titleColor
         );
 
         // =========================
@@ -145,7 +149,7 @@ public class GameOverManager : MonoBehaviour
         // =========================
         CreateText(
             panel.transform,
-            "Bạn đã bị hạ gục trên chiến trường",
+            subtitleText,
             new Vector2(0f, 190f),
             24,
             FontStyle.Italic,

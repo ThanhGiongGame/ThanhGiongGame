@@ -717,6 +717,9 @@ public class TutorialController : MonoBehaviour
     {
         if (subject == null) yield break;
 
+        Animator anim = subject.GetComponentInChildren<Animator>();
+        if (anim != null) anim.SetBool("isWalking", true);
+
         Vector3 start = subject.position;
         float elapsed = 0f;
         while (elapsed < duration)
@@ -728,6 +731,8 @@ public class TutorialController : MonoBehaviour
             yield return null;
         }
         subject.position = destination;
+
+        if (anim != null) anim.SetBool("isWalking", false);
     }
 
     private int SpawnChickenWave(int count)

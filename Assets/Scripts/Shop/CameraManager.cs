@@ -95,7 +95,6 @@ public class CameraManager : MonoBehaviour
         ConfigureBottomButton("BtnEquipment", new Vector2(-175f, 32f), "TRANG BỊ");
         ConfigureBottomButton("BtnGame", new Vector2(175f, 32f), "THOÁT"); // Was "VÀO TRẬN", now Quit
         ConfigureBottomButton("BtnMap", new Vector2(525f, 32f), "VÀO TRẬN"); // Was "BẢN ĐỒ", now starts map selection
-        
         // Re-bind BtnGame to quit
         GameObject btnGameObj = FindByName("BtnGame");
         if (btnGameObj != null)

@@ -5441,13 +5441,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 305450195}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.304978, y: -0.6274089, z: 0.29256555, w: 0.6540275}
+  m_LocalRotation: {x: -0.0100756055, y: -0.6922017, z: -0.009665533, w: 0.7215692}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -87.62, z: 0}
+  m_LocalEulerAnglesHint: {x: -1.6, y: -87.62, z: 0}
 --- !u!114 &305450198
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40848,7 +40848,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WaveSpawner
   waves:
   - waveName: 
-    requiredKills: 80
+    requiredKills: 30
     specialWaveType: 5
     enemies: []
     hasSpawned: 0
@@ -40857,33 +40857,33 @@ MonoBehaviour:
     specialWaveType: 0
     enemies:
     - enemyPrefab: {fileID: 9191665038164766971, guid: 0ce2ac77e576b5348bd19e1b6be900fe, type: 3}
-      count: 40
+      count: 10
     - enemyPrefab: {fileID: 2787077856451615304, guid: 6a3608bc299d76b45a0d6b6164222ea6, type: 3}
-      count: 40
+      count: 10
     hasSpawned: 0
   - waveName: 
-    requiredKills: 50
+    requiredKills: 40
     specialWaveType: 0
     enemies:
     - enemyPrefab: {fileID: 9191665038164766971, guid: 0ce2ac77e576b5348bd19e1b6be900fe, type: 3}
-      count: 40
+      count: 10
     - enemyPrefab: {fileID: 2787077856451615304, guid: 6a3608bc299d76b45a0d6b6164222ea6, type: 3}
-      count: 40
+      count: 10
     - enemyPrefab: {fileID: 1446640027115062708, guid: bfcbecdd4d11cbb44b76034bc8c4975c, type: 3}
-      count: 40
+      count: 10
     hasSpawned: 0
   - waveName: 
-    requiredKills: 80
+    requiredKills: 60
     specialWaveType: 0
     enemies:
     - enemyPrefab: {fileID: 2437285126669990014, guid: 82cd9fc1dee7b6d488f63c34c7338c14, type: 3}
-      count: 40
+      count: 10
     - enemyPrefab: {fileID: 284736419104759028, guid: 2be5c330fc4a2264fb83fde546cfd96d, type: 3}
-      count: 40
+      count: 10
     - enemyPrefab: {fileID: 7474764583362011463, guid: 9a6199d48bbfee7469885d982500ed66, type: 3}
-      count: 40
+      count: 10
     - enemyPrefab: {fileID: 6966257555126018232, guid: ec0cbb8614260d547b079a609a089444, type: 3}
-      count: 40
+      count: 10
     hasSpawned: 0
   - waveName: 
     requiredKills: 30
@@ -40891,23 +40891,38 @@ MonoBehaviour:
     enemies: []
     hasSpawned: 0
   - waveName: 
-    requiredKills: 45
+    requiredKills: 10
     specialWaveType: 3
+    enemies: []
+    hasSpawned: 0
+  - waveName: 
+    requiredKills: 10
+    specialWaveType: 3
+    enemies: []
+    hasSpawned: 0
+  - waveName: 
+    requiredKills: 10
+    specialWaveType: 3
+    enemies: []
+    hasSpawned: 0
+  - waveName: 
+    requiredKills: 30
+    specialWaveType: 3
+    enemies: []
+    hasSpawned: 0
+  - waveName: 
+    requiredKills: 30
+    specialWaveType: 4
+    enemies: []
+    hasSpawned: 0
+  - waveName: 
+    requiredKills: 30
+    specialWaveType: 4
     enemies: []
     hasSpawned: 0
   - waveName: 
     requiredKills: 50
-    specialWaveType: 3
-    enemies: []
-    hasSpawned: 0
-  - waveName: 
-    requiredKills: 60
-    specialWaveType: 3
-    enemies: []
-    hasSpawned: 0
-  - waveName: 
-    requiredKills: 90
-    specialWaveType: 3
+    specialWaveType: 4
     enemies: []
     hasSpawned: 0
   - waveName: 
@@ -40915,22 +40930,7 @@ MonoBehaviour:
     specialWaveType: 4
     enemies: []
     hasSpawned: 0
-  - waveName: 
-    requiredKills: 50
-    specialWaveType: 4
-    enemies: []
-    hasSpawned: 0
-  - waveName: 
-    requiredKills: 70
-    specialWaveType: 4
-    enemies: []
-    hasSpawned: 0
-  - waveName: 
-    requiredKills: 70
-    specialWaveType: 4
-    enemies: []
-    hasSpawned: 0
-  spawnRadius: 200
+  spawnRadius: 100
 --- !u!4 &1011974504
 Transform:
   m_ObjectHideFlags: 0
