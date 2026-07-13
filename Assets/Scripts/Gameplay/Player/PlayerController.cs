@@ -105,6 +105,26 @@ public class PlayerController : MonoBehaviour
     {
         ExpireStuckInvulnerability();
 
+        // Dev Cheat: Instantly finish map
+        if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F8))
+        {
+            GameObject mapDrop = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            mapDrop.name = "MapUnlockDrop";
+            mapDrop.transform.position = transform.position + Vector3.up * 1f;
+            mapDrop.transform.localScale = new Vector3(0.5f, 0.05f, 0.5f);
+            mapDrop.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+            Collider oldCol = mapDrop.GetComponent<Collider>();
+            if (oldCol != null) Destroy(oldCol);
+
+            SphereCollider trigger = mapDrop.AddComponent<SphereCollider>();
+            trigger.isTrigger = true;
+            trigger.radius = 3f;
+
+            mapDrop.AddComponent<MapUnlockItem>();
+            Debug.Log("Forced Map Finish with F8!");
+        }
+
         if (!IsPerformingSkill)
         {
             //HandleRotation();
@@ -179,9 +199,17 @@ public class PlayerController : MonoBehaviour
         PlayerPrefs.SetString("EquippedCharacter", "Character_Tier4");
         PlayerPrefs.SetString("EquippedWeapon", "Weapon_Tier4");
         
-        if (horseLoader != null)
+        if (horseLoader != null) horseLoader.LoadHorse();
+        
+        RiderLoader riderLoader = GetComponent<RiderLoader>();
+        if (riderLoader != null) riderLoader.LoadRider();
+        
+        WeaponLoader weaponLoader = GetComponent<WeaponLoader>();
+        if (weaponLoader != null) weaponLoader.LoadWeapon();
+        
+        if (playerHealth != null)
         {
-            horseLoader.LoadHorse();
+            playerHealth.currentHealth = playerHealth.maxHealth;
         }
         
         yield return new WaitForSeconds(0.1f);
@@ -202,17 +230,17 @@ public class PlayerController : MonoBehaviour
 
         // Timeline:
         // + 0:10 enlarge himself
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(0.16f);
         transform.localScale = new Vector3(3f, 3f, 3f);
         if (cam != null) cam.ResetView();
 
         // + 0:30 prepare to attack
-        yield return new WaitForSeconds(20f);
+        yield return new WaitForSeconds(0.33f);
         // Add any prepare visuals here if needed
         HitEffect.Spawn(transform.position + Vector3.up * 2f, Color.red, 3f);
 
         // + 1:00 attack, shake, damage all enemies
-        yield return new WaitForSeconds(30f);
+        yield return new WaitForSeconds(0.5f);
         if (cam != null) cam.Shake(2f, 1f);
         
         hits = Physics.OverlapSphere(transform.position, 100f);
@@ -229,7 +257,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // + 1:10 return to normal
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(0.16f);
         transform.localScale = Vector3.one;
 
         // End cinematic, start phase 2 buffs
@@ -290,15 +318,32 @@ public class PlayerController : MonoBehaviour
 
             if (moveDir.sqrMagnitude > 0.01f)
             {
-                Quaternion targetRotation =
-                    Quaternion.LookRotation(moveDir.normalized);
+                if (horseAnimator != null)
+                {
+                    Quaternion targetRotation =
+                        Quaternion.LookRotation(moveDir.normalized);
 
-                transform.rotation =
-                    Quaternion.RotateTowards(
-                        transform.rotation,
-                        targetRotation,
-                        turnSpeed * Time.deltaTime
-                    );
+                    transform.rotation =
+                        Quaternion.RotateTowards(
+                            transform.rotation,
+                            targetRotation,
+                            turnSpeed * Time.deltaTime
+                        );
+                }
+            }
+
+            if (horseAnimator == null)
+            {
+                if (TryGetMouseGroundPoint(out Vector3 targetPoint))
+                {
+                    Vector3 direction = (targetPoint - transform.position).normalized;
+                    direction.y = 0;
+                    if (direction.sqrMagnitude > 0.01f)
+                    {
+                        Quaternion targetRot = Quaternion.LookRotation(direction, Vector3.up);
+                        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 15f * Time.deltaTime);
+                    }
+                }
             }
 
             moveVelocity =
@@ -306,26 +351,33 @@ public class PlayerController : MonoBehaviour
                 * moveSpeed
                 * moveMutiplier;
         }
-        if (horseAnimator != null)
+        if (isKnockedBack)
         {
-
-            if (isKnockedBack)
+            if (horseAnimator != null) horseAnimator.SetBool("isWalking", false);
+            if (riderAnimator != null) riderAnimator.SetBool("isWalking", false);
+            if (horseAnimator == null && riderAnimator == null)
             {
-                horseAnimator.SetBool("isWalking", false);
-                walkTimer = 0f;
+                Animator anim = GetComponentInChildren<Animator>();
+                if (anim != null) anim.SetBool("isWalking", false);
+            }
+            walkTimer = 0f;
+        }
+        else
+        {
+            bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
+            if (hasHorizontalMovement) {
+                walkTimer += Time.deltaTime;
             }
             else
             {
-                bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
-                if (hasHorizontalMovement) {
-                    walkTimer += Time.deltaTime;
-
-                }
-                else
-                {
-                    walkTimer = 0f;
-                }
-                horseAnimator.SetBool("isWalking", hasHorizontalMovement);
+                walkTimer = 0f;
+            }
+            if (horseAnimator != null) horseAnimator.SetBool("isWalking", hasHorizontalMovement);
+            if (riderAnimator != null) riderAnimator.SetBool("isWalking", hasHorizontalMovement);
+            if (horseAnimator == null && riderAnimator == null)
+            {
+                Animator anim = GetComponentInChildren<Animator>();
+                if (anim != null) anim.SetBool("isWalking", hasHorizontalMovement);
             }
         }
 
@@ -457,7 +509,10 @@ public class PlayerController : MonoBehaviour
 
             if (riderAnimator != null)
             {
-                // riderAnimator.SetInteger("AttackDirection", (int)attackDir);
+                if (horseAnimator != null) 
+                {
+                    riderAnimator.SetInteger("AttackDirection", (int)attackDir);
+                }
                 riderAnimator.SetTrigger("Attack");
             }
 
@@ -536,6 +591,9 @@ public class PlayerController : MonoBehaviour
             horseAnimator.SetBool("isWalking", true);
         }
         
+        CharacterController cc = GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = false;
+        
         float t = 0;
         float effectTimer = 0;
         while (t < 6f)
@@ -543,21 +601,33 @@ public class PlayerController : MonoBehaviour
             t += Time.deltaTime;
             effectTimer += Time.deltaTime;
             
-            // Spawn glow effect periodically
-            if (effectTimer > 0.15f)
+            // Spawn golden glow particles very frequently
+            if (effectTimer > 0.05f)
             {
                 effectTimer = 0f;
-                HitEffect.Spawn(transform.position, new Color(1f, 0.9f, 0.2f, 0.5f), 1.5f);
+                Vector3 randomOffset = new Vector3(
+                    UnityEngine.Random.Range(-2f, 2f),
+                    UnityEngine.Random.Range(-1f, 3f),
+                    UnityEngine.Random.Range(-2f, 2f)
+                );
+                HitEffect.Spawn(transform.position + randomOffset, new Color(1f, 0.85f, 0.2f, 0.8f), 0.8f);
             }
             
-            // Move up and slightly forward into the sky
-            transform.position += (transform.forward * 2f + Vector3.up * 3f) * Time.deltaTime;
+            // Move up and forward into the sky
+            transform.position += (transform.forward * 10f + Vector3.up * 5f) * Time.deltaTime;
             
             yield return null;
         }
         
-        // Load Win Screen or Main Menu
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
+        // Show Victory Screen
+        if (GameOverManager.Instance != null)
+        {
+            GameOverManager.Instance.OnPlayerDeath(true); // Pass true for Victory
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
+        }
     }
 }
 

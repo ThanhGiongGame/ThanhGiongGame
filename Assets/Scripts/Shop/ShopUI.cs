@@ -197,9 +197,9 @@ public class ShopUI : MonoBehaviour
         actionButtonText = actionButton.GetComponentInChildren<TMP_Text>();
 
         RectTransform bottom = CreatePanel(root, "BottomNav", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(1040f, 76f), new Vector2(0.5f, 0f), new Color(0.02f, 0.02f, 0.02f, 0.58f));
-        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(-260f, 8f), OnEquipmentTabClicked);
-        mapTabButton = CreateNavButton(bottom, "MapTab", "BẢN ĐỒ", new Vector2(0f, 8f), () => cameraManager?.OpenMapSelection());
-        CreateNavButton(bottom, "PlayTab", "VÀO TRẬN", new Vector2(260f, 8f), () => cameraManager?.ChangeGameplayScene());
+        equipmentTabButton = CreateNavButton(bottom, "EquipmentTab", "TRANG BỊ", new Vector2(-130f, 8f), OnEquipmentTabClicked);
+        mapTabButton = CreateNavButton(bottom, "MapTab", "BẢN ĐỒ", new Vector2(130f, 8f), () => cameraManager?.OpenMapSelection());
+        // CreateNavButton(bottom, "PlayTab", "VÀO TRẬN", new Vector2(260f, 8f), () => cameraManager?.ChangeGameplayScene());
         BuildEscMenu();
 
         CacheRuntimeRefs();
@@ -241,7 +241,6 @@ public class ShopUI : MonoBehaviour
             "ShopTab",
             "EquipmentTab",
             "MapTab",
-            "PlayTab",
             "EscButton"
         };
 

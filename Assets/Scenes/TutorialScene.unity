@@ -551,6 +551,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74f8721c6a56b6b4cada534b607954e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialController
+--- !u!95 &164620029
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 164620021}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 8e510edd5c6f3d641b996d8cfd50d387, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &168856668
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4657,6 +4679,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2912836255897027952, guid: 1ff77e15980f96c4294e1f89b2ec27ef, type: 3}
       insertIndex: -1
       addedObject: {fileID: 164620028}
+    - targetCorrespondingSourceObject: {fileID: 2912836255897027952, guid: 1ff77e15980f96c4294e1f89b2ec27ef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 164620029}
   m_SourcePrefab: {fileID: 100100000, guid: 1ff77e15980f96c4294e1f89b2ec27ef, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
