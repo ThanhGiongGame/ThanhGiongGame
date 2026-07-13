@@ -499,7 +499,7 @@ public class PlayerController : MonoBehaviour
         slash.transform.rotation = Quaternion.LookRotation(dir);
         
         // Quick visual effect
-        HitEffect.Spawn(slash.transform.position, new Color(1f, 0.8f, 0.2f), 1.5f);
+        HitEffect.Spawn(slash.transform.position, new Color(1f, 0.8f, 0.2f), 0.5f);
         
         BoxCollider col = slash.AddComponent<BoxCollider>();
         col.size = new Vector3(3f, 0.5f, 0.5f);
