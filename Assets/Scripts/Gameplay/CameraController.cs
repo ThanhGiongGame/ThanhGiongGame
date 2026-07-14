@@ -67,6 +67,23 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
+        bool isGameplayMap = IsGameplayMap(SceneManager.GetActiveScene().name);
+        if (target == null && isGameplayMap)
+        {
+            PlayerController playerController = FindFirstObjectByType<PlayerController>();
+            if (playerController != null)
+            {
+                target = playerController.transform;
+            }
+        }
+
+        if (isGameplayMap)
+        {
+            ApplySharedGameplayCameraSettings();
+            EnsureGameplayPlayerControls();
+            EnsureSharedGameplaySystems();
+        }
+
         defaultOffset = offset;
         defaultPitch = pitchAngle;
         defaultMode = IsGameplayMap(SceneManager.GetActiveScene().name)
@@ -82,6 +99,91 @@ public class CameraController : MonoBehaviour
         }
 
         UpdateCursorState();
+    }
+
+    private void EnsureGameplayPlayerControls()
+    {
+        if (!IsGameplayMap(SceneManager.GetActiveScene().name))
+        {
+            return;
+        }
+
+        PlayerController playerController = target != null
+            ? target.GetComponent<PlayerController>()
+            : FindFirstObjectByType<PlayerController>();
+
+        if (playerController != null && playerController.GetComponent<AttackArcIndicator>() == null)
+        {
+            playerController.gameObject.AddComponent<AttackArcIndicator>();
+        }
+    }
+
+    private void EnsureSharedGameplaySystems()
+    {
+        if (!IsGameplayMap(SceneManager.GetActiveScene().name))
+        {
+            return;
+        }
+
+        GameObject systems = GameObject.Find("GameplayRuntimeSystems");
+        if (systems == null)
+        {
+            systems = new GameObject("GameplayRuntimeSystems");
+        }
+
+        if (FindFirstObjectByType<XPManager>() == null)
+        {
+            systems.AddComponent<XPManager>();
+        }
+
+        if (FindFirstObjectByType<UpgradeManager>() == null)
+        {
+            systems.AddComponent<UpgradeManager>();
+        }
+
+        if (FindFirstObjectByType<LevelUpUI>() == null)
+        {
+            systems.AddComponent<LevelUpUI>();
+        }
+
+        if (FindFirstObjectByType<PlayerLevelUI>() == null)
+        {
+            systems.AddComponent<PlayerLevelUI>();
+        }
+
+        if (FindFirstObjectByType<SkillCooldownUI>() == null)
+        {
+            systems.AddComponent<SkillCooldownUI>();
+        }
+
+        if (FindFirstObjectByType<GameOverManager>() == null)
+        {
+            systems.AddComponent<GameOverManager>();
+        }
+
+        PlayerHealth playerHealth = target != null
+            ? target.GetComponent<PlayerHealth>()
+            : FindFirstObjectByType<PlayerHealth>();
+        if (playerHealth != null && FindFirstObjectByType<PlayerHealthUI>() == null)
+        {
+            PlayerHealthUI healthUi = systems.AddComponent<PlayerHealthUI>();
+            healthUi.playerHealth = playerHealth;
+        }
+
+        if (FindFirstObjectByType<GameplayPauseMenu>(FindObjectsInactive.Include) == null)
+        {
+            systems.AddComponent<GameplayPauseMenu>();
+        }
+    }
+
+    private void ApplySharedGameplayCameraSettings()
+    {
+        // Maps own their terrain and spawn points; camera feel is global gameplay.
+        followHeight = 3.83f;
+        thirdPersonDistance = 8.7f;
+        thirdPersonPitch = 16.4f;
+        lockedFollowYawSpeed = 240f;
+        smoothSpeed = 10f;
     }
 
     private void Update()

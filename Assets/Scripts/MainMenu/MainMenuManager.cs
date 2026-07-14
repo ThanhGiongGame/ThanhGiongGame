@@ -357,6 +357,11 @@ public class MainMenuManager : MonoBehaviour
             EnsureMenuButtonClone(settingsBtnGO, "QUIT", QuitGame);
         }
 
+        BindMenuButton("PLAY", PlayGame);
+        BindMenuButton("SETTINGS", ToggleSettings);
+        BindMenuButton("CONTINUE", ContinueGame);
+        BindMenuButton("QUIT", QuitGame);
+
         bool hasSave = GameProgressSave.HasSave;
         GameObject continueButtonObject = FindByName("CONTINUE");
         if (continueButtonObject != null)
@@ -396,6 +401,25 @@ public class MainMenuManager : MonoBehaviour
         }
 
         return buttonObject;
+    }
+
+    private static void BindMenuButton(string objectName, UnityEngine.Events.UnityAction onClick)
+    {
+        GameObject buttonObject = FindByName(objectName);
+        if (buttonObject == null)
+        {
+            return;
+        }
+
+        Button button = buttonObject.GetComponent<Button>();
+        if (button == null)
+        {
+            return;
+        }
+
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(onClick);
+        button.interactable = true;
     }
 
     private void ConfigureCanvasRoot()

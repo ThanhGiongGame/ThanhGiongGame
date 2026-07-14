@@ -72,12 +72,20 @@ public class PlayerController : MonoBehaviour
         horseLoader.LoadHorse();
         weaponDamage = GetComponent<WeaponDamage>();
         IsInvulnerable = false;
-        float baseDamage = 20f;
-        float baseMaxHealth = 100f;
-        float baseSpeed = 5f;
-        moveSpeed = baseSpeed;
-        playerHealth.maxHealth = baseMaxHealth;
-        slashDamageMultiplier = baseDamage / 20f;
+        float baseDamage = slashDamageMultiplier > 0f
+            ? slashDamageMultiplier * 20f
+            : 20f;
+        float baseMaxHealth = playerHealth != null ? playerHealth.maxHealth : 100f;
+        float baseSpeed = moveSpeed;
+
+        // Controls are global, while each map keeps its own combat/stat values.
+        sprintMultiplier = 1.8f;
+        turnSpeed = 300f;
+        mountedTurnSpeed = 150f;
+        attackArcMouseSensitivity = 0.015f;
+        attackArcMoveSpeed = 4f;
+        attackInterval = 1.2f;
+        attackWindUp = 0.2f;
 
         gameObject.AddComponent<LegendaryUpgradeSystem>();
         new GameObject("LegendHUD").AddComponent<LegendHUD>();
@@ -110,7 +118,82 @@ public class PlayerController : MonoBehaviour
         {
             baseSpeed += 3f;
         }
+
+        moveSpeed = baseSpeed;
+        slashDamageMultiplier = baseDamage / 20f;
+        if (playerHealth != null)
+        {
+            playerHealth.maxHealth = baseMaxHealth;
+            playerHealth.currentHealth = baseMaxHealth;
+        }
+
+        if (UsesMountedGameplayControls)
+        {
+            StartCoroutine(EnsureSharedGameplayUiAfterStartup());
+        }
     }
+
+    private IEnumerator EnsureSharedGameplayUiAfterStartup()
+    {
+        // Give scene-owned components one frame to build first. Map 1 has an
+        // older setup, so we verify the actual UI objects instead of assuming
+        // a component reference means its canvas exists.
+        yield return null;
+
+        GameObject systems = GameObject.Find("GameplayRuntimeSystems");
+        if (systems == null)
+        {
+            systems = new GameObject("GameplayRuntimeSystems");
+        }
+
+        if (FindFirstObjectByType<XPManager>() == null)
+        {
+            systems.AddComponent<XPManager>();
+        }
+
+        if (FindFirstObjectByType<UpgradeManager>() == null)
+        {
+            systems.AddComponent<UpgradeManager>();
+        }
+
+        if (FindFirstObjectByType<LevelUpUI>() == null)
+        {
+            systems.AddComponent<LevelUpUI>();
+        }
+
+        if (FindFirstObjectByType<GameOverManager>() == null)
+        {
+            systems.AddComponent<GameOverManager>();
+        }
+
+        if (GameObject.Find("HPBorder") == null)
+        {
+            PlayerHealthUI healthUi = systems.GetComponent<PlayerHealthUI>();
+            if (healthUi == null)
+            {
+                healthUi = systems.AddComponent<PlayerHealthUI>();
+            }
+
+            healthUi.playerHealth = playerHealth;
+        }
+
+        if (GameObject.Find("XPBorder") == null && systems.GetComponent<PlayerLevelUI>() == null)
+        {
+            systems.AddComponent<PlayerLevelUI>();
+        }
+
+        if (GameObject.Find("SkillHotbarCanvas") == null && systems.GetComponent<SkillCooldownUI>() == null)
+        {
+            systems.AddComponent<SkillCooldownUI>();
+        }
+
+        if (GameObject.Find("GameplayPauseCanvas") == null
+            && FindFirstObjectByType<GameplayPauseMenu>(FindObjectsInactive.Include) == null)
+        {
+            systems.AddComponent<GameplayPauseMenu>();
+        }
+    }
+
     void Update()
     {
         ExpireStuckInvulnerability();
@@ -325,13 +408,13 @@ public class PlayerController : MonoBehaviour
             CameraController cameraController = mainCamera != null
                 ? mainCamera.GetComponent<CameraController>()
                 : null;
-            bool mountedThirdPerson = cameraController != null && cameraController.IsThirdPerson;
+            bool mountedThirdPerson = UsesMountedGameplayControls;
             Vector3 moveDir;
 
             if (mountedThirdPerson)
             {
                 bool alignToCamera = Mouse.current != null && Mouse.current.rightButton.isPressed;
-                if (alignToCamera)
+                if (alignToCamera && cameraController != null)
                 {
                     RotateTowards(cameraController.GetPlanarForward());
                 }
@@ -522,6 +605,8 @@ public class PlayerController : MonoBehaviour
         return mountedAttackDirection;
     }
 
+    public bool UsesMountedGameplayControls => IsGameplayScene();
+
     public float MountedAttackArcPosition => attackArcPosition;
 
     public string GetMountedAttackDirectionLabel()
@@ -536,11 +621,7 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateAttackArcInput()
     {
-        CameraController cameraController = mainCamera != null
-            ? mainCamera.GetComponent<CameraController>()
-            : null;
-
-        if (cameraController == null || !cameraController.IsThirdPerson || Mouse.current == null)
+        if (!UsesMountedGameplayControls || Mouse.current == null)
         {
             return;
         }
@@ -609,11 +690,7 @@ public class PlayerController : MonoBehaviour
         {
             Vector3 targetPoint;
             AttackDirection attackDir;
-            CameraController cameraController = mainCamera != null
-                ? mainCamera.GetComponent<CameraController>()
-                : null;
-
-            if (cameraController != null && cameraController.IsThirdPerson)
+            if (UsesMountedGameplayControls)
             {
                 attackDir = GetMountedAttackDirection();
                 float attackAngle = attackDir switch
@@ -666,6 +743,13 @@ public class PlayerController : MonoBehaviour
             transform.rotation,
             targetRotation,
             turnSpeed * Time.deltaTime);
+    }
+
+    private static bool IsGameplayScene()
+    {
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        return sceneName.StartsWith("map", StringComparison.OrdinalIgnoreCase)
+            || sceneName == "SampleScene";
     }
 
     public void EnableWeaponDamage()
@@ -815,10 +899,7 @@ public class AttackArcIndicator : MonoBehaviour
 
     private void Update()
     {
-        CameraController cameraController = Camera.main != null
-            ? Camera.main.GetComponent<CameraController>()
-            : null;
-        bool visible = playerController != null && cameraController != null && cameraController.IsThirdPerson;
+        bool visible = playerController != null && playerController.UsesMountedGameplayControls;
 
         if (arcLine != null) arcLine.enabled = visible;
         if (markerLine != null) markerLine.enabled = visible;
