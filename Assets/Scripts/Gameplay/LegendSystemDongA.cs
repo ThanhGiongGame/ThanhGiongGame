@@ -11,13 +11,13 @@ public class LegendSystemDongA : MonoBehaviour
     // W1: Hịch Tướng Sĩ
     private List<GameObject> ribbons = new List<GameObject>();
     private float ribbonRadius => 7f + (w1Level * 0.5f); // Increased from 3f
-    private float ribbonSpeed = 250f;
-    private float ribbonDamage => 20f + (w1Level * 10f);
+    private float ribbonSpeed = 90f;
+    private float ribbonDamage => 10f + (w1Level * 5f);
     
     // W2: Cọc Bạch Đằng
     private float stakeTimer = 0f;
-    private float stakeInterval => 1.2f - (w2Level * 0.15f);
-    private float stakeDamage => 60f + (w2Level * 20f);
+    private float stakeInterval => 3.0f - (w2Level * 0.2f);
+    private float stakeDamage => 15f + (w2Level * 5f);
 
     public void UpdateLevels(int w1, int w2, int evo)
     {
@@ -60,7 +60,7 @@ public class LegendSystemDongA : MonoBehaviour
             string prefabName = isEvo ? "DongA_FireRibbon" : "DongA_Ribbon";
             GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
             // NO billboard here — RotateRibbons handles camera-facing each frame
-            Color col = isEvo ? new Color(1f, 0.2f, 0f, 0.8f) : new Color(0.9f, 0.9f, 0.9f, 0.8f);
+            Color col = isEvo ? new Color(1f, 0.2f, 0f, 0.35f) : new Color(0.9f, 0.9f, 0.9f, 0.35f);
             GameObject ribbon = prefab != null ? Instantiate(prefab) :
                 LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, col,
                     isEvo ? 2f : 1f, billboard: true, spriteScale: isEvo ? 1.5f : 1f);
@@ -72,7 +72,7 @@ public class LegendSystemDongA : MonoBehaviour
             if (col2 != null) { col2.isTrigger = true; ((BoxCollider)col2).size = new Vector3(1.5f, 1.5f, 1.5f); } // Huge hitbox for ribbon
             
             var logic = ribbon.AddComponent<DongARibbon>();
-            logic.damage = isEvo ? 160f : ribbonDamage;
+            logic.damage = isEvo ? 30f : ribbonDamage;
             logic.isEvo = isEvo;
             
             Rigidbody rb = ribbon.AddComponent<Rigidbody>();
@@ -100,7 +100,7 @@ public class LegendSystemDongA : MonoBehaviour
 
     private void StakeUpdate(bool isEvo)
     {
-        float currentInterval = isEvo ? 1.0f : stakeInterval;
+        float currentInterval = isEvo ? 2.5f : stakeInterval;
         stakeTimer += Time.deltaTime;
         if (stakeTimer >= currentInterval)
         {
@@ -124,7 +124,7 @@ public class LegendSystemDongA : MonoBehaviour
         if (col != null) { col.isTrigger = true; if (col is BoxCollider bc) bc.size = new Vector3(2f, 2f, 2f); } // Huge hitbox
         
         var logic = stake.AddComponent<DongAStake>();
-        logic.damage = isEvo ? 300f : stakeDamage;
+        logic.damage = isEvo ? 50f : stakeDamage;
         logic.isEvo = isEvo;
 
         Rigidbody rb = stake.AddComponent<Rigidbody>();
@@ -132,10 +132,10 @@ public class LegendSystemDongA : MonoBehaviour
         rb.isKinematic = false;
 
         // Ground dust as stake erupts from earth
-        LegendParticles.AddGroundDust(stake, rate: isEvo ? 20f : 12f);
+        LegendParticles.AddGroundDust(stake, rate: isEvo ? 10f : 5f);
         LegendParticles.BurstAt(stake.transform.position,
             isEvo ? new Color(0.3f, 0.0f, 0.5f) : new Color(0.45f, 0.25f, 0.1f),
-            count: isEvo ? 40 : 20, speed: 4f);
+            count: isEvo ? 20 : 10, speed: 4f);
 
         // Visual spike emerging
         StartCoroutine(StakeRise(stake.transform));

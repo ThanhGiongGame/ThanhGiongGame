@@ -12,13 +12,13 @@ public class LegendSystemLeLoi : MonoBehaviour
     private bool isSubscribed = false;
 
     // W1: Flying Sword Waves
-    private float swordDamage => 70f + (w1Level * 30f);
-    private float swordTimer = 15f; // start ready
-    private float swordCooldown = 15f;
+    private float swordDamage => 20f + (w1Level * 10f); // Reduced damage heavily
+    private float swordTimer = 20f; // start ready
+    private float swordCooldown = 20f; // Slower frequency
 
     // W2: Golden Turtle
     private GameObject turtle;
-    private float turtleDamage => 50f + (w2Level * 10f);
+    private float turtleDamage => 15f + (w2Level * 5f); // Reduced damage heavily
     private bool hasRevived = false;
 
     public void UpdateLevels(int w1, int w2, int evo)
@@ -64,7 +64,7 @@ public class LegendSystemLeLoi : MonoBehaviour
     {
         swordTimer += Time.deltaTime;
         
-        float currentCooldown = (evoLevel > 0) ? 0.8f : swordCooldown;
+        float currentCooldown = (evoLevel > 0) ? 3.0f : swordCooldown; // Reduced spam
 
         if (swordTimer >= currentCooldown)
         {
@@ -106,7 +106,8 @@ public class LegendSystemLeLoi : MonoBehaviour
         // Find a suitable glowing material, Unlit or Additive
         Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit") ?? Shader.Find("Particles/Standard Unlit") ?? Shader.Find("Sprites/Default");
         Material mat = new Material(shader);
-        mat.color = isEvo ? new Color(1f, 0.5f, 0f, 0.8f) : new Color(1f, 0.8f, 0f, 0.8f);
+        // Made more transparent
+        mat.color = isEvo ? new Color(1f, 0.5f, 0f, 0.35f) : new Color(1f, 0.8f, 0f, 0.35f);
         mr.material = mat;
 
         BoxCollider col = wave.AddComponent<BoxCollider>();
@@ -114,7 +115,7 @@ public class LegendSystemLeLoi : MonoBehaviour
         col.size = new Vector3(5f, 1f, 2f);
 
         var logic = wave.AddComponent<LeLoiSwordWave>();
-        logic.damage = isEvo ? 400f : swordDamage;
+        logic.damage = isEvo ? 80f : swordDamage; // Reduced Evo damage
         logic.dir = dir;
         logic.isEvo = isEvo;
         
@@ -188,7 +189,7 @@ public class LegendSystemLeLoi : MonoBehaviour
             }
 
             var logic = turtle.AddComponent<LeLoiTurtle>();
-            logic.damage = isEvo ? 200f : turtleDamage;
+            logic.damage = isEvo ? 40f : turtleDamage; // Reduced Evo damage
             logic.player = transform;
 
             Rigidbody rb = turtle.GetComponent<Rigidbody>();
@@ -228,7 +229,7 @@ public class LegendSystemLeLoi : MonoBehaviour
             Renderer rend = flash.GetComponent<Renderer>();
             Shader s = Shader.Find("Universal Render Pipeline/Particles/Unlit") ?? Shader.Find("Particles/Standard Unlit") ?? Shader.Find("Sprites/Default");
             rend.material = new Material(s);
-            rend.material.color = new Color(1f, 0.8f, 0f, 0.5f);
+            rend.material.color = new Color(1f, 0.8f, 0f, 0.2f); // Made more transparent
             Destroy(flash, 0.5f);
 
             Collider[] enemies = Physics.OverlapSphere(transform.position, 25f);
@@ -266,7 +267,7 @@ public class LeLoiSwordWave : MonoBehaviour
         }
         else
         {
-            startColor = new Color(1f, 0.8f, 0f, 0.8f);
+            startColor = new Color(1f, 0.8f, 0f, 0.35f);
         }
     }
 

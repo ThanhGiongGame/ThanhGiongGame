@@ -307,6 +307,7 @@ public class PlayerController : MonoBehaviour
         Vector3 moveVelocity = Vector3.zero;
 
         bool isKnockedBack = playerHealth != null && playerHealth.IsKnockedBack;
+        bool wantsSprint = false;
 
         if (!isKnockedBack && Keyboard.current != null)
         {
@@ -317,7 +318,7 @@ public class PlayerController : MonoBehaviour
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) vertical -= 1f;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) vertical += 1f;
 
-            bool wantsSprint = vertical > 0f
+            wantsSprint = vertical > 0f
                 && (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
             float moveMultiplier = wantsSprint ? sprintMultiplier : 1f;
 
@@ -367,23 +368,50 @@ public class PlayerController : MonoBehaviour
         }
         if (isKnockedBack)
         {
-            if (horseAnimator != null) horseAnimator.SetBool("isWalking", false);
-            if (riderAnimator != null) riderAnimator.SetBool("isWalking", false);
+            if (horseAnimator != null) 
+            {
+                horseAnimator.SetBool("isWalking", false);
+                horseAnimator.SetBool("isRunning", false);
+            }
+            if (riderAnimator != null) 
+            {
+                riderAnimator.SetBool("isWalking", false);
+                riderAnimator.SetBool("isRunning", false);
+            }
             if (horseAnimator == null && riderAnimator == null)
             {
                 Animator anim = GetComponentInChildren<Animator>();
-                if (anim != null) anim.SetBool("isWalking", false);
+                if (anim != null) 
+                {
+                    anim.SetBool("isWalking", false);
+                    anim.SetBool("isRunning", false);
+                }
             }
         }
         else
         {
             bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
-            if (horseAnimator != null) horseAnimator.SetBool("isWalking", hasHorizontalMovement);
-            if (riderAnimator != null) riderAnimator.SetBool("isWalking", hasHorizontalMovement);
+            bool isRunning = hasHorizontalMovement && wantsSprint;
+            bool isWalking = hasHorizontalMovement && !wantsSprint;
+
+            if (horseAnimator != null) 
+            {
+                horseAnimator.SetBool("isWalking", isWalking);
+                horseAnimator.SetBool("isRunning", isRunning);
+            }
+            if (riderAnimator != null) 
+            {
+                riderAnimator.SetBool("isWalking", isWalking);
+                riderAnimator.SetBool("isRunning", isRunning);
+            }
             if (horseAnimator == null && riderAnimator == null)
             {
                 Animator anim = GetComponentInChildren<Animator>();
-                if (anim != null) anim.SetBool("isWalking", hasHorizontalMovement);
+                if (anim != null) 
+                {
+                    anim.SetBool("isWalking", isWalking);
+                    anim.SetBool("isRunning", isRunning);
+                }
             }
         }
 

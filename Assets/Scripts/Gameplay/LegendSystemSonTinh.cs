@@ -10,19 +10,19 @@ public class LegendSystemSonTinh : MonoBehaviour
 
     // W1: Arc Rock
     private float rockTimer = 0f;
-    private float rockRate => 10.0f - (w1Level * 0.2f); // Slower frequency
-    private float rockRadius => 10.0f + (w1Level * 0.8f); // Larger size
-    private float rockDamage => 250f + (w1Level * 120f); // More impactful damage
+    private float rockRate => 12.0f - (w1Level * 0.2f); // Slower frequency
+    private float rockRadius => 10.0f + (w1Level * 0.8f); 
+    private float rockDamage => 40f + (w1Level * 15f); // Reduced damage heavily
 
     // W2: Whirlpool
     private float poolTimer = 0f;
-    private float poolRate => 12f - (w2Level * 0.5f);
+    private float poolRate => 15f - (w2Level * 0.5f);
     private float poolRadius => 10f + (w2Level * 0.5f);
-    private float poolDamage => 50f + (w2Level * 20f); // Damage per second
+    private float poolDamage => 10f + (w2Level * 5f); // Reduced damage heavily
 
     // Evo
     private float evoTimer = 0f;
-    private float evoRate => 10f;
+    private float evoRate => 15f; // Slower evo rate
 
     // Audio Cooldowns
     private float lastRockAudioTime = -999f;
@@ -123,7 +123,7 @@ public class LegendSystemSonTinh : MonoBehaviour
         if (col != null) col.isTrigger = true;
 
         var logic = rock.AddComponent<SonTinhArcRock>();
-        logic.damage = isEvo ? 1500f : rockDamage;
+        logic.damage = isEvo ? 150f : rockDamage;
         logic.radius = radius;
         logic.startPos = startPos;
         logic.targetPos = targetPos;
@@ -160,7 +160,7 @@ public class LegendSystemSonTinh : MonoBehaviour
         }
         else
         {
-            visual = LegendVisualHelper.CreateVisual(prefabName + "_Vis", PrimitiveType.Cylinder, new Color(0.1f, 0.4f, 1f, 0.5f), 0f, billboard: false, isFlat: true);
+            visual = LegendVisualHelper.CreateVisual(prefabName + "_Vis", PrimitiveType.Cylinder, new Color(0.1f, 0.4f, 1f, 0.25f), 0f, billboard: false, isFlat: true);
             visual.transform.SetParent(pool.transform, false);
             visual.transform.localPosition = Vector3.zero;
         }
@@ -169,13 +169,13 @@ public class LegendSystemSonTinh : MonoBehaviour
         visual.transform.localScale = new Vector3(radius, 0.05f, radius);
         
         var logic = pool.AddComponent<ThuyTinhWhirlpool>();
-        logic.damagePerSec = isEvo ? poolDamage * 2f : poolDamage;
+        logic.damagePerSec = isEvo ? 30f : poolDamage;
         logic.radius = radius;
         logic.visualTransform = visual.transform;
         logic.duration = isEvo ? 4f : 5f; // Evo is shorter before boom
         logic.pullSpeed = isEvo ? 6f : 3f;
 
-        LegendParticles.AddRisingWaterParticles(pool, rate: isEvo ? 80f : 40f, radius: radius);
+        LegendParticles.AddRisingWaterParticles(pool, rate: isEvo ? 30f : 15f, radius: radius);
 
         if (Time.time - lastPoolAudioTime > 2.0f)
         {
@@ -250,8 +250,8 @@ public class SonTinhArcRock : MonoBehaviour
         // 0.1s delay before explosion for anticipation
         yield return new WaitForSeconds(0.1f);
 
-        // Explosion Visuals
-        LegendParticles.BurstAt(transform.position, new Color(0.55f, 0.34f, 0.12f), count: 60, speed: 10f);
+        // Explosion Visuals - reduced particles
+        LegendParticles.BurstAt(transform.position, new Color(0.55f, 0.34f, 0.12f, 0.5f), count: 20, speed: 5f);
 
         // Hit logic
         Collider[] hits = Physics.OverlapSphere(transform.position, radius);
@@ -287,10 +287,10 @@ public class ThuyTinhWhirlpool : MonoBehaviour
     {
         lifeTimer += Time.deltaTime;
 
-        // Rotate visual
+        // Rotate visual - reduced speed
         if (visualTransform != null)
         {
-            visualTransform.Rotate(Vector3.up * -360f * Time.deltaTime, Space.Self);
+            visualTransform.Rotate(Vector3.up * -90f * Time.deltaTime, Space.Self);
         }
 
         // Apply pull and slow
