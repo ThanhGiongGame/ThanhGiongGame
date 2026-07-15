@@ -141,7 +141,7 @@ public class CameraController : MonoBehaviour
             systems.AddComponent<UpgradeManager>();
         }
 
-        if (FindFirstObjectByType<LevelUpUI>() == null)
+        if (FindFirstObjectByType<LevelUpUI>() == null && SceneManager.GetActiveScene().name != "TutorialScene")
         {
             systems.AddComponent<LevelUpUI>();
         }
@@ -407,6 +407,7 @@ public class CameraController : MonoBehaviour
         return sceneName == "map 1"
             || sceneName == "map2"
             || sceneName == "map3"
-            || sceneName == "SampleScene";
+            || sceneName == "SampleScene"
+            || sceneName == "TutorialScene";
     }
 }

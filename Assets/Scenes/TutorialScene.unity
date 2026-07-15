@@ -3660,7 +3660,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 500
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -3709,6 +3709,12 @@ MonoBehaviour:
   target: {fileID: 101446884}
   offset: {x: 0, y: 12, z: -9}
   pitchAngle: 58
+  followHeight: 1
+  thirdPersonDistance: 7.5
+  thirdPersonPitch: 20
+  mouseYawSensitivity: 0.16
+  keyboardYawSpeed: 150
+  lockedFollowYawSpeed: 240
   smoothSpeed: 8
 --- !u!114 &1757580981
 MonoBehaviour:

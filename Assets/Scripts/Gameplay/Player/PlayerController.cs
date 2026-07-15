@@ -689,8 +689,12 @@ public class PlayerController : MonoBehaviour
                 break;
         }
     }
+    public bool canAttack = true;
+
     private void HandleAttack()
     {
+        if (!canAttack) return;
+
         attackTimer -= Time.deltaTime;
 
         if (attackTimer <= 0f && !isAttacking)
@@ -740,7 +744,7 @@ public class PlayerController : MonoBehaviour
 
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene")
             {
-                SpawnBasicSlash(targetPoint);
+                StartCoroutine(SimulateAnimationEvents());
             }
 
             // Chờ animation kết thúc
@@ -750,6 +754,14 @@ public class PlayerController : MonoBehaviour
         {
             isAttacking = false;
         }
+    }
+
+    private IEnumerator SimulateAnimationEvents()
+    {
+        yield return new WaitForSeconds(attackWindUp);
+        EnableWeaponDamage();
+        yield return new WaitForSeconds(0.25f);
+        DisableWeaponDamage();
     }
 
     private void RotateTowards(Vector3 direction)

@@ -152,6 +152,7 @@ public class TutorialController : MonoBehaviour
     {
         yield return null;
         SetPlayerControl(false);
+        if (playerController != null) playerController.canAttack = false;
         SetGameplayHudVisible(false);
         HideObjective();
         SetMarkerVisible(moveMarker, false);
@@ -233,6 +234,7 @@ public class TutorialController : MonoBehaviour
 
         SetPlayerControl(true);
         SetGameplayHudVisible(true);
+        if (playerController != null) playerController.canAttack = true;
 
         // Bật gà
         if (firstChicken != null)
@@ -845,6 +847,8 @@ public class TutorialController : MonoBehaviour
     private void HandleTutorialLevelUp()
     {
         Time.timeScale = 0f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
         
         tutorialLevelUpPanel = new GameObject("TutorialLevelUpPanel");
         tutorialLevelUpPanel.transform.SetParent(tutorialCanvas.transform, false);
