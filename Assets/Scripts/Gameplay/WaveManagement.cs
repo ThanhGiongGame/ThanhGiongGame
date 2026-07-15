@@ -125,6 +125,7 @@ public class WaveSpawner : MonoBehaviour
             {
                 // Spawn Boss (Map 3 only)
                 specialWaveManager.TriggerSpecialWave(SpecialWaveType.FinalBoss);
+                BGMManager.Instance.FadeTo("Audio/background/Khai_Hoan_Ca_Phu_Dong", 1.5f);
             }
             else
             {
