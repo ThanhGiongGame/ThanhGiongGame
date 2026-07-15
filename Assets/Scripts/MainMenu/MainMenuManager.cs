@@ -361,6 +361,9 @@ public class MainMenuManager : MonoBehaviour
         BindMenuButton("SETTINGS", ToggleSettings);
         BindMenuButton("CONTINUE", ContinueGame);
         BindMenuButton("QUIT", QuitGame);
+        
+        BindMenuButton("CloseButton", ToggleSettings);
+        BindMenuButton("MuteButton", ToggleMute);
 
         bool hasSave = GameProgressSave.HasSave;
         GameObject continueButtonObject = FindByName("CONTINUE");
@@ -396,7 +399,7 @@ public class MainMenuManager : MonoBehaviour
         Button button = buttonObject.GetComponent<Button>();
         if (button != null)
         {
-            button.onClick.RemoveAllListeners();
+            button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(onClick);
         }
 
@@ -414,10 +417,10 @@ public class MainMenuManager : MonoBehaviour
         Button button = buttonObject.GetComponent<Button>();
         if (button == null)
         {
-            return;
+            button = buttonObject.AddComponent<Button>();
         }
 
-        button.onClick.RemoveAllListeners();
+        button.onClick = new Button.ButtonClickedEvent();
         button.onClick.AddListener(onClick);
         button.interactable = true;
     }
@@ -764,7 +767,7 @@ public class MainMenuManager : MonoBehaviour
         }
 
         button.targetGraphic = image;
-        button.onClick.RemoveAllListeners();
+        button.onClick = new Button.ButtonClickedEvent();
         button.onClick.AddListener(SkipVideo);
         button.interactable = true;
     }
@@ -810,7 +813,7 @@ public class MainMenuManager : MonoBehaviour
         Button button = skipObject.GetComponent<Button>();
         if (button != null)
         {
-            button.onClick.RemoveAllListeners();
+            button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(SkipVideo);
             button.interactable = true;
         }
