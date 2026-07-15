@@ -11,6 +11,7 @@ public class CameraManager : MonoBehaviour
 
     [SerializeField] private Camera shopCamera;
     [SerializeField] private Camera equipmentCamera;
+    [SerializeField] private Camera sugiaCamera;
 
     private ShopUI shopUI;
     private MapSelectionUI mapSelectionUI;
@@ -56,8 +57,20 @@ public class CameraManager : MonoBehaviour
     {
         ResolveSceneCameras();
         SetCameraActive(shopCamera, false);
+        SetCameraActive(sugiaCamera, false);
         SetCameraActive(equipmentCamera, true);
         SetTabVisuals("BtnEquipment");
+    }
+
+    public void ShowSuGiaCamera()
+    {
+        ResolveSceneCameras();
+        SetCameraActive(shopCamera, false);
+        SetCameraActive(equipmentCamera, false);
+        SetCameraActive(sugiaCamera, true);
+        
+        // Hide standard bottom tabs so they don't overlap dialogue
+        SetTabVisuals(""); 
     }
 
     public void ChangeGameplayScene()
@@ -570,6 +583,7 @@ public class CameraManager : MonoBehaviour
     {
         shopCamera ??= FindCameraByName("ShopCamera");
         equipmentCamera ??= FindCameraByName("EquipmentCamera");
+        sugiaCamera ??= FindCameraByName("SuGiaCamera");
     }
 
     private static Camera FindCameraByName(string objectName)

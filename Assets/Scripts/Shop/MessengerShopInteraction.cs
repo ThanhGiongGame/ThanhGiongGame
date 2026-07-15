@@ -30,10 +30,9 @@ public class MessengerShopInteraction : MonoBehaviour
         else
         {
             SetVisualsActive(true);
+            ShowDialogue(); // Automatically trigger dialogue
         }
     }
-
-    private Color originalColor = Color.clear;
 
     private void Update()
     {
@@ -53,62 +52,6 @@ public class MessengerShopInteraction : MonoBehaviour
                 UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             }
         }
-
-        if (pendingMap > 0 && dialogueCanvas == null)
-        {
-            HandleMouseInteraction();
-        }
-    }
-
-    private void HandleMouseInteraction()
-    {
-        Camera cam = Camera.main;
-        if (cam == null) cam = FindFirstObjectByType<Camera>();
-        
-        if (cam != null && UnityEngine.InputSystem.Mouse.current != null)
-        {
-            Vector2 mousePos = UnityEngine.InputSystem.Mouse.current.position.ReadValue();
-            Ray ray = cam.ScreenPointToRay(mousePos);
-            
-            bool pointerOverUI = UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
-            
-            if (!pointerOverUI && Physics.Raycast(ray, out RaycastHit hit))
-            {
-                if (hit.collider != null && hit.collider.gameObject == gameObject)
-                {
-                    SetHoverEffect(true);
-                    
-                    if (UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame)
-                    {
-                        ShowDialogue();
-                    }
-                }
-                else
-                {
-                    SetHoverEffect(false);
-                }
-            }
-            else
-            {
-                SetHoverEffect(false);
-            }
-        }
-    }
-
-    private void SetHoverEffect(bool hover)
-    {
-        foreach (Renderer rend in GetComponentsInChildren<Renderer>(true))
-        {
-            if (originalColor == Color.clear && rend.material.HasProperty("_Color"))
-            {
-                originalColor = rend.material.color;
-            }
-            
-            if (rend.material.HasProperty("_Color"))
-            {
-                rend.material.color = hover ? Color.yellow : (originalColor != Color.clear ? originalColor : Color.white);
-            }
-        }
     }
 
     private void SetVisualsActive(bool active)
@@ -125,6 +68,12 @@ public class MessengerShopInteraction : MonoBehaviour
 
     private void ShowDialogue()
     {
+        CameraManager camManager = FindFirstObjectByType<CameraManager>();
+        if (camManager != null)
+        {
+            camManager.ShowSuGiaCamera();
+        }
+
         string dialogueText = "";
         if (pendingMap == 1)
         {
@@ -144,113 +93,97 @@ public class MessengerShopInteraction : MonoBehaviour
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 999;
         
+        CanvasScaler scaler = dialogueCanvas.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.matchWidthOrHeight = 0.5f;
+
         dialogueCanvas.AddComponent<GraphicRaycaster>();
 
-        // Dark overlay
-        GameObject panelGO = new GameObject("Overlay");
+        // Invisible full-screen button to capture clicks (replaces ContinueButton)
+        GameObject clickCatcher = new GameObject("ClickCatcher");
+        clickCatcher.transform.SetParent(dialogueCanvas.transform, false);
+        RectTransform clickRT = clickCatcher.AddComponent<RectTransform>();
+        clickRT.anchorMin = Vector2.zero;
+        clickRT.anchorMax = Vector2.one;
+        clickRT.sizeDelta = Vector2.zero;
+        Image clickImg = clickCatcher.AddComponent<Image>();
+        clickImg.color = Color.clear; // Invisible
+        Button clickBtn = clickCatcher.AddComponent<Button>();
+        clickBtn.onClick.AddListener(OnContinueClicked);
+
+        // Dialogue Panel (bottom screen, full width)
+        GameObject panelGO = new GameObject("DialoguePanel");
         panelGO.transform.SetParent(dialogueCanvas.transform, false);
         RectTransform panelRT = panelGO.AddComponent<RectTransform>();
-        panelRT.anchorMin = Vector2.zero;
-        panelRT.anchorMax = Vector2.one;
-        panelRT.sizeDelta = Vector2.zero;
+        panelRT.anchorMin = new Vector2(0f, 0f);
+        panelRT.anchorMax = new Vector2(1f, 0f);
+        panelRT.pivot = new Vector2(0.5f, 0f);
+        panelRT.anchoredPosition = Vector2.zero;
+        panelRT.sizeDelta = new Vector2(0f, 210f); // Height 210
         Image panelImg = panelGO.AddComponent<Image>();
-        panelImg.color = new Color(0f, 0f, 0f, 0.6f);
+        panelImg.color = new Color(0.03f, 0.02f, 0.01f, 0.88f); // Dark background
 
-        // Dialogue Box
-        GameObject boxGO = new GameObject("DialogueBox");
-        boxGO.transform.SetParent(dialogueCanvas.transform, false);
-        RectTransform boxRT = boxGO.AddComponent<RectTransform>();
-        boxRT.anchorMin = new Vector2(0.5f, 0f);
-        boxRT.anchorMax = new Vector2(0.5f, 0f);
-        boxRT.pivot = new Vector2(0.5f, 0f);
-        boxRT.anchoredPosition = new Vector2(0f, 50f);
-        boxRT.sizeDelta = new Vector2(900f, 250f);
-        Image boxImg = boxGO.AddComponent<Image>();
-        boxImg.color = new Color(0.05f, 0.05f, 0.07f, 0.95f);
+        // Gold Line on top
+        GameObject lineGO = new GameObject("GoldLine");
+        lineGO.transform.SetParent(panelGO.transform, false);
+        RectTransform lineRT = lineGO.AddComponent<RectTransform>();
+        lineRT.anchorMin = new Vector2(0.04f, 1f);
+        lineRT.anchorMax = new Vector2(0.96f, 1f);
+        lineRT.pivot = new Vector2(0.5f, 1f);
+        lineRT.anchoredPosition = Vector2.zero;
+        lineRT.sizeDelta = new Vector2(0f, 1.5f);
+        Image lineImg = lineGO.AddComponent<Image>();
+        lineImg.color = new Color(1f, 0.78f, 0.1f, 0.95f);
 
-        // Outline
-        GameObject outlineGO = new GameObject("Outline");
-        outlineGO.transform.SetParent(boxGO.transform, false);
-        RectTransform outlineRT = outlineGO.AddComponent<RectTransform>();
-        outlineRT.anchorMin = Vector2.zero;
-        outlineRT.anchorMax = Vector2.one;
-        outlineRT.sizeDelta = new Vector2(-4f, -4f);
-        Image outlineImg = outlineGO.AddComponent<Image>();
-        outlineImg.color = new Color(0.8f, 0.7f, 0.3f, 0.5f);
-
-        // Name text
-        GameObject nameGO = new GameObject("NameText");
-        nameGO.transform.SetParent(boxGO.transform, false);
+        // Speaker Name
+        GameObject nameGO = new GameObject("SpeakerText");
+        nameGO.transform.SetParent(panelGO.transform, false);
         RectTransform nameRT = nameGO.AddComponent<RectTransform>();
-        nameRT.anchorMin = new Vector2(0f, 1f);
-        nameRT.anchorMax = new Vector2(1f, 1f);
+        nameRT.anchorMin = new Vector2(0.5f, 1f);
+        nameRT.anchorMax = new Vector2(0.5f, 1f);
         nameRT.pivot = new Vector2(0.5f, 1f);
-        nameRT.anchoredPosition = new Vector2(0f, -20f);
-        nameRT.sizeDelta = new Vector2(-40f, 40f);
+        nameRT.anchoredPosition = new Vector2(0f, -14f);
+        nameRT.sizeDelta = new Vector2(900f, 40f);
         TextMeshProUGUI nameTMP = nameGO.AddComponent<TextMeshProUGUI>();
         nameTMP.text = "SỨ GIẢ";
-        nameTMP.fontSize = 28;
-        nameTMP.color = new Color(1f, 0.85f, 0.3f);
+        nameTMP.fontSize = 26;
         nameTMP.fontStyle = FontStyles.Bold;
+        nameTMP.color = new Color(1f, 0.82f, 0.18f); // Gold
+        nameTMP.alignment = TextAlignmentOptions.Center;
 
-        // Body text
+        // Body Text
         GameObject bodyGO = new GameObject("BodyText");
-        bodyGO.transform.SetParent(boxGO.transform, false);
+        bodyGO.transform.SetParent(panelGO.transform, false);
         RectTransform bodyRT = bodyGO.AddComponent<RectTransform>();
-        bodyRT.anchorMin = new Vector2(0f, 0f);
-        bodyRT.anchorMax = new Vector2(1f, 1f);
+        bodyRT.anchorMin = new Vector2(0.5f, 0.5f);
+        bodyRT.anchorMax = new Vector2(0.5f, 0.5f);
         bodyRT.pivot = new Vector2(0.5f, 0.5f);
-        bodyRT.offsetMin = new Vector2(30f, 70f);
-        bodyRT.offsetMax = new Vector2(-30f, -60f);
+        bodyRT.anchoredPosition = new Vector2(0f, 18f);
+        bodyRT.sizeDelta = new Vector2(1400f, 110f);
         TextMeshProUGUI bodyTMP = bodyGO.AddComponent<TextMeshProUGUI>();
         bodyTMP.text = "";
-        bodyTMP.fontSize = 24;
-        bodyTMP.color = Color.white;
+        bodyTMP.fontSize = 26;
+        bodyTMP.color = new Color(0.96f, 0.93f, 0.85f); // Off-white
+        bodyTMP.alignment = TextAlignmentOptions.Center;
         bodyTMP.enableWordWrapping = true;
         bodyTextTMP = bodyTMP;
 
         // Continue Indicator
         continueIndicator = new GameObject("ContinueIndicator");
-        continueIndicator.transform.SetParent(boxGO.transform, false);
+        continueIndicator.transform.SetParent(panelGO.transform, false);
         RectTransform indRT = continueIndicator.AddComponent<RectTransform>();
         indRT.anchorMin = new Vector2(0.5f, 0f);
         indRT.anchorMax = new Vector2(0.5f, 0f);
         indRT.pivot = new Vector2(0.5f, 0f);
-        indRT.anchoredPosition = new Vector2(0f, 70f);
+        indRT.anchoredPosition = new Vector2(0f, 12f);
         indRT.sizeDelta = new Vector2(40f, 32f);
         TextMeshProUGUI indTMP = continueIndicator.AddComponent<TextMeshProUGUI>();
         indTMP.text = "...";
-        indTMP.fontSize = 24f;
-        indTMP.color = new Color(1f, 0.85f, 0.3f, 1f);
+        indTMP.fontSize = 20f;
+        indTMP.color = new Color(1f, 0.82f, 0.18f, 1f);
         indTMP.alignment = TextAlignmentOptions.Center;
         continueIndicator.SetActive(false);
-
-        // Continue Button
-        GameObject btnGO = new GameObject("ContinueButton");
-        btnGO.transform.SetParent(boxGO.transform, false);
-        RectTransform btnRT = btnGO.AddComponent<RectTransform>();
-        btnRT.anchorMin = new Vector2(1f, 0f);
-        btnRT.anchorMax = new Vector2(1f, 0f);
-        btnRT.pivot = new Vector2(1f, 0f);
-        btnRT.anchoredPosition = new Vector2(-30f, 20f);
-        btnRT.sizeDelta = new Vector2(200f, 50f);
-        Image btnImg = btnGO.AddComponent<Image>();
-        btnImg.color = new Color(0.2f, 0.2f, 0.2f, 1f);
-        Button btn = btnGO.AddComponent<Button>();
-        btn.onClick.AddListener(OnContinueClicked);
-
-        GameObject btnTextGO = new GameObject("BtnText");
-        btnTextGO.transform.SetParent(btnGO.transform, false);
-        RectTransform btnTextRT = btnTextGO.AddComponent<RectTransform>();
-        btnTextRT.anchorMin = Vector2.zero;
-        btnTextRT.anchorMax = Vector2.one;
-        btnTextRT.sizeDelta = Vector2.zero;
-        TextMeshProUGUI btnTMP = btnTextGO.AddComponent<TextMeshProUGUI>();
-        btnTMP.text = "TIẾP TỤC";
-        btnTMP.fontSize = 20;
-        btnTMP.color = Color.white;
-        btnTMP.alignment = TextAlignmentOptions.Center;
-        btnTMP.fontStyle = FontStyles.Bold;
 
         // Play audio
         AudioClip clipToPlay = voiceDefault;
@@ -334,10 +267,11 @@ public class MessengerShopInteraction : MonoBehaviour
         pendingMap = 0;
         SetVisualsActive(false);
 
-        // Open Map Selection
+        // Open Map Selection & restore camera
         CameraManager camManager = FindFirstObjectByType<CameraManager>();
         if (camManager != null)
         {
+            camManager.ShowEquipment(); // Return to Equipment Camera
             camManager.OpenMapSelection();
         }
     }
