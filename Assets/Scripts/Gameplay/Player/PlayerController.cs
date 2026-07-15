@@ -778,12 +778,13 @@ public class PlayerController : MonoBehaviour
             turnSpeed * Time.deltaTime);
     }
 
-    private static bool IsGameplayScene()
+    private bool IsGameplayScene()
     {
-        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        return sceneName.StartsWith("map", StringComparison.OrdinalIgnoreCase)
-            || sceneName == "SampleScene";
+        string scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        return scene == "map 1" || scene == "map2" || scene == "map3" || scene == "SampleScene" || scene == "TutorialScene";
     }
+
+    public bool IsTutorialScene => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene";
 
     public void EnableWeaponDamage()
     {
@@ -803,7 +804,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleArcAttackDamage()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, 4.5f);
+        float radius = IsTutorialScene ? 2.2f : 4.5f;
+        Collider[] hits = Physics.OverlapSphere(transform.position, radius);
         foreach (Collider hit in hits)
         {
             if (hit.CompareTag("Enemy"))
@@ -829,17 +831,18 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator SpawnCrescentSlashVisual(Vector3 direction)
     {
+        float scale = IsTutorialScene ? 0.5f : 1f;
         GameObject slashPivot = new GameObject("CrescentSlashPivot");
-        slashPivot.transform.position = transform.position + Vector3.up * 1.5f;
+        slashPivot.transform.position = transform.position + Vector3.up * (1.5f * scale);
         
         GameObject slashTip = new GameObject("SlashTip");
         slashTip.transform.SetParent(slashPivot.transform);
-        slashTip.transform.localPosition = new Vector3(0, 0, 4f); 
+        slashTip.transform.localPosition = new Vector3(0, 0, 4f * scale); 
         
         TrailRenderer tr = slashTip.AddComponent<TrailRenderer>();
         tr.time = 0.25f;
-        tr.startWidth = 0.8f;
-        tr.endWidth = 0.1f;
+        tr.startWidth = 0.8f * scale;
+        tr.endWidth = 0.1f * scale;
         tr.material = new Material(Shader.Find("Sprites/Default"));
         tr.startColor = new Color(1f, 0.9f, 0.4f, 0.9f);
         tr.endColor = new Color(1f, 0.5f, 0f, 0f);
@@ -981,8 +984,9 @@ public class BasicSlashProjectile : MonoBehaviour
 public class AttackArcIndicator : MonoBehaviour
 {
     private const int ArcSegments = 25;
-    private const float ArcRadius = 3.4f;
     private const float ArcHalfAngle = 55f;
+
+    private float ArcRadius => playerController != null && playerController.IsTutorialScene ? 1.7f : 3.4f;
 
     private PlayerController playerController;
     private LineRenderer arcLine;
@@ -999,7 +1003,7 @@ public class AttackArcIndicator : MonoBehaviour
 
     private void Update()
     {
-        bool visible = playerController != null && playerController.UsesMountedGameplayControls;
+        bool visible = playerController != null && playerController.UsesMountedGameplayControls && playerController.canAttack;
 
         if (arcLine != null) arcLine.enabled = visible;
         if (markerLine != null) markerLine.enabled = visible;
@@ -1009,18 +1013,19 @@ public class AttackArcIndicator : MonoBehaviour
         }
 
         Vector3 origin = transform.position + Vector3.up * 0.08f;
+        float currentRadius = ArcRadius;
         for (int i = 0; i < ArcSegments; i++)
         {
             float t = i / (float)(ArcSegments - 1);
             float angle = Mathf.Lerp(-ArcHalfAngle, ArcHalfAngle, t);
             Vector3 direction = Quaternion.Euler(0f, angle, 0f) * transform.forward;
-            arcLine.SetPosition(i, origin + direction * ArcRadius);
+            arcLine.SetPosition(i, origin + direction * currentRadius);
         }
 
         float markerAngle = playerController.MountedAttackArcPosition * ArcHalfAngle;
         Vector3 markerDirection = Quaternion.Euler(0f, markerAngle, 0f) * transform.forward;
         markerLine.SetPosition(0, origin + markerDirection * 0.8f);
-        markerLine.SetPosition(1, origin + markerDirection * ArcRadius);
+        markerLine.SetPosition(1, origin + markerDirection * currentRadius);
     }
 
     private LineRenderer CreateLine(string objectName, float width, Color color)

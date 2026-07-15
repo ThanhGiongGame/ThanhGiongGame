@@ -180,6 +180,12 @@ public class CameraController : MonoBehaviour
     {
         // Maps own their terrain and spawn points; camera feel is global gameplay.
         followHeight = 3.83f;
+        
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TutorialScene")
+        {
+            followHeight = 1.00f;
+        }
+
         thirdPersonDistance = 8.7f;
         thirdPersonPitch = 16.4f;
         lockedFollowYawSpeed = 240f;
