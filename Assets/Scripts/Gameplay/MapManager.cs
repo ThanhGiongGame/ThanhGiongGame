@@ -73,6 +73,17 @@ public class MapManager : MonoBehaviour
 
         var rootGO = new GameObject("MapProps_Dynamic");
         _propsRoot = rootGO.transform;
+
+        // --- PERFORMANCE FIX: Disable expensive Point Lights on pre-placed fires ---
+        Light[] allLights = FindObjectsOfType<Light>(true);
+        foreach (Light l in allLights)
+        {
+            if (l.type == LightType.Point && l.transform.parent != null && l.transform.parent.name.ToLower().Contains("fire"))
+            {
+                // Disable the light to save CPU/GPU, but keep the fire particle system running
+                l.enabled = false;
+            }
+        }
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
