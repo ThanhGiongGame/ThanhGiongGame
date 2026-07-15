@@ -19,6 +19,9 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private float typewriterSpeed = 0.04f;  // giây mỗi ký tự
     [SerializeField] private float fastSpeed = 0.01f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+
     // --- State ---
     private DialogueLine[] _lines;
     private int _currentIndex;
@@ -34,6 +37,9 @@ public class DialogueUI : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         dialoguePanel.SetActive(false);
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.ignoreListenerPause = true; // Important because timeScale = 0
     }
 
     // ------------------------------------------------------------------ //
@@ -51,12 +57,22 @@ public class DialogueUI : MonoBehaviour
         ShowLine(_lines[_currentIndex]);
     }
 
+    public System.Action onDialogueEnd;
+
     /// <summary>Đóng hộp thoại và tiếp tục game.</summary>
     public void EndDialogue()
     {
         StopAllCoroutines();
+        if (audioSource != null) audioSource.Stop();
         dialoguePanel.SetActive(false);
         Time.timeScale = 1f;
+
+        if (onDialogueEnd != null)
+        {
+            var callback = onDialogueEnd;
+            onDialogueEnd = null;
+            callback.Invoke();
+        }
     }
 
     // ------------------------------------------------------------------ //
@@ -112,6 +128,24 @@ public class DialogueUI : MonoBehaviour
 
         if (_typewriterCoroutine != null)
             StopCoroutine(_typewriterCoroutine);
+            
+        if (!string.IsNullOrEmpty(line.voiceClipPath))
+        {
+            AudioClip clip = Resources.Load<AudioClip>(line.voiceClipPath);
+            if (clip != null)
+            {
+                audioSource.clip = clip;
+                audioSource.Play();
+            }
+            else
+            {
+                Debug.LogWarning("Không tìm thấy Audio: " + line.voiceClipPath);
+            }
+        }
+        else
+        {
+            audioSource.Stop();
+        }
 
         _typewriterCoroutine = StartCoroutine(TypewriterEffect(line.text));
     }

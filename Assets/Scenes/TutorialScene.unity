@@ -675,28 +675,116 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74f8721c6a56b6b4cada534b607954e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialController
---- !u!95 &164620029
-Animator:
-  serializedVersion: 7
+  dialogueAudioSource: {fileID: 164620029}
+  tutorialVoices:
+  - {fileID: 8300000, guid: cae91779af82a0b428d9ea0c5167fc9c, type: 3}
+  - {fileID: 8300000, guid: 33e8148a5f1224b478e104b9297a8227, type: 3}
+  - {fileID: 8300000, guid: 86c438d5a7e62a44fa1a6eaca611abee, type: 3}
+  - {fileID: 8300000, guid: d8ad89027c7724b4fb1ffd43e2c483cb, type: 3}
+  - {fileID: 8300000, guid: 5b1d24daeaa0e144ca912cbd1300c23b, type: 3}
+  - {fileID: 8300000, guid: 0da3b0319a223a841958440cc83a044b, type: 3}
+  - {fileID: 0}
+  - {fileID: 8300000, guid: 766876414d7a1164cb8aa54a59f82805, type: 3}
+  - {fileID: 8300000, guid: 839cf6938bf63f54692f4e9cfb5e4b5e, type: 3}
+  - {fileID: 8300000, guid: d65f01e93f8858247af4a067176a01b5, type: 3}
+  - {fileID: 8300000, guid: dd398dc0fc98ec74483271517ef1e464, type: 3}
+--- !u!82 &164620029
+AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 164620021}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 8e510edd5c6f3d641b996d8cfd50d387, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &168856668
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4860,6 +4948,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74f8721c6a56b6b4cada534b607954e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialController
+  dialogueAudioSource: {fileID: 0}
+  tutorialVoices: []
 --- !u!4 &1927029126
 Transform:
   m_ObjectHideFlags: 0

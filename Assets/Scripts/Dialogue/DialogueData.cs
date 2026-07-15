@@ -9,6 +9,9 @@ public class DialogueLine
     [Tooltip("Nội dung thoại")]
     [TextArea(3, 6)]
     public string text;
+
+    [Tooltip("Đường dẫn trong thư mục Resources tới file âm thanh, không có đuôi mở rộng")]
+    public string voiceClipPath;
 }
 
 [CreateAssetMenu(fileName = "New Dialogue", menuName = "ThanhGiong/Dialogue Data")]
