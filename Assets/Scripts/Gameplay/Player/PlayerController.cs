@@ -299,6 +299,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator FinalMoveCinematicCoroutine()
     {
         IsPerformingSkill = true;
+        Enemy.GlobalFreeze = true; // Freeze all enemies
         
         // 1. Knockback all enemies and glowing particle
         HitEffect.Spawn(transform.position + Vector3.up, Color.yellow, 5f);
@@ -339,34 +340,48 @@ public class PlayerController : MonoBehaviour
         
         yield return new WaitForSeconds(0.1f);
 
-        // 3. Trigger Final Move Animation and Camera Zoom
-        if (riderAnimator != null)
-        {
-            riderAnimator.Play("FinalMove");
-            riderAnimator.SetTrigger("FinalMove");
-        }
-        
+        // 3. Custom Animation: Fly up, scale up, hover, slam down
         CameraController cam = Camera.main.GetComponent<CameraController>();
         if (cam != null)
         {
             cam.target = transform;
-            cam.SetCinematicView(new Vector3(0, 15f, -12f), 45f);
+            cam.SetCinematicView(new Vector3(0, 10f, -20f), 20f);
         }
 
-        // Timeline:
-        // + 0:10 enlarge himself
-        yield return new WaitForSeconds(0.16f);
-        transform.localScale = new Vector3(3f, 3f, 3f);
-        if (cam != null) cam.ResetView();
+        Vector3 startPos = transform.position;
+        Vector3 highPos = startPos + Vector3.up * 15f;
+        Vector3 startScale = Vector3.one;
+        Vector3 giantScale = new Vector3(3f, 3f, 3f);
 
-        // + 0:30 prepare to attack
-        yield return new WaitForSeconds(0.33f);
-        // Add any prepare visuals here if needed
-        HitEffect.Spawn(transform.position + Vector3.up * 2f, Color.red, 3f);
+        // Ascend & Grow
+        float t = 0;
+        while (t < 1.5f)
+        {
+            t += Time.deltaTime;
+            float frac = t / 1.5f;
+            transform.position = Vector3.Lerp(startPos, highPos, frac * frac); // Ease in
+            transform.localScale = Vector3.Lerp(startScale, giantScale, frac);
+            HitEffect.Spawn(transform.position + UnityEngine.Random.insideUnitSphere * 2f, Color.yellow, 0.5f);
+            yield return null;
+        }
 
-        // + 1:00 attack, shake, damage all enemies
+        // Hover briefly
         yield return new WaitForSeconds(0.5f);
-        if (cam != null) cam.Shake(2f, 1f);
+
+        // Slam down
+        t = 0;
+        while (t < 0.2f)
+        {
+            t += Time.deltaTime;
+            transform.position = Vector3.Lerp(highPos, startPos, t / 0.2f);
+            yield return null;
+        }
+        transform.position = startPos;
+
+        // Ground Hit - Shake & Damage
+        if (cam != null) cam.Shake(3f, 1.5f);
+        HitEffect.Spawn(transform.position + Vector3.up * 2f, Color.red, 5f);
+        HitEffect.Spawn(transform.position + Vector3.up * 2f, new Color(1f, 0.5f, 0f), 5f);
         
         hits = Physics.OverlapSphere(transform.position, 100f);
         foreach (Collider hit in hits)
@@ -381,11 +396,12 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // + 1:10 return to normal
-        yield return new WaitForSeconds(0.16f);
+        // Return to normal
+        yield return new WaitForSeconds(1f);
         transform.localScale = Vector3.one;
+        if (cam != null) cam.ResetView();
 
-        // End cinematic, start phase 2 buffs
+        Enemy.GlobalFreeze = false;
         IsPerformingSkill = false;
         
         // Massive health buff
@@ -927,12 +943,34 @@ public class PlayerController : MonoBehaviour
     
     private IEnumerator AscendToSkyCoroutine()
     {
+        // 1. CLEANUP ALL ENEMIES, ABILITIES, BGM
         IsPerformingSkill = true; // disable control
+        canAttack = false;
         isPhase2BuffActive = false; // turn off damage aura so it's peaceful
+        
+        // Kill all remaining enemies
+        Enemy[] allEnemies = FindObjectsOfType<Enemy>();
+        foreach (var e in allEnemies)
+        {
+            if (e != null && e.gameObject != null && e.currentHealth > 0)
+            {
+                e.TakeDamage(99999f);
+            }
+        }
+
+        // Stop BGM
+        AudioSource[] audioSources = FindObjectsOfType<AudioSource>();
+        foreach (var src in audioSources)
+        {
+            if (src.isPlaying && src.loop)
+            {
+                src.Stop();
+            }
+        }
         
         if (riderAnimator != null)
         {
-            riderAnimator.enabled = false;
+            riderAnimator.enabled = false; // Disable all attacking animations
         }
 
         if (horseAnimator != null)
@@ -956,16 +994,17 @@ public class PlayerController : MonoBehaviour
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 9999;
         
-        // Add a slight dark fade background for readability
+        // Background - Fades to black
         GameObject bgObj = new GameObject("CreditsBG");
         bgObj.transform.SetParent(canvasObj.transform, false);
         var bg = bgObj.AddComponent<UnityEngine.UI.Image>();
-        bg.color = new Color(0, 0, 0, 0.4f);
+        bg.color = new Color(0, 0, 0, 0f); // Start fully transparent
         RectTransform bgRT = bg.GetComponent<RectTransform>();
         bgRT.anchorMin = Vector2.zero;
         bgRT.anchorMax = Vector2.one;
         bgRT.sizeDelta = Vector2.zero;
 
+        // Credits Text
         GameObject textObj = new GameObject("CreditsText");
         textObj.transform.SetParent(canvasObj.transform, false);
         var text = textObj.AddComponent<TMPro.TextMeshProUGUI>();
@@ -986,6 +1025,26 @@ public class PlayerController : MonoBehaviour
         shadow.effectColor = Color.black;
         shadow.effectDistance = new Vector2(3f, -3f);
 
+        // Lyrics Text
+        GameObject lyricsObj = new GameObject("LyricsText");
+        lyricsObj.transform.SetParent(canvasObj.transform, false);
+        var lyricsText = lyricsObj.AddComponent<TMPro.TextMeshProUGUI>();
+        lyricsText.text = "";
+        lyricsText.fontSize = 42;
+        lyricsText.color = Color.white;
+        lyricsText.alignment = TMPro.TextAlignmentOptions.Center;
+
+        RectTransform lyricsRT = lyricsText.GetComponent<RectTransform>();
+        lyricsRT.anchorMin = new Vector2(0, 0);
+        lyricsRT.anchorMax = new Vector2(1, 0);
+        lyricsRT.pivot = new Vector2(0.5f, 0);
+        lyricsRT.sizeDelta = new Vector2(0, 100);
+        lyricsRT.anchoredPosition = new Vector2(0, 80);
+
+        var lyricsShadow = lyricsObj.AddComponent<UnityEngine.UI.Shadow>();
+        lyricsShadow.effectColor = Color.black;
+        lyricsShadow.effectDistance = new Vector2(2f, -2f);
+
         float t = 0;
         float effectTimer = 0;
         float totalDuration = 30f;
@@ -995,6 +1054,19 @@ public class PlayerController : MonoBehaviour
         {
             t += Time.deltaTime;
             effectTimer += Time.deltaTime;
+            
+            // Fade background to black over 30s
+            bg.color = new Color(0, 0, 0, t / totalDuration);
+            
+            // Lyrics Logic
+            if (t >= 27f) lyricsText.text = "Thiên vương.... về trời";
+            else if (t >= 25f) lyricsText.text = "Thiên vương....";
+            else if (t >= 17f) lyricsText.text = "Rạng danh non nước! Rạng danh non nước!";
+            else if (t >= 14f) lyricsText.text = "Hào khí Thiên Vương, Hào khí Thiên Vương";
+            else if (t >= 11f) lyricsText.text = "Sáng soi nòi giống! Sáng soi nòi giống!";
+            else if (t >= 7f) lyricsText.text = "Hào khí vĩnh hằng, Hào khí vĩnh hằng";
+            else if (t >= 4f) lyricsText.text = "Sử xanh còn ghi, chiến công lẫy lừng!";
+            else if (t >= 1f) lyricsText.text = "Hào khí cha ông, lưu truyền muôn kiếp!";
             
             // Spawn golden glow particles very frequently
             if (effectTimer > 0.05f)
@@ -1014,7 +1086,7 @@ public class PlayerController : MonoBehaviour
             // Optional: Rotate the camera slowly around the player
             if (cam != null)
             {
-                cam.transform.RotateAround(transform.position, Vector3.up, 5f * Time.deltaTime);
+                cam.transform.RotateAround(transform.position, Vector3.up, 25f * Time.deltaTime);
             }
             
             // Scroll credits text upwards
@@ -1025,7 +1097,8 @@ public class PlayerController : MonoBehaviour
         
         if (cam != null) cam.ResetView();
         
-        // Return to Main Menu after credits finish
+        // Wait in the black screen for a few seconds before returning to Main Menu
+        yield return new WaitForSeconds(6f);
         UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
     }
 }

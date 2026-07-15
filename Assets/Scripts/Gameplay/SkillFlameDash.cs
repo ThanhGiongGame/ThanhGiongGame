@@ -112,27 +112,20 @@ public class SkillFlameDash : MonoBehaviour
 
     private void HandleAiming()
     {
-        Vector3 mouseWorld = GetMouseWorld();
-        Vector3 dir        = mouseWorld - transform.position;
+        Vector3 dir = transform.forward;
         dir.y = 0f;
 
-        // Clamp direction to max dash range
-        Vector3 endPt;
-        if (dir.magnitude > _dashRange)
-            endPt = transform.position + dir.normalized * _dashRange;
-        else
-            endPt = mouseWorld;
+        Vector3 endPt = transform.position + dir.normalized * _dashRange;
         endPt.y = 0f;
 
         _dashDirection = (endPt - transform.position);
         _dashDirection.y = 0f;
 
-        _indicator.UpdateLineAndCircle(transform.position, endPt, _spinRadius);
+        _indicator.UpdateLineAndCircle(transform.position, endPt, 0f); // No spin radius needed
 
         // Confirm
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            // Indicator stays visible during dash and spin to show impact zone
             StartCoroutine(DashRoutine(_dashDirection.normalized));
             return;
         }
@@ -222,10 +215,9 @@ public class SkillFlameDash : MonoBehaviour
             _cc.Move(Vector3.zero); // Giải phóng vận tốc thừa
         }
 
-        // ---- Spin attack at end ----
-        yield return StartCoroutine(SpinRoutine());
+        // ---- Spin attack removed based on feedback ----
 
-        // ---- Brief invulnerability after spin ----
+        // ---- Brief invulnerability after dash ----
         // Tiếp tục dùng vòng lặp duy trì bất tử cho hết thời gian InvulnDuration
         float elapsedInvuln = 0f;
         while (elapsedInvuln < InvulnDuration)
@@ -236,52 +228,11 @@ public class SkillFlameDash : MonoBehaviour
         }
 
         // --- KẾT THÚC SKILL ---
-        _indicator.SetVisible(false); // Hide indicator after spin
+        _indicator.SetVisible(false);
         _pc.IsInvulnerable = false;
         _pc.IsPerformingSkill = false;
         _state = State.Idle;
         _cooldownTimer = _cooldown;
-    }
-
-    // ================================================================
-    // Spin at end
-    // ================================================================
-
-    private IEnumerator SpinRoutine()
-    {
-        float elapsed = 0f;
-        var spinHit = new HashSet<Enemy>();
-
-        // Visual
-        HitEffect.Spawn(transform.position + Vector3.up * 0.5f, new Color(1f, 0.4f, 0f), 2.5f);
-        if (_cam != null) _cam.Shake(0.3f, 0.2f);
-
-        while (elapsed < SpinDuration)
-        {
-            // THÊM DÒNG NÀY: Khóa trạng thái bất tử trong suốt quá trình xoay kiếm kết chiêu
-            _pc.IsInvulnerable = true;
-
-            elapsed += Time.deltaTime;
-            float angle = (elapsed / SpinDuration) * 360f;
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
-
-            // AOE damage during spin (Tuyệt đối không tự vả vào chính mình)
-            Collider[] cols = Physics.OverlapSphere(transform.position, _spinRadius);
-            foreach (Collider col in cols)
-            {
-                if (col.gameObject == gameObject || !col.CompareTag("Enemy")) continue;
-                Enemy e = col.GetComponent<Enemy>();
-                if (e != null && spinHit.Add(e))
-                {
-                    e.TakeDamage(_spinDamage);
-                    Vector3 dir = (col.transform.position - transform.position);
-                    dir.y = 0f;
-                    if (dir == Vector3.zero) dir = Vector3.right;
-                    e.ApplyKnockbackStun(dir.normalized, 12f, 0.6f);
-                }
-            }
-            yield return null;
-        }
     }
     // ================================================================
     // Flame Trail
