@@ -37,6 +37,12 @@ public class PlayerHealth : MonoBehaviour
 
     private void Update()
     {
+        // Passive Health Regeneration (3 HP/s)
+        if (currentHealth > 0 && currentHealth < maxHealth)
+        {
+            currentHealth = Mathf.Min(currentHealth + 3f * Time.deltaTime, maxHealth);
+        }
+
         // Decay knockback over time — no controller.Move() here.
         // PlayerController reads KnockbackVelocity and applies it in its own Move() call.
         if (_knockbackVelocity.sqrMagnitude > 0.0001f)

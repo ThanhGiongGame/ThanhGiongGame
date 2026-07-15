@@ -41,6 +41,11 @@ public class PlayerController : MonoBehaviour
     // ---- Attack timer ----
     private float attackTimer;
 
+    private Vector3 currentAttackDirVector = Vector3.forward;
+    private bool isArcAttacking = false;
+    private System.Collections.Generic.HashSet<Enemy> hitEnemiesThisAttack = new System.Collections.Generic.HashSet<Enemy>();
+
+
     // Top-down game: use a small constant downward push to stay grounded
     private const float GroundStick = -2f;
 
@@ -87,23 +92,8 @@ public class PlayerController : MonoBehaviour
         attackInterval = 1.2f;
         attackWindUp = 0.2f;
 
-        gameObject.AddComponent<LegendaryUpgradeSystem>();
-        new GameObject("LegendHUD").AddComponent<LegendHUD>();
 
-        // Always find the camera first so combat functions even if visuals are missing
-        mainCamera = Camera.main;
-        if (mainCamera == null)
-        {
-            Debug.LogError("PlayerController: No Camera tagged 'MainCamera' found in the scene!");
-        }
-
-        attackTimer = attackInterval;
-        if (GetComponent<AttackArcIndicator>() == null)
-        {
-            gameObject.AddComponent<AttackArcIndicator>();
-        }
-
-        // --- Đọc dữ liệu Loadout từ Shop Menu ---
+        // --- Đọc dữ liệu Loadout (Buff từ menu) ---
         if (PlayerPrefs.GetInt("Item_DamageBuff", 0) == 2)
         {
             baseDamage += 15f;
@@ -119,17 +109,40 @@ public class PlayerController : MonoBehaviour
             baseSpeed += 3f;
         }
 
+        // --- Đọc dữ liệu Equipment (Tier 1 -> Tier 4) ---
+        string eqChar = PlayerPrefs.GetString("EquippedCharacter", "Character_Tier1");
+        if (eqChar == "Character_Tier2") baseMaxHealth += 50f;
+        else if (eqChar == "Character_Tier3") baseMaxHealth += 150f;
+        else if (eqChar == "Character_Tier4") baseMaxHealth += 300f;
+
+        string eqHorse = PlayerPrefs.GetString("EquippedHorse", "Horse_Tier1");
+        if (eqHorse == "Horse_Tier2") baseSpeed += 1f;
+        else if (eqHorse == "Horse_Tier3") baseSpeed += 2f;
+        else if (eqHorse == "Horse_Tier4") baseSpeed += 3.5f;
+
+        string eqWeapon = PlayerPrefs.GetString("EquippedWeapon", "Weapon_Tier1");
+        if (eqWeapon == "Weapon_Tier2") baseDamage += 10f;
+        else if (eqWeapon == "Weapon_Tier3") baseDamage += 20f;
+        else if (eqWeapon == "Weapon_Tier4") baseDamage += 40f;
+
         moveSpeed = baseSpeed;
+        playerHealth.maxHealth = baseMaxHealth;
         slashDamageMultiplier = baseDamage / 20f;
-        if (playerHealth != null)
+
+        gameObject.AddComponent<LegendaryUpgradeSystem>();
+        new GameObject("LegendHUD").AddComponent<LegendHUD>();
+
+        // Always find the camera first so combat functions even if visuals are missing
+        mainCamera = Camera.main;
+        if (mainCamera == null)
         {
-            playerHealth.maxHealth = baseMaxHealth;
-            playerHealth.currentHealth = baseMaxHealth;
+            Debug.LogError("PlayerController: No Camera tagged 'MainCamera' found in the scene!");
         }
 
-        if (UsesMountedGameplayControls)
+        attackTimer = attackInterval;
+        if (GetComponent<AttackArcIndicator>() == null)
         {
-            StartCoroutine(EnsureSharedGameplayUiAfterStartup());
+            gameObject.AddComponent<AttackArcIndicator>();
         }
     }
 
@@ -228,6 +241,11 @@ public class PlayerController : MonoBehaviour
         if (isPhase2BuffActive)
         {
             HandlePhase2Buffs();
+        }
+
+        if (isArcAttacking)
+        {
+            HandleArcAttackDamage();
         }
     }
 
@@ -699,13 +717,16 @@ public class PlayerController : MonoBehaviour
                     AttackDirection.East => 45f,
                     _ => 0f
                 };
-                Vector3 attackForward = Quaternion.Euler(0f, attackAngle, 0f) * transform.forward;
-                targetPoint = transform.position + attackForward * 6f;
+                currentAttackDirVector = Quaternion.Euler(0f, attackAngle, 0f) * transform.forward;
+                targetPoint = transform.position + currentAttackDirVector * 6f;
             }
             else
             {
                 TryGetMouseGroundPoint(out targetPoint);
                 attackDir = GetAttackDirection();
+                currentAttackDirVector = (targetPoint - transform.position).normalized;
+                currentAttackDirVector.y = 0;
+                if (currentAttackDirVector.sqrMagnitude == 0) currentAttackDirVector = transform.forward;
             }
 
             if (riderAnimator != null)
@@ -754,14 +775,81 @@ public class PlayerController : MonoBehaviour
 
     public void EnableWeaponDamage()
     {
-        weaponDamage.BeginAttack();
-        weaponTrail.BeginTrail();
+        if (weaponDamage != null) weaponDamage.EndAttack();
+        if (weaponTrail != null) weaponTrail.EndTrail();
+
+        isArcAttacking = true;
+        hitEnemiesThisAttack.Clear();
+
+        StartCoroutine(SpawnCrescentSlashVisual(currentAttackDirVector));
     }
 
     public void DisableWeaponDamage()
     {
-        weaponDamage.EndAttack();
-        weaponTrail.EndTrail();
+        isArcAttacking = false;
+    }
+
+    private void HandleArcAttackDamage()
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, 4.5f);
+        foreach (Collider hit in hits)
+        {
+            if (hit.CompareTag("Enemy"))
+            {
+                Enemy e = hit.GetComponent<Enemy>();
+                if (e != null && !hitEnemiesThisAttack.Contains(e))
+                {
+                    Vector3 dirToEnemy = (e.transform.position - transform.position);
+                    dirToEnemy.y = 0;
+                    if (dirToEnemy.sqrMagnitude > 0) dirToEnemy.Normalize();
+                    
+                    if (Vector3.Angle(currentAttackDirVector, dirToEnemy) <= 90f)
+                    {
+                        hitEnemiesThisAttack.Add(e);
+                        e.TakeDamage(slashDamageMultiplier * 20f);
+                        e.ApplyKnockbackStun(currentAttackDirVector, 8f, 0.2f);
+                        HitEffect.Spawn(e.transform.position + Vector3.up, Color.red, 0.5f);
+                    }
+                }
+            }
+        }
+    }
+
+    private IEnumerator SpawnCrescentSlashVisual(Vector3 direction)
+    {
+        GameObject slashPivot = new GameObject("CrescentSlashPivot");
+        slashPivot.transform.position = transform.position + Vector3.up * 1.5f;
+        
+        GameObject slashTip = new GameObject("SlashTip");
+        slashTip.transform.SetParent(slashPivot.transform);
+        slashTip.transform.localPosition = new Vector3(0, 0, 4f); 
+        
+        TrailRenderer tr = slashTip.AddComponent<TrailRenderer>();
+        tr.time = 0.25f;
+        tr.startWidth = 0.8f;
+        tr.endWidth = 0.1f;
+        tr.material = new Material(Shader.Find("Sprites/Default"));
+        tr.startColor = new Color(1f, 0.9f, 0.4f, 0.9f);
+        tr.endColor = new Color(1f, 0.5f, 0f, 0f);
+        
+        float duration = 0.2f; 
+        float elapsed = 0f;
+        
+        Quaternion baseRot = Quaternion.LookRotation(direction);
+        
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            float angle = Mathf.Lerp(-90f, 90f, t);
+            
+            slashPivot.transform.rotation = baseRot * Quaternion.Euler(0, angle, 0);
+            slashPivot.transform.position = transform.position + Vector3.up * 1.5f;
+            
+            yield return null;
+        }
+        
+        Destroy(slashPivot, tr.time + 0.1f);
     }
 
     private void SpawnBasicSlash(Vector3 targetPoint)
