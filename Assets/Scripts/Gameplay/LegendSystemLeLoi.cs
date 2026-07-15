@@ -238,7 +238,11 @@ public class LegendSystemLeLoi : MonoBehaviour
                 if (e.CompareTag("Enemy"))
                 {
                     Enemy en = e.GetComponent<Enemy>();
-                    if (en != null) en.TakeDamage(9999f);
+                    if (en != null) 
+                    {
+                        if (en.isBoss) en.TakeDamage(1000f);
+                        else en.TakeDamage(9999f);
+                    }
                 }
             }
             

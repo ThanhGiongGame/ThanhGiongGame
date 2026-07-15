@@ -55,6 +55,7 @@ public class Enemy : MonoBehaviour
     // Pool support: track last combat time for despawn protection
     [HideInInspector]
     public float lastCombatTime = -999f;
+    private float lastHitTime = -999f;
 
     // Original stats (for pool reset)
     private float _baseMoveSpeed;
@@ -199,6 +200,7 @@ public class Enemy : MonoBehaviour
         knockbackVelocity = Vector3.zero;
         knockbackTimer = 0f;
         lastCombatTime = -999f;
+        lastHitTime = -999f;
         isStampeding = false;
         stampedeTarget = Vector3.zero;
         isBoss = false;
@@ -458,7 +460,15 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
-        currentHealth -= damageAmount;
+        if (isBoss)
+        {
+            if (Time.time < lastHitTime + 0.1f) return;
+            
+            Boss bossScript = GetComponent<Boss>();
+            if (bossScript != null && bossScript.IsStunned) return; // Invulnerable during phase transition
+        }
+
+        lastHitTime = Time.time;
         lastCombatTime = Time.time; // Track combat for despawn protection
 
         Debug.Log(gameObject.name + " took damage: " + damageAmount);
@@ -466,18 +476,44 @@ public class Enemy : MonoBehaviour
         // Spawn a red hit burst at the enemy's centre
         HitEffect.Spawn(transform.position + Vector3.up * 0.8f, Color.red, 1.0f);
 
-        if (currentHealth <= 0f)
+        if (isBoss)
         {
-            if (isBoss && Boss.IsSpecialFinalScene)
+            Boss bossScript = GetComponent<Boss>();
+            if (bossScript != null)
             {
-                Boss bossScript = GetComponent<Boss>();
-                if (bossScript != null)
+                if (!bossScript.Phase2Active)
                 {
+                    // Health Gating in Phase 1
+                    if (currentHealth - damageAmount <= maxHealth * 0.5f)
+                    {
+                        currentHealth = maxHealth * 0.5f;
+                        bossScript.TriggerPhase2();
+                        return;
+                    }
+                }
+                
+                currentHealth -= damageAmount;
+                
+                if (currentHealth <= 0f)
+                {
+                    currentHealth = 0f;
                     bossScript.TriggerBossDeathCinematic();
                     return;
                 }
             }
-            Die();
+            else
+            {
+                currentHealth -= damageAmount;
+                if (currentHealth <= 0f) Die();
+            }
+        }
+        else
+        {
+            currentHealth -= damageAmount;
+            if (currentHealth <= 0f)
+            {
+                Die();
+            }
         }
     }
 

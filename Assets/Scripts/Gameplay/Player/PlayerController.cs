@@ -942,10 +942,56 @@ public class PlayerController : MonoBehaviour
         
         CharacterController cc = GetComponent<CharacterController>();
         if (cc != null) cc.enabled = false;
+
+        // Cinematic Camera Setup
+        CameraController cam = Camera.main.GetComponent<CameraController>();
+        if (cam != null)
+        {
+            cam.SetCinematicView(new Vector3(0, 2f, -15f), 10f); // Cinematic angle looking up
+        }
+
+        // Setup Credits Canvas
+        GameObject canvasObj = new GameObject("CreditsCanvas");
+        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 9999;
         
+        // Add a slight dark fade background for readability
+        GameObject bgObj = new GameObject("CreditsBG");
+        bgObj.transform.SetParent(canvasObj.transform, false);
+        var bg = bgObj.AddComponent<UnityEngine.UI.Image>();
+        bg.color = new Color(0, 0, 0, 0.4f);
+        RectTransform bgRT = bg.GetComponent<RectTransform>();
+        bgRT.anchorMin = Vector2.zero;
+        bgRT.anchorMax = Vector2.one;
+        bgRT.sizeDelta = Vector2.zero;
+
+        GameObject textObj = new GameObject("CreditsText");
+        textObj.transform.SetParent(canvasObj.transform, false);
+        var text = textObj.AddComponent<TMPro.TextMeshProUGUI>();
+        text.text = "<size=64><b>THÁNH GIÓNG</b></size>\n\n\n\n<size=48><b>Special Thanks To</b></size>\n\n<size=36><b>Mentor:</b>\nLại Đức Hùng</size>\n\n\n\n<size=36><b>Team Members:</b>\nSE192321 Nguyễn Thành Kiên\nSE192024 Dương Quốc Thái\nSE192047 Dương Hồng Quang\nSE180374 Bùi Quang Hiếu</size>";
+        text.fontSize = 36;
+        text.color = new Color(1f, 0.9f, 0.6f, 1f); // Golden yellow
+        text.alignment = TMPro.TextAlignmentOptions.Center;
+        
+        RectTransform rt = text.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0);
+        rt.anchorMax = new Vector2(0.5f, 0);
+        rt.pivot = new Vector2(0.5f, 1f); // Pivot at top, anchor at bottom
+        rt.sizeDelta = new Vector2(1200, 1500);
+        rt.anchoredPosition = new Vector2(0, -100); // Start completely below the screen
+        
+        // Add shadow for better text readability
+        var shadow = textObj.AddComponent<UnityEngine.UI.Shadow>();
+        shadow.effectColor = Color.black;
+        shadow.effectDistance = new Vector2(3f, -3f);
+
         float t = 0;
         float effectTimer = 0;
-        while (t < 6f)
+        float totalDuration = 30f;
+        float scrollSpeed = 2500f / totalDuration; // Scroll 2500 units over 30s
+
+        while (t < totalDuration)
         {
             t += Time.deltaTime;
             effectTimer += Time.deltaTime;
@@ -955,28 +1001,32 @@ public class PlayerController : MonoBehaviour
             {
                 effectTimer = 0f;
                 Vector3 randomOffset = new Vector3(
-                    UnityEngine.Random.Range(-2f, 2f),
-                    UnityEngine.Random.Range(-1f, 3f),
-                    UnityEngine.Random.Range(-2f, 2f)
+                    UnityEngine.Random.Range(-3f, 3f),
+                    UnityEngine.Random.Range(-1f, 4f),
+                    UnityEngine.Random.Range(-3f, 3f)
                 );
                 HitEffect.Spawn(transform.position + randomOffset, new Color(1f, 0.85f, 0.2f, 0.8f), 0.8f);
             }
             
-            // Move up and forward into the sky
-            transform.position += (transform.forward * 10f + Vector3.up * 5f) * Time.deltaTime;
+            // Slow majestic flight upward and forward
+            transform.position += (transform.forward * 4f + Vector3.up * 2f) * Time.deltaTime;
+
+            // Optional: Rotate the camera slowly around the player
+            if (cam != null)
+            {
+                cam.transform.RotateAround(transform.position, Vector3.up, 5f * Time.deltaTime);
+            }
+            
+            // Scroll credits text upwards
+            rt.anchoredPosition += new Vector2(0, scrollSpeed * Time.deltaTime);
             
             yield return null;
         }
         
-        // Show Victory Screen
-        if (GameOverManager.Instance != null)
-        {
-            GameOverManager.Instance.OnPlayerDeath(true); // Pass true for Victory
-        }
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
-        }
+        if (cam != null) cam.ResetView();
+        
+        // Return to Main Menu after credits finish
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
     }
 }
 
