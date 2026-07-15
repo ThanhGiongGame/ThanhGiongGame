@@ -881,8 +881,10 @@ public class PlayerController : MonoBehaviour
     private IEnumerator SpawnCrescentSlashVisual(Vector3 direction)
     {
         float scale = IsTutorialScene ? 0.5f : 1f;
+        float heightOffset = 2.2f; // Increased height as requested
+        
         GameObject slashPivot = new GameObject("CrescentSlashPivot");
-        slashPivot.transform.position = transform.position + Vector3.up * (1.5f * scale);
+        slashPivot.transform.position = transform.position + Vector3.up * (heightOffset * scale);
         
         GameObject slashTip = new GameObject("SlashTip");
         slashTip.transform.SetParent(slashPivot.transform);
@@ -908,7 +910,7 @@ public class PlayerController : MonoBehaviour
             float angle = Mathf.Lerp(-90f, 90f, t);
             
             slashPivot.transform.rotation = baseRot * Quaternion.Euler(0, angle, 0);
-            slashPivot.transform.position = transform.position + Vector3.up * 1.5f;
+            slashPivot.transform.position = transform.position + Vector3.up * (heightOffset * scale);
             
             yield return null;
         }

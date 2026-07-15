@@ -514,10 +514,10 @@ TerrainCollider:
     m_Bits: 0
   m_LayerOverridePriority: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: ef6893f004044c64584a48be7036f64b, type: 2}
-  m_EnableTreeColliders: 1
+  m_EnableTreeColliders: 0
 --- !u!218 &1094010573
 Terrain:
   m_ObjectHideFlags: 0
@@ -528,9 +528,9 @@ Terrain:
   m_Enabled: 1
   serializedVersion: 6
   m_TerrainData: {fileID: 15600000, guid: ef6893f004044c64584a48be7036f64b, type: 2}
-  m_TreeDistance: 5000
-  m_TreeBillboardDistance: 168
-  m_TreeCrossFadeLength: 93
+  m_TreeDistance: 2342
+  m_TreeBillboardDistance: 67
+  m_TreeCrossFadeLength: 14
   m_TreeMaximumFullLODCount: 1764
   m_DetailObjectDistance: 244
   m_DetailObjectDensity: 1
@@ -546,7 +546,7 @@ Terrain:
   m_IgnoreQualitySettings: 0
   m_ReflectionProbeUsage: 1
   m_MaterialTemplate: {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e, type: 2}
-  m_BakeLightProbesForTrees: 1
+  m_BakeLightProbesForTrees: 0
   m_PreserveTreePrototypeLayers: 0
   m_DeringLightProbesForTrees: 1
   m_ReceiveGI: 1
@@ -1034,7 +1034,7 @@ Light:
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 0.721483, b: 0, a: 1}
-  m_Intensity: 0.5
+  m_Intensity: 0.4
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208

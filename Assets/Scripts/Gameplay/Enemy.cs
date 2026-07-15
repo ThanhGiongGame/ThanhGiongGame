@@ -36,10 +36,10 @@ public class Enemy : MonoBehaviour
 
     public static bool GlobalFreeze = false;
     
-    [HideInInspector]
-    public bool isStampeding = false;
-    [HideInInspector]
-    public Vector3 stampedeTarget;
+    [HideInInspector] public bool isStampeding = false;
+    [HideInInspector] public Vector3 stampedeTarget;
+    public bool isSpecialWaveEnemy = false;
+
     [HideInInspector]
     public bool isBoss = false;
 
@@ -496,7 +496,7 @@ public class Enemy : MonoBehaviour
     private void Die()
     {
         // Báo cho WaveSpawner biết đã kill enemy
-        if (waveSpawner != null)
+        if (waveSpawner != null && !isSpecialWaveEnemy)
         {
             waveSpawner.OnEnemyKilled(transform.position);
         }

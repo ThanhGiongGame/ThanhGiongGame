@@ -40,6 +40,13 @@ public class CameraManager : MonoBehaviour
 
         ResolveSceneCameras();
         shopUI = FindFirstObjectByType<ShopUI>(FindObjectsInactive.Include);
+        if (shopUI == null)
+        {
+            GameObject shopUiObj = new GameObject("ShopUIManager");
+            shopUI = shopUiObj.AddComponent<ShopUI>();
+        }
+        shopUI.gameObject.SetActive(true);
+
         SetupMapSelection();
         SetupMessenger();
         ShowEquipment();

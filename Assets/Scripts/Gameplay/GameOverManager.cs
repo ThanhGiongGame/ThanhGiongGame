@@ -217,7 +217,7 @@ public class GameOverManager : MonoBehaviour
         CreateButton(
             panel.transform,
             "CHƠI LẠI",
-            new Vector2(-170f, -260f),
+            new Vector2(-170f, -230f),
             new Vector2(280f, 75f),
             new Color(0.1f, 0.12f, 0.15f, 0.9f),
             () =>
@@ -231,7 +231,7 @@ public class GameOverManager : MonoBehaviour
         CreateButton(
             panel.transform,
             "SHOP",
-            new Vector2(170f, -260f),
+            new Vector2(170f, -230f),
             new Vector2(280f, 75f),
             new Color(0.1f, 0.12f, 0.15f, 0.9f),
             () =>
@@ -245,7 +245,7 @@ public class GameOverManager : MonoBehaviour
         CreateButton(
             panel.transform,
             "MENU",
-            new Vector2(0f, -360f),
+            new Vector2(0f, -310f),
             new Vector2(220f, 60f),
             new Color(0.1f, 0.12f, 0.15f, 0.9f),
             () =>
@@ -430,14 +430,16 @@ public class GameOverManager : MonoBehaviour
         outline.effectColor = new Color(1f, 0.8f, 0.2f, 0.3f);
         outline.effectDistance = new Vector2(2f, -2f);
 
-        CreateText(
+        Text txt = CreateText(
             go.transform,
             label,
             Vector2.zero,
             26,
             FontStyle.Bold,
-            new Color(1f, 0.9f, 0.6f, 1f)
+            new Color(1f, 0.9f, 0.6f, 1f),
+            size
         );
+        txt.raycastTarget = false;
 
         return btn;
     }
