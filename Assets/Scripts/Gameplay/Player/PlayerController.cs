@@ -986,6 +986,12 @@ public class PlayerController : MonoBehaviour
             }
         }
         
+        int mapIndex = PlayerPrefs.GetInt("SelectedMap", 0);
+        if (mapIndex == 2)
+        {
+            BGMManager.Instance.FadeTo("Audio/background/Final Ending", 2.0f);
+        }
+        
         if (riderAnimator != null)
         {
             riderAnimator.enabled = false; // Disable all attacking animations
