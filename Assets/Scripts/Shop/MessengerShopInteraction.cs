@@ -51,6 +51,13 @@ public class MessengerShopInteraction : MonoBehaviour
                 PlayerPrefs.Save();
                 UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             }
+            if (UnityEngine.InputSystem.Keyboard.current.f11Key.wasPressedThisFrame)
+            {
+                // FORCE CLEAR
+                PlayerPrefs.SetInt("PendingMapUnlock", 0);
+                PlayerPrefs.Save();
+                UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            }
         }
     }
 
@@ -196,6 +203,9 @@ public class MessengerShopInteraction : MonoBehaviour
             dialogueAudioSource.clip = clipToPlay;
             dialogueAudioSource.Play();
         }
+
+        // Ensure the click catcher is at the very front so the black panel doesn't block clicks!
+        clickCatcher.transform.SetAsLastSibling();
 
         fullDialogueText = dialogueText;
         typewriterDone = false;

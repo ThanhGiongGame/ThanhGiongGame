@@ -524,8 +524,12 @@ public class PlayerController : MonoBehaviour
                 Animator anim = GetComponentInChildren<Animator>();
                 if (anim != null) 
                 {
-                    anim.SetBool("isWalking", isWalking);
-                    anim.SetBool("isRunning", isRunning);
+                    // For characters with only one animation (like the baby),
+                    // any movement should trigger the walking/running state.
+                    anim.SetBool("isWalking", hasHorizontalMovement);
+                    
+                    // Only try to set isRunning if the parameter actually exists to avoid warnings,
+                    // but for now we just rely on hasHorizontalMovement for the single boolean.
                 }
             }
         }

@@ -16,6 +16,21 @@ public class CameraManager : MonoBehaviour
     private ShopUI shopUI;
     private MapSelectionUI mapSelectionUI;
 
+    private void Awake()
+    {
+        ResolveSceneCameras();
+        
+        // Ensure only EquipmentCamera is active and tagged at the very start
+        if (shopCamera != null) shopCamera.gameObject.SetActive(false);
+        if (sugiaCamera != null) sugiaCamera.gameObject.SetActive(false);
+        
+        if (equipmentCamera != null) 
+        {
+            equipmentCamera.gameObject.SetActive(true);
+            equipmentCamera.tag = "MainCamera";
+        }
+    }
+
     private void Start()
     {
         Time.timeScale = 1f;
@@ -56,19 +71,31 @@ public class CameraManager : MonoBehaviour
     public void ShowEquipment()
     {
         ResolveSceneCameras();
-        SetCameraActive(shopCamera, false);
-        SetCameraActive(sugiaCamera, false);
-        SetCameraActive(equipmentCamera, true);
+        
+        if (shopCamera != null) shopCamera.gameObject.SetActive(false);
+        if (sugiaCamera != null) sugiaCamera.gameObject.SetActive(false);
+        
+        if (equipmentCamera != null)
+        {
+            equipmentCamera.gameObject.SetActive(true);
+        }
+        
         SetTabVisuals("BtnEquipment");
     }
 
     public void ShowSuGiaCamera()
     {
         ResolveSceneCameras();
-        SetCameraActive(shopCamera, false);
-        SetCameraActive(equipmentCamera, false);
-        SetCameraActive(sugiaCamera, true);
         
+        if (shopCamera != null) shopCamera.gameObject.SetActive(false);
+        if (equipmentCamera != null) equipmentCamera.gameObject.SetActive(false);
+        
+        if (sugiaCamera != null) 
+        {
+            sugiaCamera.gameObject.SetActive(true);
+            sugiaCamera.tag = "MainCamera";
+        }
+
         // Hide standard bottom tabs so they don't overlap dialogue
         SetTabVisuals(""); 
     }
