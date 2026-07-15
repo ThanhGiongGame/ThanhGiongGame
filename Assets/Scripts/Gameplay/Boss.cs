@@ -9,7 +9,7 @@ public class Boss : MonoBehaviour
     public float damage = 50f;
     
     [Header("Attack")]
-    public float attackRange = 3f;
+    public float attackRange = 7f;
     public float attackCooldown = 2f;
 
     [HideInInspector]
@@ -19,12 +19,16 @@ public class Boss : MonoBehaviour
     private Transform player;
     private float attackTimer;
 
-    private bool phase2Active = false;
-    private bool isStunned = false;
+    public bool Phase2Active { get; private set; } = false;
+    public bool IsStunned { get; private set; } = false;
     private float abilityTimer = 5f;
 
     public static bool IsSpecialFinalScene = false;
     private bool isDead = false;
+
+    // Health Bar UI
+    private UnityEngine.UI.Image healthBarFill;
+    private GameObject healthBarCanvas;
 
     private void Start()
     {
@@ -32,17 +36,19 @@ public class Boss : MonoBehaviour
         if (enemyScript != null)
         {
             enemyScript.isBoss = true; // disable default AI
-            enemyScript.maxHealth = 3000f;
-            enemyScript.currentHealth = 3000f;
+            enemyScript.maxHealth = 15000f;
+            enemyScript.currentHealth = 15000f;
         }
 
         GameObject p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) player = p.transform;
+
+        CreateHealthBarUI();
     }
 
     private void Update()
     {
-        if (Enemy.GlobalFreeze || isStunned || player == null || enemyScript == null) return;
+        if (Enemy.GlobalFreeze || IsStunned || player == null || enemyScript == null) return;
 
         MoveTowardPlayer();
         AttackPlayer();
@@ -52,10 +58,15 @@ public class Boss : MonoBehaviour
         pos.y = 0f;
         transform.position = pos;
 
-        // Phase Transition
-        if (!phase2Active && enemyScript.currentHealth <= enemyScript.maxHealth * 0.5f)
+        // Phase Transition fallback (Primary check is in Enemy.cs)
+        if (!Phase2Active && enemyScript.currentHealth <= enemyScript.maxHealth * 0.5f)
         {
-            StartCoroutine(PhaseTransitionRoutine());
+            TriggerPhase2();
+        }
+
+        if (healthBarFill != null && enemyScript != null)
+        {
+            healthBarFill.fillAmount = enemyScript.currentHealth / enemyScript.maxHealth;
         }
 
         // Ability Timer
@@ -63,7 +74,7 @@ public class Boss : MonoBehaviour
         if (abilityTimer <= 0f)
         {
             UseRandomAbility();
-            abilityTimer = phase2Active ? Random.Range(6f, 10f) : Random.Range(10f, 15f);
+            abilityTimer = Phase2Active ? Random.Range(6f, 10f) : Random.Range(10f, 15f);
         }
     }
 
@@ -110,7 +121,7 @@ public class Boss : MonoBehaviour
 
     private IEnumerator ArrowWaveRoutine()
     {
-        int count = phase2Active ? 12 : 6;
+        int count = Phase2Active ? 12 : 6;
         List<Vector3> targets = new List<Vector3>();
 
         for (int i = 0; i < count; i++)
@@ -156,7 +167,7 @@ public class Boss : MonoBehaviour
         GameObject linh2Prefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("linh-2") : Resources.Load<GameObject>("Prefabs/linh-2");
         if (linh2Prefab != null && waveSpawner != null)
         {
-            int count = phase2Active ? 6 : 3;
+            int count = Phase2Active ? 6 : 3;
             for (int i = 0; i < count; i++)
             {
                 Vector3 offset = Vector3.Cross(dir, Vector3.up) * Random.Range(-4f, 4f);
@@ -175,10 +186,52 @@ public class Boss : MonoBehaviour
         }
     }
 
+    public void TriggerPhase2()
+    {
+        if (Phase2Active) return;
+        StartCoroutine(PhaseTransitionRoutine());
+    }
+
     private IEnumerator PhaseTransitionRoutine()
     {
-        phase2Active = true;
-        isStunned = true;
+        Phase2Active = true;
+        IsStunned = true;
+
+        // Epic Visual Transformation
+        transform.localScale *= 1.5f;
+        HitEffect.Spawn(transform.position, Color.black, 3f);
+        CameraController cam = Camera.main.GetComponent<CameraController>();
+        if (cam != null) cam.Shake(1.5f, 1f);
+
+        // Force Player Transformation
+        if (player != null)
+        {
+            PlayerController pc = player.GetComponent<PlayerController>();
+            if (pc != null && !pc.IsPerformingSkill)
+            {
+                pc.IsInvulnerable = true;
+                pc.StartFinalMoveCinematic();
+            }
+        }
+
+        // Dialogue Canvas
+        GameObject canvasObject = new GameObject("BossPhase2DialogueCanvas");
+        Canvas canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 999;
+        
+        GameObject textObj = new GameObject("DialogueText");
+        textObj.transform.SetParent(canvasObject.transform, false);
+        var text = textObj.AddComponent<TMPro.TextMeshProUGUI>();
+        text.text = "Ngươi nghĩ bấy nhiêu là đủ sao? Giờ mới là lúc bắt đầu!";
+        text.fontSize = 36;
+        text.color = Color.red;
+        text.alignment = TMPro.TextAlignmentOptions.Center;
+        
+        RectTransform rt = text.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 0);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.anchoredPosition = new Vector2(0, -200);
 
         // Drop Health Packs
         for (int i = 0; i < 5; i++)
@@ -188,7 +241,10 @@ public class Boss : MonoBehaviour
         }
 
         yield return new WaitForSeconds(1.5f);
-        isStunned = false;
+        
+        if (canvasObject != null) Destroy(canvasObject);
+
+        IsStunned = false;
 
         IsSpecialFinalScene = true;
         StartCoroutine(SpecialPhase2Routine());
@@ -228,7 +284,7 @@ public class Boss : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
-        isStunned = true;
+        IsStunned = true;
         
         // Stop moving and attacking
         if (enemyScript != null)
@@ -282,5 +338,71 @@ public class Boss : MonoBehaviour
         
         Destroy(gameObject);
     }
-}
 
+    private void CreateHealthBarUI()
+    {
+        healthBarCanvas = new GameObject("BossHealthCanvas");
+        Canvas canvas = healthBarCanvas.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
+
+        // Background / Border
+        GameObject bgObj = new GameObject("HealthBarBG");
+        bgObj.transform.SetParent(healthBarCanvas.transform, false);
+        var bgImage = bgObj.AddComponent<UnityEngine.UI.Image>();
+        bgImage.color = new Color(0.12f, 0.12f, 0.14f, 0.95f); // Dark Iron
+        RectTransform bgRT = bgImage.rectTransform;
+        bgRT.anchorMin = new Vector2(0.5f, 1f);
+        bgRT.anchorMax = new Vector2(0.5f, 1f);
+        bgRT.pivot = new Vector2(0.5f, 1f);
+        bgRT.anchoredPosition = new Vector2(0, -40);
+        bgRT.sizeDelta = new Vector2(1000, 40); // Taller and thicker
+
+        var outline = bgObj.AddComponent<UnityEngine.UI.Outline>();
+        outline.effectColor = new Color(0.72f, 0.45f, 0.20f, 1f); // Bronze/Gold
+        outline.effectDistance = new Vector2(4f, -4f);
+
+        // Fill
+        GameObject fillObj = new GameObject("HealthBarFill");
+        fillObj.transform.SetParent(bgObj.transform, false);
+        healthBarFill = fillObj.AddComponent<UnityEngine.UI.Image>();
+        healthBarFill.color = new Color(0.7f, 0.05f, 0.05f, 1f); // Deep Crimson
+
+        // Generate a 1x1 white sprite
+        Texture2D tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, Color.white);
+        tex.Apply();
+        Sprite sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), Vector2.zero);
+        healthBarFill.sprite = sprite;
+        healthBarFill.type = UnityEngine.UI.Image.Type.Filled;
+        healthBarFill.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+        healthBarFill.fillOrigin = (int)UnityEngine.UI.Image.OriginHorizontal.Left;
+        
+        RectTransform fillRT = healthBarFill.rectTransform;
+        fillRT.anchorMin = new Vector2(0, 0);
+        fillRT.anchorMax = new Vector2(1, 1);
+        fillRT.offsetMin = new Vector2(4f, 4f); // Inset for border
+        fillRT.offsetMax = new Vector2(-4f, -4f);
+
+        // Text
+        GameObject textObj = new GameObject("BossNameText");
+        textObj.transform.SetParent(bgObj.transform, false);
+        var text = textObj.AddComponent<TMPro.TextMeshProUGUI>();
+        text.text = "TƯỚNG GIẶC ÂN";
+        text.fontSize = 28;
+        text.color = new Color(1f, 0.85f, 0.2f, 1f); // Golden
+        text.fontStyle = TMPro.FontStyles.Bold;
+        text.alignment = TMPro.TextAlignmentOptions.Center;
+        
+        RectTransform textRT = text.rectTransform;
+        textRT.anchorMin = new Vector2(0, 0);
+        textRT.anchorMax = new Vector2(1, 1);
+        textRT.offsetMin = Vector2.zero;
+        textRT.offsetMax = Vector2.zero;
+    }
+
+    private void OnDestroy()
+    {
+        if (healthBarCanvas != null) Destroy(healthBarCanvas);
+    }
+}

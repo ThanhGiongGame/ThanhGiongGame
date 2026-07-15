@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -6769691430286951708, guid: 9fdff99714e271b478fa23411e08ff75, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.03
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 9fdff99714e271b478fa23411e08ff75, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.03
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 9fdff99714e271b478fa23411e08ff75, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.03
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 9fdff99714e271b478fa23411e08ff75, type: 3}
       propertyPath: m_LocalPosition.x
@@ -116,6 +116,7 @@ MonoBehaviour:
   isStampeding: 0
   stampedeTarget: {x: 0, y: 0, z: 0}
   isBoss: 0
+  lastCombatTime: -999
 --- !u!95 &897219783917914936
 Animator:
   serializedVersion: 7
@@ -157,7 +158,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 1
+  m_Radius: 130.58
+  m_Height: 361.2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}

@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -6769691430286951708, guid: 4dbacb4881cbc9e4c8d89ff06379c45a, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.2
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 4dbacb4881cbc9e4c8d89ff06379c45a, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.2
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 4dbacb4881cbc9e4c8d89ff06379c45a, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.2
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: 4dbacb4881cbc9e4c8d89ff06379c45a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -100,7 +100,7 @@ MonoBehaviour:
   currentHealth: 15000
   moveSpeed: 3
   damage: 40
-  attackRange: 4
+  attackRange: 7
   attackCooldown: 10
   isRanged: 0
   projectileSpeed: 12
@@ -113,6 +113,7 @@ MonoBehaviour:
   isStampeding: 0
   stampedeTarget: {x: 0, y: 0, z: 0}
   isBoss: 0
+  lastCombatTime: -999
 --- !u!136 &330693567259189792
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -128,11 +129,11 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 102.05001
+  m_Radius: 65.3
   m_Height: 259.16156
   m_Direction: 1
   m_Center: {x: 0, y: 27.530708, z: 0}

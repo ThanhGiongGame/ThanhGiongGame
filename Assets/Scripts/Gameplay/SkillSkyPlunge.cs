@@ -114,9 +114,8 @@ public class SkillSkyPlunge : MonoBehaviour
 
     private void HandleAiming()
     {
-        Vector3 mouseWorld = GetMouseWorld();
-        _targetPos = mouseWorld;
-        _indicator.UpdateRing(mouseWorld, _impactRadius);
+        _targetPos = transform.position;
+        _indicator.UpdateRing(_targetPos, _impactRadius);
 
         // Confirm
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)

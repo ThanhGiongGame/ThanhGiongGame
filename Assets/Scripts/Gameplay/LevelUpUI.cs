@@ -29,11 +29,11 @@ public class LevelUpUI : MonoBehaviour
     private static readonly Color SkillTitle  = new Color(1.00f, 0.70f, 0.20f, 1.00f);
 
     // Legend card
-    private static readonly Color LegendBg       = new Color(0.04f, 0.05f, 0.08f, 0.96f);
+    private static readonly Color LegendBg       = new Color(0.06f, 0.05f, 0.03f, 0.96f);
     private static readonly Color LegendBorder   = new Color(1.00f, 0.85f, 0.20f, 1.00f);
     private static readonly Color LegendTitle    = new Color(1.00f, 0.90f, 0.40f, 1.00f);
-    private static readonly Color LegendEvoBorder = new Color(0.90f, 0.20f, 0.90f, 1.00f);
-    private static readonly Color LegendEvoTitle  = new Color(1.00f, 0.40f, 1.00f, 1.00f);
+    private static readonly Color LegendEvoBorder = new Color(1.00f, 0.40f, 0.80f, 1.00f);
+    private static readonly Color LegendEvoTitle  = new Color(1.00f, 0.60f, 0.90f, 1.00f);
 
     private Canvas     _canvas;
     private GameObject _panel;
@@ -137,6 +137,13 @@ public class LevelUpUI : MonoBehaviour
         bRect.offsetMin = bRect.offsetMax = Vector2.zero;
         Image bImg = borderGO.AddComponent<Image>();
         bImg.color = border;
+        
+        if (isLegend)
+        {
+            var outline = borderGO.AddComponent<Outline>();
+            outline.effectColor = border;
+            outline.effectDistance = new Vector2(2f, -2f);
+        }
 
         // Inner card
         GameObject cardGO = new GameObject("Inner");
@@ -152,7 +159,7 @@ public class LevelUpUI : MonoBehaviour
         AddText(cardGO.transform, opt.title,
             new Vector2(0f, 0.68f), new Vector2(1f, 1f),
             isSkill ? 34 : 36, FontStyle.Bold, titleCol,
-            TextAnchor.UpperCenter, wrap: true, padding: 10f);
+            TextAnchor.UpperCenter, wrap: true, padding: 10f, addShadow: true);
 
         // Stars (skills only)
         if (opt.maxLevel > 0)
@@ -173,7 +180,7 @@ public class LevelUpUI : MonoBehaviour
             AddText(cardGO.transform, opt.legendSubtitle,
                 new Vector2(0f, 0.45f), new Vector2(1f, 0.53f),
                 22, FontStyle.Italic, new Color(0.9f, 0.7f, 0.3f),
-                TextAnchor.MiddleCenter);
+                TextAnchor.MiddleCenter, addShadow: true);
             descTop = 0.45f;
         }
 
@@ -260,7 +267,8 @@ public class LevelUpUI : MonoBehaviour
         Color color,
         TextAnchor alignment,
         bool wrap    = false,
-        float padding = 0f)
+        float padding = 0f,
+        bool addShadow = false)
     {
         GameObject go = new GameObject("Txt_" + content.Substring(0, Mathf.Min(8, content.Length)));
         go.transform.SetParent(parent, false);
@@ -281,6 +289,14 @@ public class LevelUpUI : MonoBehaviour
         rt.anchorMax = anchorMax;
         rt.offsetMin = new Vector2(padding, 0f);
         rt.offsetMax = new Vector2(-padding, 0f);
+        
+        if (addShadow)
+        {
+            Shadow s = go.AddComponent<Shadow>();
+            s.effectColor = new Color(0, 0, 0, 0.8f);
+            s.effectDistance = new Vector2(2f, -2f);
+        }
+        
         return txt;
     }
 }

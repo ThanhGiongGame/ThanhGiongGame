@@ -3,35 +3,26 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    [Header("Stats")]
-    public float maxHealth = 30f;
-    public float currentHealth;
-
-    public float moveSpeed = 3f;
-    public float damage = 10f;
-
-    [Header("Attack")]
-    public float attackRange = 1.5f;
-    public float attackCooldown = 1f;
-
-    [Header("Ranged Attack")]
-    public bool isRanged = false;
-    public float projectileSpeed = 12f;
-
-    [Header("Knockback")]
-    public float selfKnockbackForce = 5f;
-    public float selfKnockbackDuration = 0.2f;
-
-    [Header("Movement")]
-    public float personalSpaceRadius = 2f;
-    public float separationRadius = 1.5f;
-    public float separationStrength = 2f;
+    [HideInInspector] public float maxHealth = 30f;
+    [HideInInspector] public float currentHealth;
+    [HideInInspector] public float moveSpeed = 3f;
+    [HideInInspector] public float damage = 10f;
+    [HideInInspector] public float attackRange = 1.5f;
+    [HideInInspector] public float attackCooldown = 1f;
+    [HideInInspector] public bool isRanged = false;
+    [HideInInspector] public float projectileSpeed = 12f;
+    [HideInInspector] public float selfKnockbackForce = 5f;
+    [HideInInspector] public float selfKnockbackDuration = 0.2f;
+    [HideInInspector] public float personalSpaceRadius = 2f;
+    [HideInInspector] public float separationRadius = 1.5f;
+    [HideInInspector] public float separationStrength = 2f;
 
     [HideInInspector]
     public WaveSpawner waveSpawner;
 
     // Hit effect color: bright golden-yellow
     private static readonly Color HitColor = new Color(1f, 0.85f, 0.1f);
+    private static Material _javelinMaterial;
 
     private Transform player;
 
@@ -55,6 +46,7 @@ public class Enemy : MonoBehaviour
     // Pool support: track last combat time for despawn protection
     [HideInInspector]
     public float lastCombatTime = -999f;
+    private float lastHitTime = -999f;
 
     // Original stats (for pool reset)
     private float _baseMoveSpeed;
@@ -199,6 +191,7 @@ public class Enemy : MonoBehaviour
         knockbackVelocity = Vector3.zero;
         knockbackTimer = 0f;
         lastCombatTime = -999f;
+        lastHitTime = -999f;
         isStampeding = false;
         stampedeTarget = Vector3.zero;
         isBoss = false;
@@ -286,29 +279,9 @@ public class Enemy : MonoBehaviour
             targetEuler.z = initialRotationZ;
             transform.rotation = Quaternion.Euler(targetEuler);
         }
-
-        ResolveOverlaps();
     }
 
-    private void ResolveOverlaps()
-    {
-        Collider myCol = GetComponent<Collider>();
-        if (myCol == null) return;
-
-        Collider[] nearby = Physics.OverlapBox(myCol.bounds.center, myCol.bounds.extents, Quaternion.identity);
-        foreach (Collider other in nearby)
-        {
-            if (other == myCol || other.isTrigger || !other.CompareTag("Enemy")) continue;
-
-            if (Physics.ComputePenetration(myCol, transform.position, transform.rotation,
-                                           other, other.transform.position, other.transform.rotation,
-                                           out Vector3 dir, out float dist))
-            {
-                transform.position += dir * (dist * 0.5f);
-                other.transform.position -= dir * (dist * 0.5f);
-            }
-        }
-    }
+    // ResolveOverlaps removed for massive performance gains
 
     private Coroutine _knockbackCoroutine;
     private bool _isStunned;
@@ -418,7 +391,12 @@ public class Enemy : MonoBehaviour
         Renderer rend = javelin.GetComponent<Renderer>();
         if (rend != null)
         {
-            rend.material.color = new Color(0.8f, 0.5f, 0.2f);
+            if (_javelinMaterial == null)
+            {
+                _javelinMaterial = new Material(Shader.Find("Standard"));
+                _javelinMaterial.color = new Color(0.8f, 0.5f, 0.2f);
+            }
+            rend.sharedMaterial = _javelinMaterial;
         }
 
         EnemyJavelin script = javelin.AddComponent<EnemyJavelin>();
@@ -458,7 +436,15 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
-        currentHealth -= damageAmount;
+        if (isBoss)
+        {
+            if (Time.time < lastHitTime + 0.1f) return;
+            
+            Boss bossScript = GetComponent<Boss>();
+            if (bossScript != null && bossScript.IsStunned) return; // Invulnerable during phase transition
+        }
+
+        lastHitTime = Time.time;
         lastCombatTime = Time.time; // Track combat for despawn protection
 
         Debug.Log(gameObject.name + " took damage: " + damageAmount);
@@ -466,18 +452,44 @@ public class Enemy : MonoBehaviour
         // Spawn a red hit burst at the enemy's centre
         HitEffect.Spawn(transform.position + Vector3.up * 0.8f, Color.red, 1.0f);
 
-        if (currentHealth <= 0f)
+        if (isBoss)
         {
-            if (isBoss && Boss.IsSpecialFinalScene)
+            Boss bossScript = GetComponent<Boss>();
+            if (bossScript != null)
             {
-                Boss bossScript = GetComponent<Boss>();
-                if (bossScript != null)
+                if (!bossScript.Phase2Active)
                 {
+                    // Health Gating in Phase 1
+                    if (currentHealth - damageAmount <= maxHealth * 0.5f)
+                    {
+                        currentHealth = maxHealth * 0.5f;
+                        bossScript.TriggerPhase2();
+                        return;
+                    }
+                }
+                
+                currentHealth -= damageAmount;
+                
+                if (currentHealth <= 0f)
+                {
+                    currentHealth = 0f;
                     bossScript.TriggerBossDeathCinematic();
                     return;
                 }
             }
-            Die();
+            else
+            {
+                currentHealth -= damageAmount;
+                if (currentHealth <= 0f) Die();
+            }
+        }
+        else
+        {
+            currentHealth -= damageAmount;
+            if (currentHealth <= 0f)
+            {
+                Die();
+            }
         }
     }
 
