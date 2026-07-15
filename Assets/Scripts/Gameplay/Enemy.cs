@@ -22,6 +22,7 @@ public class Enemy : MonoBehaviour
 
     // Hit effect color: bright golden-yellow
     private static readonly Color HitColor = new Color(1f, 0.85f, 0.1f);
+    private static Material _javelinMaterial;
 
     private Transform player;
 
@@ -390,7 +391,12 @@ public class Enemy : MonoBehaviour
         Renderer rend = javelin.GetComponent<Renderer>();
         if (rend != null)
         {
-            rend.material.color = new Color(0.8f, 0.5f, 0.2f);
+            if (_javelinMaterial == null)
+            {
+                _javelinMaterial = new Material(Shader.Find("Standard"));
+                _javelinMaterial.color = new Color(0.8f, 0.5f, 0.2f);
+            }
+            rend.sharedMaterial = _javelinMaterial;
         }
 
         EnemyJavelin script = javelin.AddComponent<EnemyJavelin>();

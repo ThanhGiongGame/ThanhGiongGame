@@ -51,6 +51,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 currentAttackDirVector = Vector3.forward;
     private bool isArcAttacking = false;
     private System.Collections.Generic.HashSet<Enemy> hitEnemiesThisAttack = new System.Collections.Generic.HashSet<Enemy>();
+    private Collider[] _attackHits = new Collider[50];
 
 
     // Top-down game: use a small constant downward push to stay grounded
@@ -280,9 +281,10 @@ public class PlayerController : MonoBehaviour
         if (phase2AuraTimer <= 0f)
         {
             phase2AuraTimer = 0.5f;
-            Collider[] hits = Physics.OverlapSphere(transform.position, 6f);
-            foreach (Collider hit in hits)
+            int hitCount = Physics.OverlapSphereNonAlloc(transform.position, 6f, _attackHits);
+            for (int i = 0; i < hitCount; i++)
             {
+                Collider hit = _attackHits[i];
                 if (hit.CompareTag("Enemy"))
                 {
                     Enemy e = hit.GetComponent<Enemy>();
@@ -847,10 +849,14 @@ public class PlayerController : MonoBehaviour
 
     private void HandleArcAttackDamage()
     {
-        float radius = IsTutorialScene ? 2.2f : 4.5f;
-        Collider[] hits = Physics.OverlapSphere(transform.position, radius);
-        foreach (Collider hit in hits)
+        // Scale the attack radius based on the weapon tier! This gives higher tier weapons actual range.
+        float radius = IsTutorialScene ? 2.2f : (4.5f * weaponScaleMultiplier);
+        
+        // Use NonAlloc to prevent massive GC allocations every frame!
+        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, radius, _attackHits);
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider hit = _attackHits[i];
             if (hit.CompareTag("Enemy"))
             {
                 Enemy e = hit.GetComponent<Enemy>();
