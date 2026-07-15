@@ -52,6 +52,16 @@ public class Enemy : MonoBehaviour
     [HideInInspector]
     public bool isBoss = false;
 
+    // Pool support: track last combat time for despawn protection
+    [HideInInspector]
+    public float lastCombatTime = -999f;
+
+    // Original stats (for pool reset)
+    private float _baseMoveSpeed;
+    private float _baseMaxHealth;
+    private float _baseDamage;
+    private bool _baseStatsRecorded = false;
+
     private void Start()
     {
         gameObject.tag = "Enemy";
@@ -59,13 +69,16 @@ public class Enemy : MonoBehaviour
         initialRotationX = transform.eulerAngles.x;
         initialRotationZ = transform.eulerAngles.z;
 
-        GameObject playerObject =
-            GameObject.FindGameObjectWithTag("Player");
-
-        if (playerObject != null)
+        // Record base stats for pool reset (only once per prefab instance)
+        if (!_baseStatsRecorded)
         {
-            player = playerObject.transform;
+            _baseMoveSpeed = moveSpeed;
+            _baseMaxHealth = maxHealth;
+            _baseDamage = damage;
+            _baseStatsRecorded = true;
         }
+
+        FindPlayer();
 
         // Configure EnemyC as ranged javelin thrower
         //if (gameObject.name.Contains("EnemyC"))
@@ -149,7 +162,60 @@ public class Enemy : MonoBehaviour
         //}
     }
 
+    private void OnEnable()
+    {
+        // Re-find player when activated from pool
+        FindPlayer();
+        currentHealth = maxHealth;
+        initialRotationX = transform.eulerAngles.x;
+        initialRotationZ = transform.eulerAngles.z;
+    }
 
+    private void FindPlayer()
+    {
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null)
+        {
+            player = playerObject.transform;
+        }
+    }
+
+    /// <summary>
+    /// Reset all state when retrieved from object pool.
+    /// </summary>
+    public void ResetForPool()
+    {
+        // Restore base stats
+        if (_baseStatsRecorded)
+        {
+            moveSpeed = _baseMoveSpeed;
+            maxHealth = _baseMaxHealth;
+            damage = _baseDamage;
+        }
+        currentHealth = maxHealth;
+
+        // Reset combat state
+        attackTimer = 0f;
+        knockbackVelocity = Vector3.zero;
+        knockbackTimer = 0f;
+        lastCombatTime = -999f;
+        isStampeding = false;
+        stampedeTarget = Vector3.zero;
+        isBoss = false;
+        _isStunned = false;
+
+        if (_knockbackCoroutine != null)
+        {
+            StopCoroutine(_knockbackCoroutine);
+            _knockbackCoroutine = null;
+        }
+
+        // Re-enable this component
+        enabled = true;
+
+        // Re-find player
+        FindPlayer();
+    }
 
     private void Update()
     {
@@ -301,6 +367,8 @@ public class Enemy : MonoBehaviour
 
         if (sqrDistance <= attackRangeSqr + 0.1f && attackTimer <= 0f)
         {
+            lastCombatTime = Time.time; // Track combat for despawn protection
+
             if (isRanged)
             {
                 ThrowProjectile(offset.normalized);
@@ -391,6 +459,7 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(float damageAmount)
     {
         currentHealth -= damageAmount;
+        lastCombatTime = Time.time; // Track combat for despawn protection
 
         Debug.Log(gameObject.name + " took damage: " + damageAmount);
 
@@ -444,7 +513,15 @@ public class Enemy : MonoBehaviour
             }
         }
 
-        Destroy(gameObject);
+        // Return to pool instead of destroying
+        if (EnemyPool.Instance != null)
+        {
+            EnemyPool.Instance.ReturnEnemy(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 }
 

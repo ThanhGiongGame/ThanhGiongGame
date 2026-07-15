@@ -59,29 +59,25 @@ public class SpecialWaveManager : MonoBehaviour
         yield return new WaitForSeconds(2f);
         if (indicator != null) Destroy(indicator.gameObject);
 
-        // Spawn chickens
-        GameObject chickenPrefab = Resources.Load<GameObject>("Prefabs/chicken");
-        if (chickenPrefab != null)
+        // Spawn chickens via pool
+        for (int i = 0; i < 8; i++)
         {
-            for (int i = 0; i < 8; i++)
+            Vector3 offset = Vector3.Cross(randomDir, Vector3.up) * Random.Range(-3f, 3f);
+            Vector3 spawnPos = startPos + offset;
+            
+            GameObject chicken = waveSpawner.SpawnEnemy(
+                EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("chicken") : Resources.Load<GameObject>("Prefabs/chicken"),
+                1f, 1.5f, spawnPos);
+            if (chicken != null)
             {
-                Vector3 offset = Vector3.Cross(randomDir, Vector3.up) * Random.Range(-3f, 3f);
-                Vector3 spawnPos = startPos + offset;
-                
-                GameObject chicken = waveSpawner.SpawnEnemy(chickenPrefab, 1f, 1.5f, spawnPos);
-                if (chicken != null)
+                Enemy enemyScript = chicken.GetComponent<Enemy>();
+                if (enemyScript != null)
                 {
-                    Enemy enemyScript = chicken.GetComponent<Enemy>();
-                    if (enemyScript != null)
-                    {
-                        // Set a target manually if we have a way, or just let them run towards player.
-                        // Ideally we set an override target for stampede.
-                        enemyScript.stampedeTarget = endPos + offset; 
-                        enemyScript.isStampeding = true;
-                    }
+                    enemyScript.stampedeTarget = endPos + offset; 
+                    enemyScript.isStampeding = true;
                 }
-                yield return new WaitForSeconds(0.2f);
             }
+            yield return new WaitForSeconds(0.2f);
         }
     }
 
@@ -100,7 +96,7 @@ public class SpecialWaveManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         if (indicator != null) Destroy(indicator.gameObject);
 
-        GameObject chickenPrefab = Resources.Load<GameObject>("Prefabs/chicken");
+        GameObject chickenPrefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("chicken") : Resources.Load<GameObject>("Prefabs/chicken");
         if (chickenPrefab != null)
         {
             GameObject chicken = waveSpawner.SpawnEnemy(chickenPrefab, 1f, 0f, targetPos + Vector3.up * 10f);
@@ -116,7 +112,7 @@ public class SpecialWaveManager : MonoBehaviour
     {
         if (player == null) yield break;
         
-        GameObject linh1Prefab = Resources.Load<GameObject>("Prefabs/linh-1");
+        GameObject linh1Prefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("linh-1") : Resources.Load<GameObject>("Prefabs/linh-1");
         if (linh1Prefab == null) yield break;
 
         int count = 12;
@@ -134,8 +130,8 @@ public class SpecialWaveManager : MonoBehaviour
     {
         if (player == null) yield break;
 
-        GameObject linh2Prefab = Resources.Load<GameObject>("Prefabs/linh-2");
-        GameObject linh1Prefab = Resources.Load<GameObject>("Prefabs/linh-1");
+        GameObject linh2Prefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("linh-2") : Resources.Load<GameObject>("Prefabs/linh-2");
+        GameObject linh1Prefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("linh-1") : Resources.Load<GameObject>("Prefabs/linh-1");
 
         if (linh2Prefab != null)
         {
@@ -169,12 +165,13 @@ public class SpecialWaveManager : MonoBehaviour
 
     private void SpawnFinalBoss()
     {
-        GameObject bossPrefab = Resources.Load<GameObject>("Prefabs/boss");
+        GameObject bossPrefab = EnemyPool.Instance != null ? EnemyPool.Instance.GetPrefab("boss") : Resources.Load<GameObject>("Prefabs/boss");
         if (bossPrefab != null)
         {
             Vector2 randomCircle = Random.insideUnitCircle.normalized * waveSpawner.spawnRadius;
             Vector3 pos = player.position + new Vector3(randomCircle.x, 0, randomCircle.y);
             
+            // Boss uses direct Instantiate (not pooled — only one boss)
             GameObject bossObj = Instantiate(bossPrefab, pos, Quaternion.identity);
             Boss bossScript = bossObj.GetComponent<Boss>();
             if (bossScript == null) bossScript = bossObj.AddComponent<Boss>();

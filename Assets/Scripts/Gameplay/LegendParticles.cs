@@ -114,6 +114,61 @@ public static class LegendParticles
     }
 
     // -------------------------------------------------------
+    // Rising Water Particles — for whirlpools
+    // -------------------------------------------------------
+    public static void AddRisingWaterParticles(GameObject parent, float rate = 30f, float radius = 2f)
+    {
+        GameObject go = new GameObject("FX_RisingWater");
+        go.transform.SetParent(parent.transform, false);
+        go.transform.localPosition = Vector3.zero;
+
+        ParticleSystem ps = go.AddComponent<ParticleSystem>();
+
+        var main = ps.main;
+        main.loop             = true;
+        main.playOnAwake      = true;
+        main.simulationSpace  = ParticleSystemSimulationSpace.World;
+        main.startLifetime    = new ParticleSystem.MinMaxCurve(1.0f, 2.0f);
+        main.startSpeed       = new ParticleSystem.MinMaxCurve(2.0f, 4.0f); // Move upward
+        main.startSize        = new ParticleSystem.MinMaxCurve(0.1f, 0.3f);
+        main.startRotation    = new ParticleSystem.MinMaxCurve(0f, 360f * Mathf.Deg2Rad);
+        main.gravityModifier  = -0.2f; // Rise up
+        main.startColor       = new ParticleSystem.MinMaxGradient(
+            new Color(0.10f, 0.50f, 1.0f, 0.8f),
+            new Color(0.35f, 0.85f, 1.0f, 0.6f)
+        );
+        main.maxParticles = 150;
+
+        var emission = ps.emission;
+        emission.rateOverTime = rate;
+
+        var shape = ps.shape;
+        shape.enabled       = true;
+        shape.shapeType     = ParticleSystemShapeType.Circle;
+        shape.radius        = radius;
+        // Rotate shape so it points upward (assuming default is emitting along Z, circle usually is XY plane, emit along Z)
+        // Actually, circle in Unity Particle System shape emits along Z. If we want it to emit UP, we rotate -90 on X.
+        shape.rotation      = new Vector3(-90f, 0f, 0f);
+
+        var col = ps.colorOverLifetime;
+        col.enabled = true;
+        Gradient g = new Gradient();
+        g.SetKeys(
+            new[] { new GradientColorKey(new Color(0.2f, 0.6f, 1f), 0f),
+                    new GradientColorKey(new Color(0.7f, 0.93f, 1f), 1f) },
+            new[] { new GradientAlphaKey(0.0f, 0f), new GradientAlphaKey(0.8f, 0.2f), new GradientAlphaKey(0f, 1f) }
+        );
+        col.color = new ParticleSystem.MinMaxGradient(g);
+
+        var rend = ps.GetComponent<ParticleSystemRenderer>();
+        rend.renderMode   = ParticleSystemRenderMode.Billboard;
+        rend.sortingOrder = 2;
+        rend.material     = ParticleMat(new Color(0.2f, 0.6f, 1f));
+
+        ps.Play();
+    }
+
+    // -------------------------------------------------------
     // One-shot burst on impact (dust or water)
     // -------------------------------------------------------
     public static void BurstAt(Vector3 position, Color color, int count = 30, float speed = 6f)

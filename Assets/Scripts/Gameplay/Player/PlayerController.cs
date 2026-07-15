@@ -9,12 +9,16 @@ public class PlayerController : MonoBehaviour
     private int attackId = 0;
     [Header("Movement")]
     public float moveSpeed = 5f;
+    public float sprintMultiplier = 1.8f;
     [HideInInspector]
     public float slashDamageMultiplier = 1.0f; // Defaults to 100% damage base
     [Header("Attack")]
     public GameObject slashPrefab;
+    [Range(0.001f, 0.1f)] public float attackArcMouseSensitivity = 0.015f;
+    [Min(1f)] public float attackArcMoveSpeed = 4f;
     [Header("Horse Rotation")]
     public float turnSpeed = 300f;
+    public float mountedTurnSpeed = 150f;
     public Transform attackSpawnPoint;
     public float attackInterval = 1.2f;   // 0.2s wind-up + 1.0s swing
     public float attackWindUp = 0.2f;   // delay before slash spawns
@@ -36,8 +40,10 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private PlayerHealth playerHealth;
     private Camera mainCamera;
-    private float walkTimer = 0f;
     private bool isAttacking;
+    private float attackArcPosition;
+    private float attackArcTarget;
+    private AttackDirection mountedAttackDirection = AttackDirection.North;
 
     // ---- Attack timer ----
     private float attackTimer;
@@ -80,12 +86,20 @@ public class PlayerController : MonoBehaviour
         horseLoader.LoadHorse();
         weaponDamage = GetComponent<WeaponDamage>();
         IsInvulnerable = false;
-        float baseDamage = 20f;
-        float baseMaxHealth = 100f;
-        float baseSpeed = 5f;
-        moveSpeed = baseSpeed;
-        playerHealth.maxHealth = baseMaxHealth;
-        slashDamageMultiplier = baseDamage / 20f;
+        float baseDamage = slashDamageMultiplier > 0f
+            ? slashDamageMultiplier * 20f
+            : 20f;
+        float baseMaxHealth = playerHealth != null ? playerHealth.maxHealth : 100f;
+        float baseSpeed = moveSpeed;
+
+        // Controls are global, while each map keeps its own combat/stat values.
+        sprintMultiplier = 1.8f;
+        turnSpeed = 300f;
+        mountedTurnSpeed = 150f;
+        attackArcMouseSensitivity = 0.015f;
+        attackArcMoveSpeed = 4f;
+        attackInterval = 1.2f;
+        attackWindUp = 0.2f;
 
         gameObject.AddComponent<LegendaryUpgradeSystem>();
         new GameObject("LegendHUD").AddComponent<LegendHUD>();
@@ -98,6 +112,10 @@ public class PlayerController : MonoBehaviour
         }
 
         attackTimer = attackInterval;
+        if (GetComponent<AttackArcIndicator>() == null)
+        {
+            gameObject.AddComponent<AttackArcIndicator>();
+        }
 
         // --- Đọc dữ liệu Loadout từ Shop Menu ---
         if (PlayerPrefs.GetInt("Item_DamageBuff", 0) == 2)
@@ -114,7 +132,82 @@ public class PlayerController : MonoBehaviour
         {
             baseSpeed += 3f;
         }
+
+        moveSpeed = baseSpeed;
+        slashDamageMultiplier = baseDamage / 20f;
+        if (playerHealth != null)
+        {
+            playerHealth.maxHealth = baseMaxHealth;
+            playerHealth.currentHealth = baseMaxHealth;
+        }
+
+        if (UsesMountedGameplayControls)
+        {
+            StartCoroutine(EnsureSharedGameplayUiAfterStartup());
+        }
     }
+
+    private IEnumerator EnsureSharedGameplayUiAfterStartup()
+    {
+        // Give scene-owned components one frame to build first. Map 1 has an
+        // older setup, so we verify the actual UI objects instead of assuming
+        // a component reference means its canvas exists.
+        yield return null;
+
+        GameObject systems = GameObject.Find("GameplayRuntimeSystems");
+        if (systems == null)
+        {
+            systems = new GameObject("GameplayRuntimeSystems");
+        }
+
+        if (FindFirstObjectByType<XPManager>() == null)
+        {
+            systems.AddComponent<XPManager>();
+        }
+
+        if (FindFirstObjectByType<UpgradeManager>() == null)
+        {
+            systems.AddComponent<UpgradeManager>();
+        }
+
+        if (FindFirstObjectByType<LevelUpUI>() == null)
+        {
+            systems.AddComponent<LevelUpUI>();
+        }
+
+        if (FindFirstObjectByType<GameOverManager>() == null)
+        {
+            systems.AddComponent<GameOverManager>();
+        }
+
+        if (GameObject.Find("HPBorder") == null)
+        {
+            PlayerHealthUI healthUi = systems.GetComponent<PlayerHealthUI>();
+            if (healthUi == null)
+            {
+                healthUi = systems.AddComponent<PlayerHealthUI>();
+            }
+
+            healthUi.playerHealth = playerHealth;
+        }
+
+        if (GameObject.Find("XPBorder") == null && systems.GetComponent<PlayerLevelUI>() == null)
+        {
+            systems.AddComponent<PlayerLevelUI>();
+        }
+
+        if (GameObject.Find("SkillHotbarCanvas") == null && systems.GetComponent<SkillCooldownUI>() == null)
+        {
+            systems.AddComponent<SkillCooldownUI>();
+        }
+
+        if (GameObject.Find("GameplayPauseCanvas") == null
+            && FindFirstObjectByType<GameplayPauseMenu>(FindObjectsInactive.Include) == null)
+        {
+            systems.AddComponent<GameplayPauseMenu>();
+        }
+    }
+
     void Update()
     {
         ExpireStuckInvulnerability();
@@ -141,7 +234,7 @@ public class PlayerController : MonoBehaviour
 
         if (!IsPerformingSkill)
         {
-            //HandleRotation();
+            UpdateAttackArcInput();
             HandleAttack();
         }
         HandleMovement();
@@ -311,100 +404,111 @@ public class PlayerController : MonoBehaviour
         Vector3 moveVelocity = Vector3.zero;
 
         bool isKnockedBack = playerHealth != null && playerHealth.IsKnockedBack;
+        bool wantsSprint = false;
 
         if (!isKnockedBack && Keyboard.current != null)
         {
             float horizontal = 0f;
             float vertical = 0f;
-            float moveMutiplier = 1f;
-            if (walkTimer > 3)
-            {
-                moveMutiplier = 1.8f;
-            }
-            else moveMutiplier = 1;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) horizontal -= 1f;
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) horizontal += 1f;
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) vertical -= 1f;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) vertical += 1f;
 
-            Vector3 moveDir =
-                new Vector3(horizontal, 0f, vertical);
+            wantsSprint = vertical > 0f
+                && (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
+            float moveMultiplier = wantsSprint ? sprintMultiplier : 1f;
 
-            if (moveDir.sqrMagnitude > 0.01f)
+            CameraController cameraController = mainCamera != null
+                ? mainCamera.GetComponent<CameraController>()
+                : null;
+            bool mountedThirdPerson = UsesMountedGameplayControls;
+            Vector3 moveDir;
+
+            if (mountedThirdPerson)
             {
-                if (horseAnimator != null)
+                bool alignToCamera = Mouse.current != null && Mouse.current.rightButton.isPressed;
+                if (alignToCamera && cameraController != null)
                 {
-                    Quaternion targetRotation =
-                        Quaternion.LookRotation(moveDir.normalized);
-
-                    transform.rotation =
-                        Quaternion.RotateTowards(
-                            transform.rotation,
-                            targetRotation,
-                            turnSpeed * Time.deltaTime
-                        );
+                    RotateTowards(cameraController.GetPlanarForward());
                 }
-            }
-
-            if (horseAnimator == null)
-            {
-                if (TryGetMouseGroundPoint(out Vector3 targetPoint))
+                else if (Mathf.Abs(horizontal) > 0.01f)
                 {
-                    Vector3 direction = (targetPoint - transform.position).normalized;
-                    direction.y = 0;
-                    if (direction.sqrMagnitude > 0.01f)
-                    {
-                        Quaternion targetRot = Quaternion.LookRotation(direction, Vector3.up);
-                        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 15f * Time.deltaTime);
-                    }
+                    transform.Rotate(Vector3.up, horizontal * mountedTurnSpeed * Time.deltaTime, Space.World);
+                }
+
+                // Mounted controls: W/S move along the horse's own heading; A/D steer it.
+                moveDir = transform.forward * vertical;
+                moveDir.y = 0f;
+                moveDir.Normalize();
+            }
+            else
+            {
+                Vector3 camForward = mainCamera.transform.forward;
+                Vector3 camRight = mainCamera.transform.right;
+                camForward.y = 0f;
+                camRight.y = 0f;
+                camForward.Normalize();
+                camRight.Normalize();
+
+                moveDir = (camForward * vertical + camRight * horizontal).normalized;
+                if (moveDir.sqrMagnitude > 0.01f)
+                {
+                    RotateTowards(moveDir);
                 }
             }
 
             moveVelocity =
-                moveDir.normalized
+                moveDir
                 * moveSpeed
-                * moveMutiplier;
+                * moveMultiplier;
         }
         if (isKnockedBack)
         {
-            if (isKnockedBack)
+            if (horseAnimator != null) 
             {
                 horseAnimator.SetBool("isWalking", false);
-                walkTimer = 0f;
-                
-                if (footstepSound != null && audioSource != null && audioSource.clip == footstepSound && audioSource.isPlaying)
+                horseAnimator.SetBool("isRunning", false);
+            }
+            if (riderAnimator != null) 
+            {
+                riderAnimator.SetBool("isWalking", false);
+                riderAnimator.SetBool("isRunning", false);
+            }
+            if (horseAnimator == null && riderAnimator == null)
+            {
+                Animator anim = GetComponentInChildren<Animator>();
+                if (anim != null) 
                 {
-                    audioSource.Stop();
+                    anim.SetBool("isWalking", false);
+                    anim.SetBool("isRunning", false);
                 }
             }
-            else
+        }
+        else
+        {
+            bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
+            bool isRunning = hasHorizontalMovement && wantsSprint;
+            bool isWalking = hasHorizontalMovement && !wantsSprint;
+
+            if (horseAnimator != null) 
             {
-                bool hasHorizontalMovement = new Vector3(moveVelocity.x, 0f, moveVelocity.z).sqrMagnitude > 0.01f;
-                if (hasHorizontalMovement) {
-                    walkTimer += Time.deltaTime;
-                    
-                    if (footstepSound != null && audioSource != null)
-                    {
-                        if (audioSource.clip != footstepSound)
-                        {
-                            audioSource.clip = footstepSound;
-                            audioSource.loop = true;
-                        }
-                        if (!audioSource.isPlaying)
-                        {
-                            audioSource.Play();
-                        }
-                    }
-                }
-                else
+                horseAnimator.SetBool("isWalking", isWalking);
+                horseAnimator.SetBool("isRunning", isRunning);
+            }
+            if (riderAnimator != null) 
+            {
+                riderAnimator.SetBool("isWalking", isWalking);
+                riderAnimator.SetBool("isRunning", isRunning);
+            }
+            if (horseAnimator == null && riderAnimator == null)
+            {
+                Animator anim = GetComponentInChildren<Animator>();
+                if (anim != null) 
                 {
-                    walkTimer = 0f;
-                    if (footstepSound != null && audioSource != null && audioSource.clip == footstepSound && audioSource.isPlaying)
-                    {
-                        audioSource.Stop();
-                    }
+                    anim.SetBool("isWalking", isWalking);
+                    anim.SetBool("isRunning", isRunning);
                 }
-                horseAnimator.SetBool("isWalking", hasHorizontalMovement);
             }
         }
 
@@ -470,12 +574,8 @@ public class PlayerController : MonoBehaviour
         if (mainCamera == null)
             return false;
 
-        if (Mouse.current == null)
-            return false;
-
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-
-        Ray ray = mainCamera.ScreenPointToRay(mousePos);
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        Ray ray = mainCamera.ScreenPointToRay(screenCenter);
 
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
 
@@ -513,6 +613,78 @@ public class PlayerController : MonoBehaviour
         // nửa trái
         return AttackDirection.West;
     }
+
+    public AttackDirection GetMountedAttackDirection()
+    {
+        return mountedAttackDirection;
+    }
+
+    public bool UsesMountedGameplayControls => IsGameplayScene();
+
+    public float MountedAttackArcPosition => attackArcPosition;
+
+    public string GetMountedAttackDirectionLabel()
+    {
+        return GetMountedAttackDirection() switch
+        {
+            AttackDirection.West => "TRÁI",
+            AttackDirection.East => "PHẢI",
+            _ => "GIỮA"
+        };
+    }
+
+    private void UpdateAttackArcInput()
+    {
+        if (!UsesMountedGameplayControls || Mouse.current == null)
+        {
+            return;
+        }
+
+        float horizontalMouseDelta = Mouse.current.delta.ReadValue().x;
+        if (Mathf.Abs(horizontalMouseDelta) > 0.001f)
+        {
+            attackArcTarget = Mathf.Clamp(
+                attackArcTarget + horizontalMouseDelta * attackArcMouseSensitivity,
+                -1f,
+                1f);
+        }
+
+        attackArcPosition = Mathf.MoveTowards(
+            attackArcPosition,
+            attackArcTarget,
+            attackArcMoveSpeed * Time.unscaledDeltaTime);
+        UpdateMountedAttackDirection();
+    }
+
+    private void UpdateMountedAttackDirection()
+    {
+        // Hysteresis stops the attack lane from flickering at a boundary.
+        switch (mountedAttackDirection)
+        {
+            case AttackDirection.West:
+                if (attackArcPosition > -0.2f)
+                {
+                    mountedAttackDirection = AttackDirection.North;
+                }
+                break;
+            case AttackDirection.East:
+                if (attackArcPosition < 0.2f)
+                {
+                    mountedAttackDirection = AttackDirection.North;
+                }
+                break;
+            default:
+                if (attackArcPosition <= -0.45f)
+                {
+                    mountedAttackDirection = AttackDirection.West;
+                }
+                else if (attackArcPosition >= 0.45f)
+                {
+                    mountedAttackDirection = AttackDirection.East;
+                }
+                break;
+        }
+    }
     private void HandleAttack()
     {
         attackTimer -= Time.deltaTime;
@@ -530,9 +702,25 @@ public class PlayerController : MonoBehaviour
 
         try
         {
-            TryGetMouseGroundPoint(out Vector3 targetPoint);
-
-            AttackDirection attackDir = GetAttackDirection();
+            Vector3 targetPoint;
+            AttackDirection attackDir;
+            if (UsesMountedGameplayControls)
+            {
+                attackDir = GetMountedAttackDirection();
+                float attackAngle = attackDir switch
+                {
+                    AttackDirection.West => -45f,
+                    AttackDirection.East => 45f,
+                    _ => 0f
+                };
+                Vector3 attackForward = Quaternion.Euler(0f, attackAngle, 0f) * transform.forward;
+                targetPoint = transform.position + attackForward * 6f;
+            }
+            else
+            {
+                TryGetMouseGroundPoint(out targetPoint);
+                attackDir = GetAttackDirection();
+            }
 
             if (riderAnimator != null)
             {
@@ -561,6 +749,28 @@ public class PlayerController : MonoBehaviour
             isAttacking = false;
         }
     }
+
+    private void RotateTowards(Vector3 direction)
+    {
+        if (direction.sqrMagnitude <= 0.01f)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.RotateTowards(
+            transform.rotation,
+            targetRotation,
+            turnSpeed * Time.deltaTime);
+    }
+
+    private static bool IsGameplayScene()
+    {
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        return sceneName.StartsWith("map", StringComparison.OrdinalIgnoreCase)
+            || sceneName == "SampleScene";
+    }
+
     public void EnableWeaponDamage()
     {
         weaponDamage.BeginAttack();
@@ -684,5 +894,66 @@ public class BasicSlashProjectile : MonoBehaviour
                 e.ApplyKnockbackStun(dir, 8f, 0.2f);
             }
         }
+    }
+}
+
+public class AttackArcIndicator : MonoBehaviour
+{
+    private const int ArcSegments = 25;
+    private const float ArcRadius = 3.4f;
+    private const float ArcHalfAngle = 55f;
+
+    private PlayerController playerController;
+    private LineRenderer arcLine;
+    private LineRenderer markerLine;
+
+    private void Start()
+    {
+        playerController = GetComponent<PlayerController>();
+        arcLine = CreateLine("AttackArc", 0.07f, new Color(1f, 0.68f, 0.12f, 0.42f));
+        markerLine = CreateLine("AttackArcMarker", 0.14f, new Color(1f, 0.92f, 0.28f, 0.95f));
+        arcLine.positionCount = ArcSegments;
+        markerLine.positionCount = 2;
+    }
+
+    private void Update()
+    {
+        bool visible = playerController != null && playerController.UsesMountedGameplayControls;
+
+        if (arcLine != null) arcLine.enabled = visible;
+        if (markerLine != null) markerLine.enabled = visible;
+        if (!visible)
+        {
+            return;
+        }
+
+        Vector3 origin = transform.position + Vector3.up * 0.08f;
+        for (int i = 0; i < ArcSegments; i++)
+        {
+            float t = i / (float)(ArcSegments - 1);
+            float angle = Mathf.Lerp(-ArcHalfAngle, ArcHalfAngle, t);
+            Vector3 direction = Quaternion.Euler(0f, angle, 0f) * transform.forward;
+            arcLine.SetPosition(i, origin + direction * ArcRadius);
+        }
+
+        float markerAngle = playerController.MountedAttackArcPosition * ArcHalfAngle;
+        Vector3 markerDirection = Quaternion.Euler(0f, markerAngle, 0f) * transform.forward;
+        markerLine.SetPosition(0, origin + markerDirection * 0.8f);
+        markerLine.SetPosition(1, origin + markerDirection * ArcRadius);
+    }
+
+    private LineRenderer CreateLine(string objectName, float width, Color color)
+    {
+        GameObject lineObject = new GameObject(objectName);
+        lineObject.transform.SetParent(transform, false);
+        LineRenderer line = lineObject.AddComponent<LineRenderer>();
+        line.material = new Material(Shader.Find("Sprites/Default"));
+        line.widthMultiplier = width;
+        line.startColor = color;
+        line.endColor = color;
+        line.useWorldSpace = true;
+        line.alignment = LineAlignment.View;
+        line.numCapVertices = 3;
+        return line;
     }
 }

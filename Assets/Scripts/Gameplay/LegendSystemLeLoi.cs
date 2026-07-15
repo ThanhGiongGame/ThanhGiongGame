@@ -8,14 +8,17 @@ public class LegendSystemLeLoi : MonoBehaviour
     private int w2Level;
     private int evoLevel;
 
-    // W1: Flying Swords
-    private float swordTimer = 0f;
-    private float swordRate => 1.2f - (w1Level * 0.15f);
-    private float swordDamage => 70f + (w1Level * 20f);
+    private PlayerController playerController;
+    private bool isSubscribed = false;
+
+    // W1: Flying Sword Waves
+    private float swordDamage => 20f + (w1Level * 10f); // Reduced damage heavily
+    private float swordTimer = 20f; // start ready
+    private float swordCooldown = 20f; // Slower frequency
 
     // W2: Golden Turtle
     private GameObject turtle;
-    private float turtleDamage => 50f + (w2Level * 10f);
+    private float turtleDamage => 15f + (w2Level * 5f); // Reduced damage heavily
     private bool hasRevived = false;
 
     public void UpdateLevels(int w1, int w2, int evo)
@@ -28,18 +31,9 @@ public class LegendSystemLeLoi : MonoBehaviour
         {
             if (turtle == null) SpawnTurtle(true);
             else {
-                // Update turtle to evo
-                Renderer rend = turtle.GetComponent<Renderer>();
-                rend.material.color = new Color(1f, 0.8f, 0f, 1f); // Super bright gold
-                rend.transform.localScale = new Vector3(2f, 1f, 2f); // Big turtle
-            }
-            
-            // Hook up death event if not already hooked
-            PlayerHealth ph = GetComponent<PlayerHealth>();
-            if (ph != null)
-            {
-                // We will hijack the TakeDamage or handle it from PlayerHealth.
-                // We'll write a custom hook in PlayerHealth later, or just check HP in Update.
+                // Update turtle color to evo
+                Renderer[] rends = turtle.GetComponentsInChildren<Renderer>();
+                foreach(var r in rends) r.material.color = new Color(1f, 0.8f, 0f, 1f); 
             }
         }
         else
@@ -60,98 +54,153 @@ public class LegendSystemLeLoi : MonoBehaviour
             }
         }
 
-        if (evoLevel > 0)
+        if (w1Level > 0)
         {
-            EvoUpdate();
-        }
-        else
-        {
-            if (w1Level > 0) W1Update();
+            W1Update();
         }
     }
 
     private void W1Update()
     {
         swordTimer += Time.deltaTime;
-        if (swordTimer >= swordRate)
+        
+        float currentCooldown = (evoLevel > 0) ? 3.0f : swordCooldown; // Reduced spam
+
+        if (swordTimer >= currentCooldown)
         {
             swordTimer = 0f;
-            SpawnSword(false);
+            StartCoroutine(ShootCrossCoroutine());
         }
     }
 
-    private void EvoUpdate()
+    private IEnumerator ShootCrossCoroutine()
     {
-        swordTimer += Time.deltaTime;
-        if (swordTimer >= 1.5f) // Slower but massive
-        {
-            swordTimer = 0f;
-            SpawnSword(true);
-        }
+        bool isEvo = evoLevel > 0;
+        
+        // 1. Horizontal (Left and Right)
+        Vector3 rightDir = transform.right;
+        Vector3 leftDir = -transform.right;
+        SpawnSwordWave(rightDir, isEvo);
+        SpawnSwordWave(leftDir, isEvo);
+
+        yield return new WaitForSeconds(0.3f);
+
+        // 2. Vertical (Forward and Backward)
+        Vector3 fwdDir = transform.forward;
+        Vector3 backDir = -transform.forward;
+        SpawnSwordWave(fwdDir, isEvo);
+        SpawnSwordWave(backDir, isEvo);
     }
 
-    private void SpawnSword(bool isEvo)
+    private void SpawnSwordWave(Vector3 dir, bool isEvo)
     {
-        Collider[] enemies = Physics.OverlapSphere(transform.position, 15f);
-        Transform target = null;
-        if (enemies.Length > 0)
-        {
-            foreach(var e in enemies) {
-                if (e.CompareTag("Enemy")) { target = e.transform; break; }
-            }
-        }
+        GameObject wave = new GameObject(isEvo ? "LeLoi_EvoWave" : "LeLoi_SwordWave");
+        wave.transform.position = transform.position + Vector3.up * 1.5f;
+        wave.transform.rotation = Quaternion.LookRotation(dir);
 
-        Vector3 dir = transform.forward;
-        if (target != null) dir = (target.position - transform.position).normalized;
+        // Generate Crescent Mesh
+        MeshFilter mf = wave.AddComponent<MeshFilter>();
+        mf.mesh = CreateCrescentMesh(2.5f, 0.5f);
+        
+        MeshRenderer mr = wave.AddComponent<MeshRenderer>();
+        // Find a suitable glowing material, Unlit or Additive
+        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit") ?? Shader.Find("Particles/Standard Unlit") ?? Shader.Find("Sprites/Default");
+        Material mat = new Material(shader);
+        // Made more transparent
+        mat.color = isEvo ? new Color(1f, 0.5f, 0f, 0.35f) : new Color(1f, 0.8f, 0f, 0.35f);
+        mr.material = mat;
 
-        string prefabName = isEvo ? "LeLoi_GiantSword" : "LeLoi_Sword";
-        GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        // travelDirection so the sword sprite tip points toward the enemy, spherical faces camera
-        GameObject sword = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.8f, 0.9f, 1f, 0.8f), 3f, billboard: true, travelDirection: dir, spriteScale: isEvo ? 1.5f : 1f, spherical: true);
-        sword.name = prefabName;
-        sword.transform.position = transform.position + Vector3.up * 1.5f;
-        // Only set scale/rotation for 3D fallback, Billboard handles sprite
-        if (sword.GetComponent<SpriteRenderer>() == null)
-        {
-            sword.transform.localScale = isEvo ? new Vector3(0.5f, 0.1f, 2f) : new Vector3(0.1f, 0.05f, 0.75f);
-            sword.transform.rotation = Quaternion.LookRotation(dir);
-        }
+        BoxCollider col = wave.AddComponent<BoxCollider>();
+        col.isTrigger = true;
+        col.size = new Vector3(5f, 1f, 2f);
 
-        Collider col = sword.GetComponent<Collider>();
-        if (col != null) { col.isTrigger = true; if (col is BoxCollider bc) bc.size = new Vector3(2f, 2f, 2f); }
-
-        var logic = sword.AddComponent<LeLoiSword>();
-        logic.damage = isEvo ? 400f : swordDamage;
+        var logic = wave.AddComponent<LeLoiSwordWave>();
+        logic.damage = isEvo ? 80f : swordDamage; // Reduced Evo damage
         logic.dir = dir;
         logic.isEvo = isEvo;
-
-        Rigidbody rb = sword.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.isKinematic = false;
         
-        Destroy(sword, 5f);
+        Rigidbody rb = wave.AddComponent<Rigidbody>();
+        rb.useGravity = false;
+        rb.isKinematic = true;
+
+        Destroy(wave, 1.5f);
+    }
+
+    private Mesh CreateCrescentMesh(float radius, float thickness)
+    {
+        Mesh mesh = new Mesh();
+        int segments = 24;
+        Vector3[] vertices = new Vector3[(segments + 1) * 2];
+        int[] triangles = new int[segments * 6];
+        Vector2[] uv = new Vector2[(segments + 1) * 2];
+        
+        for (int i = 0; i <= segments; i++)
+        {
+            // Sweep from -90 to 90 degrees around Y axis (so it faces forward Z)
+            float angle = -90f + (180f * i / segments);
+            float rad = angle * Mathf.Deg2Rad;
+            Vector3 dir = new Vector3(Mathf.Sin(rad), 0, Mathf.Cos(rad));
+            
+            vertices[i * 2] = dir * (radius - thickness); // inner
+            vertices[i * 2 + 1] = dir * radius;           // outer
+
+            uv[i * 2] = new Vector2((float)i / segments, 0);
+            uv[i * 2 + 1] = new Vector2((float)i / segments, 1);
+            
+            if (i < segments)
+            {
+                int start = i * 2;
+                triangles[i * 6] = start;
+                triangles[i * 6 + 1] = start + 1;
+                triangles[i * 6 + 2] = start + 2;
+                
+                triangles[i * 6 + 3] = start + 1;
+                triangles[i * 6 + 4] = start + 3;
+                triangles[i * 6 + 5] = start + 2;
+            }
+        }
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.uv = uv;
+        mesh.RecalculateNormals();
+        return mesh;
     }
 
     private void SpawnTurtle(bool isEvo)
     {
-        string prefabName = isEvo ? "LeLoi_EvoTurtle" : "LeLoi_Turtle";
-        GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        turtle = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Sphere, new Color(0.8f, 0.6f, 0f), 2f, billboard: true, spriteScale: isEvo ? 1f : 0.75f);
-        turtle.name = prefabName;
-        turtle.transform.position = transform.position + Vector3.right * 2f + Vector3.up * 4.5f; // Raised Y
-        if (turtle.GetComponent<SpriteRenderer>() == null)
-            turtle.transform.localScale = isEvo ? new Vector3(1f, 0.5f, 1f) : new Vector3(0.5f, 0.25f, 0.5f);
+        GameObject prefab = Resources.Load<GameObject>("Prefabs/Turtle");
+        if (prefab != null)
+        {
+            turtle = Instantiate(prefab);
+            turtle.name = isEvo ? "LeLoi_EvoTurtle" : "LeLoi_Turtle";
+            turtle.transform.position = transform.position + Vector3.right * 2f + Vector3.up * 4.5f;
 
-        Collider col = turtle.GetComponent<Collider>();
-        if (col != null) { col.isTrigger = true; if (col is SphereCollider sc) sc.radius = 1.25f; }
+            // Add colliders and logic if not present
+            Collider col = turtle.GetComponent<Collider>();
+            if (col == null)
+            {
+                SphereCollider sc = turtle.AddComponent<SphereCollider>();
+                sc.isTrigger = true;
+                sc.radius = 1.25f;
+            }
+            else
+            {
+                col.isTrigger = true;
+            }
 
-        var logic = turtle.AddComponent<LeLoiTurtle>();
-        logic.damage = isEvo ? 200f : turtleDamage;
-        logic.player = transform;
+            var logic = turtle.AddComponent<LeLoiTurtle>();
+            logic.damage = isEvo ? 40f : turtleDamage; // Reduced Evo damage
+            logic.player = transform;
 
-        Rigidbody rb = turtle.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.isKinematic = false;
+            Rigidbody rb = turtle.GetComponent<Rigidbody>();
+            if (rb == null) rb = turtle.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            rb.isKinematic = true;
+        }
+        else
+        {
+            Debug.LogError("Turtle prefab not found in Resources/Prefabs/");
+        }
     }
 
     public bool CanRevive()
@@ -165,31 +214,24 @@ public class LegendSystemLeLoi : MonoBehaviour
         {
             hasRevived = true;
             
-            // Revive logic
             PlayerHealth ph = GetComponent<PlayerHealth>();
             if (ph != null)
             {
-                ph.Heal(ph.maxHealth); // Full heal
-                // Important: Need to undo the GameOver if it was already triggered,
-                // But typically GameController hooks into ph.OnDeath.
-                // We'll reset HP immediately before GameController acts if possible, 
-                // or just rely on healing to keep it alive. (Need to modify PlayerHealth.TakeDamage)
-                
+                ph.Heal(ph.maxHealth); 
                 Debug.Log("LeLoi Turtle sacrificed to revive player!");
             }
             
-            // Screen wipe Visual
-            GameObject flashPrefab = Resources.Load<GameObject>("Prefabs/LeLoi_ReviveFlash");
-            GameObject flash = flashPrefab != null ? Instantiate(flashPrefab) : GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             flash.name = "LeLoi_ReviveFlash";
             flash.transform.position = transform.position;
             flash.transform.localScale = new Vector3(50f, 50f, 50f);
             Destroy(flash.GetComponent<Collider>());
             Renderer rend = flash.GetComponent<Renderer>();
-            rend.material.color = new Color(1f, 0.8f, 0f, 0.5f);
+            Shader s = Shader.Find("Universal Render Pipeline/Particles/Unlit") ?? Shader.Find("Particles/Standard Unlit") ?? Shader.Find("Sprites/Default");
+            rend.material = new Material(s);
+            rend.material.color = new Color(1f, 0.8f, 0f, 0.2f); // Made more transparent
             Destroy(flash, 0.5f);
 
-            // Screen wipe logic
             Collider[] enemies = Physics.OverlapSphere(transform.position, 25f);
             foreach(var e in enemies)
             {
@@ -200,21 +242,46 @@ public class LegendSystemLeLoi : MonoBehaviour
                 }
             }
             
-            if (turtle != null) Destroy(turtle); // Turtle sacrificed
+            if (turtle != null) Destroy(turtle);
         }
     }
 }
 
-public class LeLoiSword : MonoBehaviour
+public class LeLoiSwordWave : MonoBehaviour
 {
     public float damage;
     public Vector3 dir;
     public bool isEvo;
-    private int pierceCount = 0;
+    
+    private Renderer rend;
+    private Color startColor;
+    private float lifeTimer = 0f;
+    private float maxLife = 1.5f;
+
+    void Start()
+    {
+        rend = GetComponent<Renderer>();
+        if (rend != null && rend.material != null && rend.material.HasProperty("_Color")) 
+        {
+            startColor = rend.material.color;
+        }
+        else
+        {
+            startColor = new Color(1f, 0.8f, 0f, 0.35f);
+        }
+    }
 
     void Update()
     {
-        transform.position += dir * (isEvo ? 30f : 50f) * Time.deltaTime;
+        lifeTimer += Time.deltaTime;
+        transform.position += dir * (isEvo ? 20f : 15f) * Time.deltaTime;
+        
+        if (rend != null && rend.material != null && rend.material.HasProperty("_Color"))
+        {
+            Color c = startColor;
+            c.a = Mathf.Lerp(startColor.a, 0f, lifeTimer / maxLife);
+            rend.material.color = c;
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -225,16 +292,7 @@ public class LeLoiSword : MonoBehaviour
             if (e != null) 
             {
                 e.TakeDamage(damage);
-                e.ApplyKnockbackStun(dir, 8f, 0.3f);
-            }
-
-            if (!isEvo && pierceCount >= 2)
-            {
-                Destroy(gameObject);
-            }
-            else
-            {
-                pierceCount++;
+                e.ApplyKnockbackStun(dir, 10f, 0.4f);
             }
         }
     }
@@ -276,6 +334,14 @@ public class LeLoiTurtle : MonoBehaviour
         }
         
         targetPos.y += 1.5f; // Raise Y so turtle hovers
+
+        // Smoothly rotate to face movement direction
+        Vector3 moveDir = targetPos - transform.position;
+        if (moveDir.sqrMagnitude > 0.01f)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(moveDir.normalized);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 5f * Time.deltaTime);
+        }
 
         transform.position = Vector3.MoveTowards(transform.position, targetPos, 16f * Time.deltaTime);
     }

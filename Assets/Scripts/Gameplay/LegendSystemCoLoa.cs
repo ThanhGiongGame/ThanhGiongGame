@@ -10,12 +10,12 @@ public class LegendSystemCoLoa : MonoBehaviour
 
     // W1: Nỏ Liên Châu
     private float fireTimer = 0f;
-    private float fireRate => 1.5f - (w1Level * 0.2f);
+    private float fireRate => 3.0f - (w1Level * 0.2f);
     
     // W2: Mai Rùa Vàng
     private List<GameObject> shields = new List<GameObject>();
     private float shieldRadius = 6f;
-    private float shieldRotSpeed = 200f;
+    private float shieldRotSpeed = 90f;
 
     public void UpdateLevels(int w1, int w2, int evo)
     {
@@ -65,7 +65,7 @@ public class LegendSystemCoLoa : MonoBehaviour
     private void EvoUpdate()
     {
         fireTimer += Time.deltaTime;
-        if (fireTimer >= 0.5f) // Faster fire rate for evo
+        if (fireTimer >= 1.5f) // Faster fire rate for evo
         {
             fireTimer = 0f;
             FireCrossbow(true); // Piercing and exploding
@@ -125,7 +125,7 @@ public class LegendSystemCoLoa : MonoBehaviour
         var proj = arrow.AddComponent<CoLoaArrow>();
         proj.dir = dir;
         proj.speed = 40f;
-        proj.damage = isEvo ? 100f : 30f + (w1Level * 10f);
+        proj.damage = isEvo ? 30f : 10f + (w1Level * 5f);
         proj.isEvo = isEvo;
     }
 
@@ -136,7 +136,7 @@ public class LegendSystemCoLoa : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             GameObject prefab = Resources.Load<GameObject>("Prefabs/CoLoa_Shield");
-            GameObject shield = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual("CoLoa_Shield", PrimitiveType.Sphere, new Color(1f, 0.9f, 0f, 0.5f), 1.5f, billboard: true);
+            GameObject shield = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual("CoLoa_Shield", PrimitiveType.Sphere, new Color(1f, 0.9f, 0f, 0.25f), 1.5f, billboard: true);
             shield.name = "CoLoa_Shield";
             shield.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
             
@@ -144,7 +144,7 @@ public class LegendSystemCoLoa : MonoBehaviour
             if (col != null) col.isTrigger = true;
             
             var logic = shield.AddComponent<CoLoaShield>();
-            logic.damage = 20f + (w2Level * 10f);
+            logic.damage = 10f + (w2Level * 5f);
             logic.parentSystem = this;
 
             shields.Add(shield);
@@ -157,7 +157,7 @@ public class LegendSystemCoLoa : MonoBehaviour
         for (int i = 0; i < 4; i++) // 4 big shields
         {
             GameObject prefab = Resources.Load<GameObject>("Prefabs/CoLoa_EvoShield");
-            GameObject shield = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual("CoLoa_EvoShield", PrimitiveType.Sphere, new Color(1f, 0.5f, 0f, 0.6f), 2.5f, billboard: true);
+            GameObject shield = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual("CoLoa_EvoShield", PrimitiveType.Sphere, new Color(1f, 0.5f, 0f, 0.3f), 2.5f, billboard: true);
             shield.name = "CoLoa_EvoShield";
             shield.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f); // Increased hitbox
             
@@ -165,7 +165,7 @@ public class LegendSystemCoLoa : MonoBehaviour
             if (col != null) { col.isTrigger = true; ((SphereCollider)col).radius = 0.8f; }
             
             var logic = shield.AddComponent<CoLoaShield>();
-            logic.damage = 160f;
+            logic.damage = 40f;
             logic.parentSystem = this;
             logic.isEvo = true;
             logic.hp = 10; // Extra durability for evo
@@ -204,7 +204,7 @@ public class LegendSystemCoLoa : MonoBehaviour
             shockwave.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
             Destroy(shockwave.GetComponent<Collider>());
             Renderer rend = shockwave.GetComponent<Renderer>();
-            rend.material.color = new Color(1f, 0.5f, 0f, 0.5f);
+            rend.material.color = new Color(1f, 0.5f, 0f, 0.25f);
             StartCoroutine(ShockwaveAnim(shockwave));
 
             // Evo Shockwave Logic
@@ -216,7 +216,7 @@ public class LegendSystemCoLoa : MonoBehaviour
                     Enemy en = e.GetComponent<Enemy>();
                     if (en != null) 
                     {
-                        en.TakeDamage(100f);
+                        en.TakeDamage(30f);
                         Vector3 push = (e.transform.position - transform.position).normalized;
                         en.ApplyKnockbackStun(push, 15f, 0.8f);
                     }
@@ -290,7 +290,7 @@ public class CoLoaArrow : MonoBehaviour
                 explo.transform.localScale = new Vector3(3f, 3f, 3f);
                 Destroy(explo.GetComponent<Collider>());
                 Renderer rend = explo.GetComponent<Renderer>();
-                rend.material.color = new Color(1f, 0f, 0f, 0.5f);
+                rend.material.color = new Color(1f, 0f, 0f, 0.25f);
                 Destroy(explo, 0.2f); // quick flash
 
                 // Explosion Logic

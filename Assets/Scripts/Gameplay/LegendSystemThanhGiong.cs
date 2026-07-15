@@ -10,13 +10,13 @@ public class LegendSystemThanhGiong : MonoBehaviour
 
     // W1: Tre Ngà
     private float bambooTimer = 0f;
-    private float bambooRate => 1.5f - (w1Level * 0.15f);
-    private float bambooDamage => 40f + (w1Level * 20f);
+    private float bambooRate => 3.0f - (w1Level * 0.2f);
+    private float bambooDamage => 15f + (w1Level * 5f);
 
     // W2: Ngựa Sắt Phun Lửa (Fire Trail)
     private float fireTimer = 0f;
-    private float fireRate = 0.3f;
-    private float fireDamage => 30f + (w2Level * 10f);
+    private float fireRate = 0.6f;
+    private float fireDamage => 10f + (w2Level * 5f);
     private Vector3 lastFirePos;
 
     private PlayerController pc;
@@ -82,14 +82,14 @@ public class LegendSystemThanhGiong : MonoBehaviour
     private void EvoUpdate()
     {
         bambooTimer += Time.deltaTime;
-        if (bambooTimer >= 1.0f)
+        if (bambooTimer >= 2.0f)
         {
             bambooTimer = 0f;
             SpawnBamboo(true);
         }
 
         fireTimer += Time.deltaTime;
-        if (fireTimer >= 0.15f && Vector3.Distance(transform.position, lastFirePos) > 1.5f)
+        if (fireTimer >= 0.3f && Vector3.Distance(transform.position, lastFirePos) > 1.5f)
         {
             fireTimer = 0f;
             lastFirePos = transform.position;
@@ -110,15 +110,15 @@ public class LegendSystemThanhGiong : MonoBehaviour
         
         BoxCollider bc = bamboo.GetComponent<BoxCollider>();
         if (bc == null) bc = bamboo.AddComponent<BoxCollider>();
-        bc.isTrigger = false; 
+        bc.isTrigger = true; 
         bc.size = new Vector3(1.5f, 1.5f, 1.5f); // Solid obstacle with big hitbox
 
         var logic = bamboo.AddComponent<ThanhGiongBamboo>();
-        logic.damage = isEvo ? 150f : bambooDamage;
+        logic.damage = isEvo ? 40f : bambooDamage;
         logic.isEvo = isEvo;
 
         // Brown ground dust — bamboo stabs into earth
-        LegendParticles.AddGroundDust(bamboo, rate: isEvo ? 18f : 10f);
+        LegendParticles.AddGroundDust(bamboo, rate: isEvo ? 10f : 5f);
 
         Rigidbody rb = bamboo.AddComponent<Rigidbody>();
         rb.useGravity = false;
@@ -188,7 +188,7 @@ public class LegendSystemThanhGiong : MonoBehaviour
         {
             // Fire trail is flat on the ground — no direction needed
             // Use Color.white and 0f emission to prevent the orange tinting effect
-            GameObject fire = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, Color.white, 0f, billboard: false, isFlat: true, spriteScale: isEvo ? 1f : 0.75f);
+            GameObject fire = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(1f, 1f, 1f, 0.5f), 0f, billboard: false, isFlat: true, spriteScale: isEvo ? 1f : 0.75f);
             
             fire.name = prefabName;
             Vector2 rand = Random.insideUnitCircle * spreadRadius;
@@ -207,7 +207,7 @@ public class LegendSystemThanhGiong : MonoBehaviour
             trigger.radius = isEvo ? 1.5f : 1f; // Hitbox stays consistent, since we are spawning more instances
             
             var logic = fire.AddComponent<ThanhGiongFire>();
-            logic.damage = isEvo ? 120f : fireDamage;
+            logic.damage = isEvo ? 30f : fireDamage;
 
             Rigidbody rb = fire.AddComponent<Rigidbody>();
             rb.useGravity = false;
@@ -252,32 +252,18 @@ public class ThanhGiongBamboo : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            Enemy e = collision.gameObject.GetComponent<Enemy>();
-            if (e != null) 
-            {
-                e.TakeDamage(damage);
-                Vector3 push = (collision.transform.position - transform.position).normalized;
-                e.ApplyKnockbackStun(push, 4f, 0.2f);
-            }
-        }
-    }
-
     void OnTriggerEnter(Collider other)
     {
-        if (isEvo && other.CompareTag("Enemy"))
+        if (other.CompareTag("Enemy"))
         {
             Enemy e = other.GetComponent<Enemy>();
             if (e != null) 
             {
                 e.TakeDamage(damage);
                 Vector3 push = (other.transform.position - transform.position).normalized;
-                e.ApplyKnockbackStun(push, 6f, 0.3f);
+                e.ApplyKnockbackStun(push, isEvo ? 6f : 4f, isEvo ? 0.3f : 0.2f);
             }
-            Destroy(gameObject);
+            if (isEvo) Destroy(gameObject);
         }
     }
 }

@@ -67,7 +67,7 @@ public class CameraManager : MonoBehaviour
         string sceneName = Map1SceneName;
         if (mapIndex == 1) sceneName = Map2SceneName;
         else if (mapIndex == 2) sceneName = Map3SceneName;
-        SceneManager.LoadScene(sceneName);
+        SceneLoadingScreen.Load(sceneName);
     }
 
     public void QuitGame()

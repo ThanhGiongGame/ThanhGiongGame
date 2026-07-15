@@ -8,16 +8,25 @@ public class LegendSystemSonTinh : MonoBehaviour
     private int w2Level;
     private int evoLevel;
 
-    // W1: Falling Rock
+    // W1: Arc Rock
     private float rockTimer = 0f;
-    private float rockRate => 1.8f - (w1Level * 0.15f);
-    private float rockRadius => 3f + (w1Level * 0.5f); // Smaller radius
-    private float rockDamage => 100f + (w1Level * 40f);
+    private float rockRate => 12.0f - (w1Level * 0.2f); // Slower frequency
+    private float rockRadius => 10.0f + (w1Level * 0.8f); 
+    private float rockDamage => 40f + (w1Level * 15f); // Reduced damage heavily
 
-    // W2: Water Wave (Crosses right to left)
-    private float waveTimer = 0f;
-    private float waveRate => 15f;
-    private float waveDamage => 200f + (w2Level * 100f);
+    // W2: Whirlpool
+    private float poolTimer = 0f;
+    private float poolRate => 15f - (w2Level * 0.5f);
+    private float poolRadius => 10f + (w2Level * 0.5f);
+    private float poolDamage => 10f + (w2Level * 5f); // Reduced damage heavily
+
+    // Evo
+    private float evoTimer = 0f;
+    private float evoRate => 15f; // Slower evo rate
+
+    // Audio Cooldowns
+    private float lastRockAudioTime = -999f;
+    private float lastPoolAudioTime = -999f;
 
     public void UpdateLevels(int w1, int w2, int evo)
     {
@@ -45,226 +54,287 @@ public class LegendSystemSonTinh : MonoBehaviour
         if (rockTimer >= rockRate)
         {
             rockTimer = 0f;
-            DropRock(false);
+            ThrowRock(GetRandomEnemy(), false);
         }
     }
 
     private void W2Update()
     {
-        waveTimer += Time.deltaTime;
-        if (waveTimer >= waveRate)
+        poolTimer += Time.deltaTime;
+        if (poolTimer >= poolRate)
         {
-            waveTimer = 0f;
-            SpawnWave(false);
+            poolTimer = 0f;
+            SpawnWhirlpool(GetRandomEnemy(), false);
         }
     }
 
     private void EvoUpdate()
     {
-        rockTimer += Time.deltaTime;
-        if (rockTimer >= 1f)
+        evoTimer += Time.deltaTime;
+        if (evoTimer >= evoRate)
         {
-            rockTimer = 0f;
-            DropRock(true);
-        }
-
-        waveTimer += Time.deltaTime;
-        if (waveTimer >= 2f)
-        {
-            waveTimer = 0f;
-            SpawnWave(true);
+            evoTimer = 0f;
+            StartCoroutine(EvoSequence(GetRandomEnemy()));
         }
     }
 
-    private void DropRock(bool isEvo)
+    private Transform GetRandomEnemy()
     {
-        // Find a random enemy to drop on
-        Collider[] enemies = Physics.OverlapSphere(transform.position, 15f);
-        Transform target = null;
-        if (enemies.Length > 0)
+        Collider[] enemies = Physics.OverlapSphere(transform.position, 25f);
+        List<Transform> validEnemies = new List<Transform>();
+        foreach (var e in enemies)
         {
-            foreach(var e in enemies) {
-                if (e.CompareTag("Enemy")) { target = e.transform; break; }
+            if (e.CompareTag("Enemy")) validEnemies.Add(e.transform);
+        }
+        if (validEnemies.Count > 0) return validEnemies[Random.Range(0, validEnemies.Count)];
+        return null;
+    }
+
+    private void ThrowRock(Transform target, bool isEvo)
+    {
+        Vector3 targetPos = target != null ? target.position : transform.position + new Vector3(Random.Range(-5f, 5f), 0, Random.Range(5f, 15f));
+        targetPos.y = 0f; // ground level
+
+        // Compute start pos far behind camera
+        Camera cam = Camera.main;
+        if (cam == null) cam = Object.FindObjectOfType<Camera>();
+        
+        Vector3 startPos;
+        if (cam != null)
+        {
+            startPos = cam.transform.position - cam.transform.forward * 40f + Vector3.up * 25f;
+        }
+        else
+        {
+            startPos = transform.position - transform.forward * 40f + Vector3.up * 25f;
+        }
+
+        string prefabName = isEvo ? "SonTinh_EvoRock" : "SonTinh_Rock";
+        GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
+        
+        GameObject rock = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.3f, 0.3f, 0.3f), 0f, billboard: true, travelDirection: Vector3.down, spriteScale: isEvo ? 2.5f : 1.5f, spherical: true);
+        rock.name = prefabName;
+        
+        float radius = isEvo ? 10f : rockRadius;
+        if (rock.GetComponent<SpriteRenderer>() == null)
+            rock.transform.localScale = new Vector3(radius, radius, radius);
+        
+        Collider col = rock.GetComponent<Collider>();
+        if (col != null) col.isTrigger = true;
+
+        var logic = rock.AddComponent<SonTinhArcRock>();
+        logic.damage = isEvo ? 150f : rockDamage;
+        logic.radius = radius;
+        logic.startPos = startPos;
+        logic.targetPos = targetPos;
+        logic.duration = 1.0f; // travel time
+        logic.arcHeight = 15f;
+
+        if (Time.time - lastRockAudioTime > 1.5f)
+        {
+            AudioClip clip = Resources.Load<AudioClip>("Audios/Son_Tinh_Attack");
+            if (clip != null)
+            {
+                AudioSource.PlayClipAtPoint(clip, startPos);
+                lastRockAudioTime = Time.time;
+            }
+        }
+    }
+
+    private ThuyTinhWhirlpool SpawnWhirlpool(Transform target, bool isEvo)
+    {
+        Vector3 spawnPos = target != null ? target.position : transform.position + transform.forward * 5f;
+        spawnPos.y = 0.05f; // slightly above ground
+
+        string prefabName = isEvo ? "SonTinh_EvoWhirlpool" : "SonTinh_Whirlpool";
+        GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
+        
+        // Use a container for the logic, and a child for the visual so we can rotate only the mesh
+        GameObject pool = new GameObject(prefabName);
+        pool.transform.position = spawnPos;
+
+        GameObject visual;
+        if (prefab != null)
+        {
+            visual = Instantiate(prefab, pool.transform);
+        }
+        else
+        {
+            visual = LegendVisualHelper.CreateVisual(prefabName + "_Vis", PrimitiveType.Cylinder, new Color(0.1f, 0.4f, 1f, 0.25f), 0f, billboard: false, isFlat: true);
+            visual.transform.SetParent(pool.transform, false);
+            visual.transform.localPosition = Vector3.zero;
+        }
+
+        float radius = isEvo ? 6f : poolRadius;
+        visual.transform.localScale = new Vector3(radius, 0.05f, radius);
+        
+        var logic = pool.AddComponent<ThuyTinhWhirlpool>();
+        logic.damagePerSec = isEvo ? 30f : poolDamage;
+        logic.radius = radius;
+        logic.visualTransform = visual.transform;
+        logic.duration = isEvo ? 4f : 5f; // Evo is shorter before boom
+        logic.pullSpeed = isEvo ? 6f : 3f;
+
+        LegendParticles.AddRisingWaterParticles(pool, rate: isEvo ? 30f : 15f, radius: radius);
+
+        if (Time.time - lastPoolAudioTime > 2.0f)
+        {
+            AudioClip clip = Resources.Load<AudioClip>("Audios/Thuy_Tinh_Attack");
+            if (clip != null)
+            {
+                AudioSource.PlayClipAtPoint(clip, spawnPos);
+                lastPoolAudioTime = Time.time;
             }
         }
 
-        if (target != null)
-        {
-            string prefabName = isEvo ? "SonTinh_EvoRock" : "SonTinh_Rock";
-            GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-            // spherical=true: rock faces camera, travelDirection=down so bottom of sprite points at ground
-            GameObject rock = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.3f, 0.3f, 0.3f), 0f, billboard: true, travelDirection: Vector3.down, spriteScale: isEvo ? 1.25f : 0.75f, spherical: true);
-            rock.name = prefabName;
-            rock.transform.position = target.position + Vector3.up * 10f; // Drop from sky
-            float radius = isEvo ? 4f : rockRadius;
-            if (rock.GetComponent<SpriteRenderer>() == null)
-                rock.transform.localScale = new Vector3(radius, radius, radius);
-            
-            Collider col = rock.GetComponent<Collider>();
-            if (col != null) col.isTrigger = true;
-
-            var logic = rock.AddComponent<SonTinhRock>();
-            logic.damage = isEvo ? 300f : rockDamage;
-            logic.isEvo = isEvo;
-            logic.radius = radius;
-            logic.groundY = 0f;
-        }
+        return logic;
     }
 
-    private void SpawnWave(bool isEvo)
+    private IEnumerator EvoSequence(Transform target)
     {
-        string prefabName = isEvo ? "SonTinh_EvoWave" : "SonTinh_Wave";
-        GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
-        
-        // Spawn wave far to the right and slightly behind the player
-        Vector3 spawnPos = transform.position + new Vector3(35f, 2.5f, 5f);
-        
-        // Spherical = false (cylindrical) so it stands upright. travelDirection = Vector3.left so its tip points left
-        GameObject wave = prefab != null ? Instantiate(prefab) : LegendVisualHelper.CreateVisual(prefabName, PrimitiveType.Cube, new Color(0.2f, 0.5f, 1f, 0.35f), 0f, billboard: true, travelDirection: Vector3.left, spriteScale: isEvo ? 4f : 2.5f, spherical: false);
-        wave.name = prefabName;
-        wave.transform.position = spawnPos;
+        if (target == null) yield break;
 
-        // If fallback primitive, make it a wide wall
-        if (wave.GetComponent<SpriteRenderer>() == null)
-            wave.transform.localScale = new Vector3(1f, 2.5f, 15f);
-        
-        Collider col = wave.GetComponent<Collider>();
-        if (col != null) col.isTrigger = true;
-        
-        var logic = wave.AddComponent<SonTinhWave>();
-        logic.damage = isEvo ? waveDamage * 2f : waveDamage;
-        logic.isEvo = isEvo;
-        
-        // Particles trailing the wave
-        LegendParticles.AddWaterSplash(wave, rate: isEvo ? 50f : 30f, radius: 2f);
+        // 1. Spawn empowered whirlpool
+        var pool = SpawnWhirlpool(target, true);
+
+        // 2. Wait for whirlpool to do its thing and gather enemies
+        yield return new WaitForSeconds(pool.duration - 0.5f);
+
+        // 3. Just before whirlpool ends, throw the massive rock into it
+        // We throw it at the pool's position
+        if (pool != null) {
+            GameObject tempTarget = new GameObject("TempTarget");
+            tempTarget.transform.position = pool.transform.position;
+            ThrowRock(tempTarget.transform, true);
+            Destroy(tempTarget, 2f);
+        }
     }
 }
 
-public class SonTinhRock : MonoBehaviour
+public class SonTinhArcRock : MonoBehaviour
 {
     public float damage;
-    public bool isEvo;
     public float radius;
-    public float groundY;
+    public Vector3 startPos;
+    public Vector3 targetPos;
+    public float duration;
+    public float arcHeight;
+
+    private float timer = 0f;
 
     void Update()
     {
-        transform.position += Vector3.down * 40f * Time.deltaTime;
-        
-        if (transform.position.y <= groundY)
-        {
-            // Dust impact burst when rock hits ground
-            LegendParticles.BurstAt(transform.position,
-                isEvo ? new Color(0.2f, 0.5f, 1f) : new Color(0.55f, 0.34f, 0.12f),
-                count: isEvo ? 50 : 30, speed: isEvo ? 8f : 5f);
+        timer += Time.deltaTime;
+        float t = timer / duration;
 
-            // Hit ground
-            Collider[] hits = Physics.OverlapSphere(transform.position, radius);
+        if (t >= 1f)
+        {
+            // Reached destination
+            transform.position = targetPos;
+            StartCoroutine(ImpactSequence());
+            this.enabled = false; // stop updating
+        }
+        else
+        {
+            Vector3 currentPos = Vector3.Lerp(startPos, targetPos, t);
+            currentPos.y += Mathf.Sin(t * Mathf.PI) * arcHeight;
+            transform.position = currentPos;
+
+            // Optional: spin rock
+            transform.Rotate(Vector3.right * 360f * Time.deltaTime);
+        }
+    }
+
+    private IEnumerator ImpactSequence()
+    {
+        // 0.1s delay before explosion for anticipation
+        yield return new WaitForSeconds(0.1f);
+
+        // Explosion Visuals - reduced particles
+        LegendParticles.BurstAt(transform.position, new Color(0.55f, 0.34f, 0.12f, 0.5f), count: 20, speed: 5f);
+
+        // Hit logic
+        Collider[] hits = Physics.OverlapSphere(transform.position, radius);
+        foreach(var h in hits)
+        {
+            if (h.CompareTag("Enemy"))
+            {
+                Enemy e = h.GetComponent<Enemy>();
+                if (e != null) 
+                {
+                    e.TakeDamage(damage);
+                    Vector3 push = (h.transform.position - transform.position).normalized;
+                    e.ApplyKnockbackStun(push, 15f, 0.8f); // longer stun
+                }
+            }
+        }
+        
+        Destroy(gameObject);
+    }
+}
+
+public class ThuyTinhWhirlpool : MonoBehaviour
+{
+    public float damagePerSec;
+    public float radius;
+    public Transform visualTransform;
+    public float duration;
+    public float pullSpeed;
+
+    private float lifeTimer = 0f;
+
+    void Update()
+    {
+        lifeTimer += Time.deltaTime;
+
+        // Rotate visual - reduced speed
+        if (visualTransform != null)
+        {
+            visualTransform.Rotate(Vector3.up * -90f * Time.deltaTime, Space.Self);
+        }
+
+        // Apply pull and slow
+        Collider[] hits = Physics.OverlapSphere(transform.position, radius);
+        foreach(var h in hits)
+        {
+            if (h.CompareTag("Enemy"))
+            {
+                Enemy e = h.GetComponent<Enemy>();
+                if (e != null) 
+                {
+                    // Damage over time
+                    e.TakeDamage(damagePerSec * Time.deltaTime);
+
+                    // Pull towards center
+                    Vector3 toCenter = transform.position - h.transform.position;
+                    toCenter.y = 0; // Don't pull underground
+                    if (toCenter.magnitude > 0.5f)
+                    {
+                        // Use transform translate or character controller if they have one
+                        e.transform.position += toCenter.normalized * pullSpeed * Time.deltaTime;
+                    }
+
+                    // Slow
+                    if (e.moveSpeed > 1f) {
+                        e.moveSpeed -= Time.deltaTime * 5f; 
+                        if (e.moveSpeed < 1f) e.moveSpeed = 1f;
+                    }
+                }
+            }
+        }
+
+        if (lifeTimer >= duration)
+        {
+            // End of whirlpool -> Apply a short stun to anyone still inside
             foreach(var h in hits)
             {
                 if (h.CompareTag("Enemy"))
                 {
                     Enemy e = h.GetComponent<Enemy>();
-                    if (e != null) 
-                    {
-                        e.TakeDamage(damage);
-                        Vector3 push = (h.transform.position - transform.position).normalized;
-                        e.ApplyKnockbackStun(push, 10f, 0.4f);
-                    }
+                    if (e != null) e.ApplyKnockbackStun(Vector3.zero, 0f, 1.0f); // stun in place
                 }
             }
-
-            if (isEvo)
-            {
-                // Spawn mud puddle
-                GameObject mudPrefab = Resources.Load<GameObject>("Prefabs/SonTinh_Mud");
-                GameObject mud = mudPrefab != null ? Instantiate(mudPrefab) : LegendVisualHelper.CreateVisual("SonTinh_Mud", PrimitiveType.Cylinder, new Color(0.4f, 0.2f, 0f, 0.8f), 0f, billboard: false, isFlat: true);
-                mud.name = "SonTinh_Mud";
-                mud.transform.position = new Vector3(transform.position.x, groundY + 0.05f, transform.position.z);
-                mud.transform.localScale = new Vector3(radius, 0.05f, radius);
-                
-                Collider col = mud.GetComponent<Collider>();
-                if (col != null) Destroy(col); // mud is custom overlap-sphere scanned
-                
-                var mudLogic = mud.AddComponent<SonTinhMud>();
-                mudLogic.radius = radius;
-                Destroy(mud, 5f);
-            }
-
             Destroy(gameObject);
-        }
-    }
-}
-
-public class SonTinhMud : MonoBehaviour
-{
-    public float radius;
-    void Update()
-    {
-        Collider[] hits = Physics.OverlapSphere(transform.position, radius/2f);
-        foreach(var h in hits)
-        {
-            if (h.CompareTag("Enemy"))
-            {
-                // Slow effect by clamping position change or directly reducing speed
-                Enemy e = h.GetComponent<Enemy>();
-                if (e != null && e.moveSpeed > 1f) {
-                    e.moveSpeed -= Time.deltaTime * 5f; 
-                    if (e.moveSpeed < 1f) e.moveSpeed = 1f; // Clamp to min speed
-                }
-            }
-        }
-    }
-}
-
-public class SonTinhWave : MonoBehaviour
-{
-    public float damage;
-    public bool isEvo;
-    private HashSet<GameObject> hitEnemies = new HashSet<GameObject>();
-    private float lifeTime = 0f;
-
-    void Update()
-    {
-        // Move horizontally from right to left
-        float speed = isEvo ? 40f : 24f;
-        transform.position += Vector3.left * speed * Time.deltaTime;
-        lifeTime += Time.deltaTime;
-
-        // Hit box: wide in Z, narrow in X
-        Vector3 boxSize = new Vector3(1f, 2.5f, 30f);
-        Collider[] hits = Physics.OverlapBox(transform.position, boxSize / 2f, Quaternion.identity);
-        foreach(var h in hits)
-        {
-            if (h.CompareTag("Enemy") && !hitEnemies.Contains(h.gameObject))
-            {
-                hitEnemies.Add(h.gameObject);
-                Enemy e = h.GetComponent<Enemy>();
-                if (e != null) 
-                {
-                    e.TakeDamage(damage);
-                    StartCoroutine(StunEnemy(e, isEvo ? 4f : 2f));
-                    // Also gently push left along with the wave
-                    e.ApplyKnockbackStun(Vector3.left, 5f, 0.3f);
-                }
-            }
-        }
-
-        // Destroy after it has crossed the screen (approx 5-6 seconds)
-        if (lifeTime >= 6f)
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    private IEnumerator StunEnemy(Enemy e, float duration)
-    {
-        if (e != null)
-        {
-            float originalSpeed = e.moveSpeed;
-            e.moveSpeed = 0f; // Stun
-            yield return new WaitForSeconds(duration);
-            if (e != null) e.moveSpeed = originalSpeed; // Restore
         }
     }
 }
