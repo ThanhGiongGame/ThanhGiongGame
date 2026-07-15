@@ -100,7 +100,7 @@ MonoBehaviour:
   currentHealth: 15000
   moveSpeed: 3
   damage: 40
-  attackRange: 4
+  attackRange: 7
   attackCooldown: 10
   isRanged: 0
   projectileSpeed: 12
@@ -133,7 +133,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 102.05001
+  m_Radius: 65.3
   m_Height: 259.16156
   m_Direction: 1
   m_Center: {x: 0, y: 27.530708, z: 0}

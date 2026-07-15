@@ -58,6 +58,9 @@ public class PlayerController : MonoBehaviour
 
     // ---- Unused legacy field (kept to avoid prefab warnings) ----
     private Transform enemyTransform;
+    
+    [HideInInspector]
+    public float weaponScaleMultiplier = 1.0f;
 
     public bool IsPerformingSkill { get; set; }
     public bool isPhase2BuffActive = false;
@@ -141,6 +144,7 @@ public class PlayerController : MonoBehaviour
 
         moveSpeed = baseSpeed;
         playerHealth.maxHealth = baseMaxHealth;
+        playerHealth.currentHealth = baseMaxHealth;
         slashDamageMultiplier = baseDamage / 20f;
 
         gameObject.AddComponent<LegendaryUpgradeSystem>();
@@ -915,14 +919,22 @@ public class PlayerController : MonoBehaviour
         
         // Spawn a transparent hitbox instead of a white cube
         GameObject slash = new GameObject("BasicSlash");
-        slash.transform.position = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position + Vector3.up * 1.2f + dir * 1.5f;
+        
+        // Scale the hitbox and forward reach based on weapon tier scale
+        float depth = 3.5f * weaponScaleMultiplier; // Longer base depth to match spear
+        float forwardOffset = depth / 2f; // Offset by half depth so it starts exactly at the player's center
+        
+        // Always place the hitbox relative to the player's body to avoid inner blind spots!
+        slash.transform.position = transform.position + Vector3.up * 1.2f + dir * forwardOffset;
         slash.transform.rotation = Quaternion.LookRotation(dir);
         
-        // Quick visual effect
-        HitEffect.Spawn(slash.transform.position, new Color(1f, 0.8f, 0.2f), 0.5f);
+        // Visual effect can still use attackSpawnPoint if available
+        Vector3 fxPos = attackSpawnPoint != null ? attackSpawnPoint.position : slash.transform.position;
+        HitEffect.Spawn(fxPos, new Color(1f, 0.8f, 0.2f), 0.5f * weaponScaleMultiplier);
         
         BoxCollider col = slash.AddComponent<BoxCollider>();
-        col.size = new Vector3(3f, 0.5f, 0.5f);
+        // Base size is 3 wide, 4.0 high (to hit everything from the floor up), and depth based on weapon
+        col.size = new Vector3(3f * weaponScaleMultiplier, 4.0f, depth);
         col.isTrigger = true;
         
         var logic = slash.AddComponent<BasicSlashProjectile>();

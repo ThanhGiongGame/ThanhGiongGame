@@ -346,31 +346,34 @@ public class Boss : MonoBehaviour
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
 
-        // Background
+        // Background / Border
         GameObject bgObj = new GameObject("HealthBarBG");
         bgObj.transform.SetParent(healthBarCanvas.transform, false);
         var bgImage = bgObj.AddComponent<UnityEngine.UI.Image>();
-        bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        bgImage.color = new Color(0.12f, 0.12f, 0.14f, 0.95f); // Dark Iron
         RectTransform bgRT = bgImage.rectTransform;
         bgRT.anchorMin = new Vector2(0.5f, 1f);
         bgRT.anchorMax = new Vector2(0.5f, 1f);
         bgRT.pivot = new Vector2(0.5f, 1f);
-        bgRT.anchoredPosition = new Vector2(0, -30);
-        bgRT.sizeDelta = new Vector2(800, 30);
+        bgRT.anchoredPosition = new Vector2(0, -40);
+        bgRT.sizeDelta = new Vector2(1000, 40); // Taller and thicker
+
+        var outline = bgObj.AddComponent<UnityEngine.UI.Outline>();
+        outline.effectColor = new Color(0.72f, 0.45f, 0.20f, 1f); // Bronze/Gold
+        outline.effectDistance = new Vector2(4f, -4f);
 
         // Fill
         GameObject fillObj = new GameObject("HealthBarFill");
         fillObj.transform.SetParent(bgObj.transform, false);
         healthBarFill = fillObj.AddComponent<UnityEngine.UI.Image>();
-        healthBarFill.color = Color.red;
+        healthBarFill.color = new Color(0.7f, 0.05f, 0.05f, 1f); // Deep Crimson
 
-        // Generate a 1x1 white sprite to allow Filled type to work properly
+        // Generate a 1x1 white sprite
         Texture2D tex = new Texture2D(1, 1);
         tex.SetPixel(0, 0, Color.white);
         tex.Apply();
         Sprite sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), Vector2.zero);
         healthBarFill.sprite = sprite;
-
         healthBarFill.type = UnityEngine.UI.Image.Type.Filled;
         healthBarFill.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
         healthBarFill.fillOrigin = (int)UnityEngine.UI.Image.OriginHorizontal.Left;
@@ -378,16 +381,17 @@ public class Boss : MonoBehaviour
         RectTransform fillRT = healthBarFill.rectTransform;
         fillRT.anchorMin = new Vector2(0, 0);
         fillRT.anchorMax = new Vector2(1, 1);
-        fillRT.offsetMin = Vector2.zero;
-        fillRT.offsetMax = Vector2.zero;
+        fillRT.offsetMin = new Vector2(4f, 4f); // Inset for border
+        fillRT.offsetMax = new Vector2(-4f, -4f);
 
         // Text
         GameObject textObj = new GameObject("BossNameText");
         textObj.transform.SetParent(bgObj.transform, false);
         var text = textObj.AddComponent<TMPro.TextMeshProUGUI>();
-        text.text = "BOSS";
-        text.fontSize = 24;
-        text.color = Color.white;
+        text.text = "TƯỚNG GIẶC ÂN";
+        text.fontSize = 28;
+        text.color = new Color(1f, 0.85f, 0.2f, 1f); // Golden
+        text.fontStyle = TMPro.FontStyles.Bold;
         text.alignment = TMPro.TextAlignmentOptions.Center;
         
         RectTransform textRT = text.rectTransform;

@@ -154,16 +154,16 @@ public class SmartSpawner : MonoBehaviour
                 break;
 
             case 2: // Map 3 — Rừng U Minh (rừng rậm, khó)
-                _maxEnemies = 25;
-                _spawnIntervalMin = 1f;
-                _spawnIntervalMax = 2f;
-                _spawnBatchMin = 2;
-                _spawnBatchMax = 3;
+                _maxEnemies = 18; // Nerfed from 25
+                _spawnIntervalMin = 1.8f; // Nerfed from 1f
+                _spawnIntervalMax = 2.8f; // Nerfed from 2f
+                _spawnBatchMin = 1; // Nerfed from 2
+                _spawnBatchMax = 2; // Nerfed from 3
 
-                // Linh-1 + Linh-2 + Linh-3 (chủ yếu linh-2 và linh-3)
-                TryAddEnemyType("linh-1", 0.25f);
+                // Linh-1 + Linh-2 + Linh-3 (Reduced Linh-3 spawn rate)
+                TryAddEnemyType("linh-1", 0.40f);
                 TryAddEnemyType("linh-2", 0.40f);
-                TryAddEnemyType("linh-3", 0.35f);
+                TryAddEnemyType("linh-3", 0.20f);
 
                 _allowedSpecialEvents = new List<SpecialWaveType> { SpecialWaveType.Surround, SpecialWaveType.MassiveLinh2 };
                 break;

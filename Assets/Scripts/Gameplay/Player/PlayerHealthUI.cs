@@ -15,12 +15,12 @@ public class PlayerHealthUI : MonoBehaviour
     private float _delayFill = 1f;
     private const float DelaySpeed = 1.7f;
 
-    private static readonly Color ColorHigh = new Color(0.18f, 0.85f, 0.30f, 1f);
-    private static readonly Color ColorMid = new Color(0.95f, 0.75f, 0.10f, 1f);
-    private static readonly Color ColorLow = new Color(0.90f, 0.18f, 0.18f, 1f);
+    private static readonly Color ColorHigh = new Color(0.35f, 0.95f, 0.25f, 1f); // Bright bamboo green
+    private static readonly Color ColorMid = new Color(0.95f, 0.85f, 0.15f, 1f); // Gold
+    private static readonly Color ColorLow = new Color(0.85f, 0.10f, 0.10f, 1f); // Crimson
     private static readonly Color ColorDelay = new Color(1f, 0.55f, 0.10f, 0.9f);
-    private static readonly Color ColorBg = new Color(0.04f, 0.045f, 0.055f, 0.88f);
-    private static readonly Color ColorBorder = new Color(0f, 0f, 0f, 0.95f);
+    private static readonly Color ColorBg = new Color(0.05f, 0.12f, 0.06f, 0.95f); // Dark bamboo green
+    private static readonly Color ColorBorder = new Color(0.72f, 0.45f, 0.20f, 1.00f); // Bronze
 
     private void Start()
     {

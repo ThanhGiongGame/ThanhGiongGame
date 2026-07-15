@@ -1,14 +1,14 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class SkillCooldownUI : MonoBehaviour
 {
     // ---- Cấu hình giao diện ----
-    private static readonly Color SlotBgColor = new Color(0.05f, 0.05f, 0.08f, 0.85f);
-    private static readonly Color SlotBorderColor = new Color(0.35f, 0.35f, 0.45f, 1.00f);
-    private static readonly Color ReadyColor = new Color(0.20f, 0.80f, 0.30f, 1.00f);
-    private static readonly Color RadialFillColor = new Color(0.00f, 0.00f, 0.00f, 0.65f);
-    private static readonly Color TextColor = new Color(0.9f, 0.9f, 0.95f, 1f);
+    private static readonly Color SlotBgColor = new Color(0.12f, 0.05f, 0.05f, 0.90f); // Dark warm red
+    private static readonly Color SlotBorderColor = new Color(0.72f, 0.45f, 0.20f, 1.00f); // Bronze
+    private static readonly Color ReadyColor = new Color(1.00f, 0.85f, 0.20f, 1.00f); // Golden
+    private static readonly Color RadialFillColor = new Color(0.00f, 0.00f, 0.00f, 0.75f);
+    private static readonly Color TextColor = new Color(0.95f, 0.90f, 0.80f, 1f); // Warm white
 
     private Canvas _canvas;
 

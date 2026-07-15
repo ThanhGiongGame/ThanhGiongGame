@@ -7,10 +7,10 @@ public class PlayerLevelUI : MonoBehaviour
     private Text _levelText;
     private Text _xpText;
 
-    private static readonly Color ColorBg = new Color(0.04f, 0.045f, 0.065f, 0.88f);
-    private static readonly Color ColorFill = new Color(0.20f, 0.75f, 0.95f, 1f);
-    private static readonly Color ColorBorder = new Color(0f, 0f, 0f, 0.95f);
-    private static readonly Color ColorText = new Color(0.92f, 0.95f, 1f, 1f);
+    private static readonly Color ColorBg = new Color(0.06f, 0.05f, 0.04f, 0.95f);
+    private static readonly Color ColorFill = new Color(1.00f, 0.85f, 0.20f, 1f); // Divine Gold
+    private static readonly Color ColorBorder = new Color(0.72f, 0.45f, 0.20f, 1.00f); // Bronze
+    private static readonly Color ColorText = new Color(0.95f, 0.92f, 0.88f, 1f);
 
     private void Start()
     {
@@ -83,6 +83,7 @@ public class PlayerLevelUI : MonoBehaviour
         _levelText.fontStyle = FontStyle.Bold;
         _levelText.color = ColorText;
         _levelText.alignment = TextAnchor.MiddleLeft;
+        lvGO.AddComponent<Shadow>().effectColor = new Color(0, 0, 0, 0.8f);
 
         RectTransform lvRect = lvGO.GetComponent<RectTransform>();
         StretchFill(lvRect, 0f);
@@ -96,6 +97,7 @@ public class PlayerLevelUI : MonoBehaviour
         _xpText.fontStyle = FontStyle.Bold;
         _xpText.color = ColorText;
         _xpText.alignment = TextAnchor.MiddleRight;
+        numericGO.AddComponent<Shadow>().effectColor = new Color(0, 0, 0, 0.8f);
 
         RectTransform numRect = numericGO.GetComponent<RectTransform>();
         StretchFill(numRect, 0f);

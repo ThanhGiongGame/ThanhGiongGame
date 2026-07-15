@@ -3,29 +3,19 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    [Header("Stats")]
-    public float maxHealth = 30f;
-    public float currentHealth;
-
-    public float moveSpeed = 3f;
-    public float damage = 10f;
-
-    [Header("Attack")]
-    public float attackRange = 1.5f;
-    public float attackCooldown = 1f;
-
-    [Header("Ranged Attack")]
-    public bool isRanged = false;
-    public float projectileSpeed = 12f;
-
-    [Header("Knockback")]
-    public float selfKnockbackForce = 5f;
-    public float selfKnockbackDuration = 0.2f;
-
-    [Header("Movement")]
-    public float personalSpaceRadius = 2f;
-    public float separationRadius = 1.5f;
-    public float separationStrength = 2f;
+    [HideInInspector] public float maxHealth = 30f;
+    [HideInInspector] public float currentHealth;
+    [HideInInspector] public float moveSpeed = 3f;
+    [HideInInspector] public float damage = 10f;
+    [HideInInspector] public float attackRange = 1.5f;
+    [HideInInspector] public float attackCooldown = 1f;
+    [HideInInspector] public bool isRanged = false;
+    [HideInInspector] public float projectileSpeed = 12f;
+    [HideInInspector] public float selfKnockbackForce = 5f;
+    [HideInInspector] public float selfKnockbackDuration = 0.2f;
+    [HideInInspector] public float personalSpaceRadius = 2f;
+    [HideInInspector] public float separationRadius = 1.5f;
+    [HideInInspector] public float separationStrength = 2f;
 
     [HideInInspector]
     public WaveSpawner waveSpawner;
@@ -288,29 +278,9 @@ public class Enemy : MonoBehaviour
             targetEuler.z = initialRotationZ;
             transform.rotation = Quaternion.Euler(targetEuler);
         }
-
-        ResolveOverlaps();
     }
 
-    private void ResolveOverlaps()
-    {
-        Collider myCol = GetComponent<Collider>();
-        if (myCol == null) return;
-
-        Collider[] nearby = Physics.OverlapBox(myCol.bounds.center, myCol.bounds.extents, Quaternion.identity);
-        foreach (Collider other in nearby)
-        {
-            if (other == myCol || other.isTrigger || !other.CompareTag("Enemy")) continue;
-
-            if (Physics.ComputePenetration(myCol, transform.position, transform.rotation,
-                                           other, other.transform.position, other.transform.rotation,
-                                           out Vector3 dir, out float dist))
-            {
-                transform.position += dir * (dist * 0.5f);
-                other.transform.position -= dir * (dist * 0.5f);
-            }
-        }
-    }
+    // ResolveOverlaps removed for massive performance gains
 
     private Coroutine _knockbackCoroutine;
     private bool _isStunned;
