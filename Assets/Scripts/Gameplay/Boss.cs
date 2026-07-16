@@ -36,8 +36,8 @@ public class Boss : MonoBehaviour
         if (enemyScript != null)
         {
             enemyScript.isBoss = true; // disable default AI
-            enemyScript.maxHealth = 15000f;
-            enemyScript.currentHealth = 15000f;
+            enemyScript.maxHealth = 5000f;
+            enemyScript.currentHealth = 5000f;
         }
 
         GameObject p = GameObject.FindGameObjectWithTag("Player");
@@ -228,6 +228,10 @@ public class Boss : MonoBehaviour
         text.color = Color.red;
         text.alignment = TMPro.TextAlignmentOptions.Center;
         
+        var textOutline = textObj.AddComponent<UnityEngine.UI.Outline>();
+        textOutline.effectColor = Color.black;
+        textOutline.effectDistance = new Vector2(2f, -2f);
+        
         RectTransform rt = text.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 0);
         rt.anchorMax = new Vector2(1, 1);
@@ -314,6 +318,10 @@ public class Boss : MonoBehaviour
         text.color = Color.red;
         text.alignment = TMPro.TextAlignmentOptions.Center;
         
+        var textOutline = textObj.AddComponent<UnityEngine.UI.Outline>();
+        textOutline.effectColor = Color.black;
+        textOutline.effectDistance = new Vector2(2f, -2f);
+        
         RectTransform rt = text.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 0);
         rt.anchorMax = new Vector2(1, 1);
@@ -356,7 +364,7 @@ public class Boss : MonoBehaviour
         bgRT.anchorMax = new Vector2(0.5f, 1f);
         bgRT.pivot = new Vector2(0.5f, 1f);
         bgRT.anchoredPosition = new Vector2(0, -40);
-        bgRT.sizeDelta = new Vector2(1000, 40); // Taller and thicker
+        bgRT.sizeDelta = new Vector2(600, 40); // Taller and thicker
 
         var outline = bgObj.AddComponent<UnityEngine.UI.Outline>();
         outline.effectColor = new Color(0.72f, 0.45f, 0.20f, 1f); // Bronze/Gold
@@ -393,6 +401,10 @@ public class Boss : MonoBehaviour
         text.color = new Color(1f, 0.85f, 0.2f, 1f); // Golden
         text.fontStyle = TMPro.FontStyles.Bold;
         text.alignment = TMPro.TextAlignmentOptions.Center;
+        
+        var textOutline = textObj.AddComponent<UnityEngine.UI.Outline>();
+        textOutline.effectColor = Color.black;
+        textOutline.effectDistance = new Vector2(2f, -2f);
         
         RectTransform textRT = text.rectTransform;
         textRT.anchorMin = new Vector2(0, 0);
