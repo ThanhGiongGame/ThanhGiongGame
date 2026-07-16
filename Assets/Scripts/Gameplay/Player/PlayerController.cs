@@ -963,6 +963,13 @@ public class PlayerController : MonoBehaviour
     
     private IEnumerator AscendToSkyCoroutine()
     {
+        // Disable UI
+        GameObject legendHUD = GameObject.Find("LegendHUD");
+        if (legendHUD != null) legendHUD.SetActive(false);
+        
+        GameObject skillHotbar = GameObject.Find("SkillHotbarCanvas");
+        if (skillHotbar != null) skillHotbar.SetActive(false);
+
         // 1. CLEANUP ALL ENEMIES, ABILITIES, BGM
         IsPerformingSkill = true; // disable control
         canAttack = false;
@@ -1034,7 +1041,7 @@ public class PlayerController : MonoBehaviour
         GameObject textObj = new GameObject("CreditsText");
         textObj.transform.SetParent(canvasObj.transform, false);
         var text = textObj.AddComponent<TMPro.TextMeshProUGUI>();
-        text.text = "<size=64><b>THÁNH GIÓNG</b></size>\n\n\n\n<size=48><b>Special Thanks To</b></size>\n\n<size=36><b>Mentor:</b>\nLại Đức Hùng</size>\n\n\n\n<size=36><b>Team Members:</b>\nSE192321 Nguyễn Thành Kiên\nSE192024 Dương Quốc Thái\nSE192047 Dương Hồng Quang\nSE180374 Bùi Quang Hiếu</size>";
+        text.text = "<size=64><b>THÁNH GIÓNG</b></size>";
         text.fontSize = 36;
         text.color = new Color(1f, 0.9f, 0.6f, 1f); // Golden yellow
         text.alignment = TMPro.TextAlignmentOptions.Center;

@@ -28,6 +28,7 @@ public class TutorialController : MonoBehaviour
     [Header("Audio")]
     public AudioSource dialogueAudioSource;
     public AudioClip[] tutorialVoices;
+    public AudioClip swordSlashSound;
 
     private Canvas tutorialCanvas;
     private CanvasGroup dialogueGroup;
@@ -435,6 +436,10 @@ public class TutorialController : MonoBehaviour
             if (playerController != null)
             {
                 playerController.moveSpeed = 5.5f;
+                if (swordSlashSound != null)
+                {
+                    playerController.slashSound = swordSlashSound;
+                }
             }
 
             // Disable Legend weapons so the player only has the basic slash in the tutorial

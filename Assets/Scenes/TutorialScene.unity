@@ -688,6 +688,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 839cf6938bf63f54692f4e9cfb5e4b5e, type: 3}
   - {fileID: 8300000, guid: d65f01e93f8858247af4a067176a01b5, type: 3}
   - {fileID: 8300000, guid: dd398dc0fc98ec74483271517ef1e464, type: 3}
+  swordSlashSound: {fileID: 0}
 --- !u!82 &164620029
 AudioSource:
   m_ObjectHideFlags: 0
@@ -5070,6 +5071,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f2d14913f4d71ec40a3ddc9db5fb0cfb, type: 3}
   m_PrefabInstance: {fileID: 292749618}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1927029124
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1927029126}
+  - component: {fileID: 1927029125}
+  m_Layer: 0
+  m_Name: TutorialController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1927029125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1927029124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74f8721c6a56b6b4cada534b607954e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialController
+  dialogueAudioSource: {fileID: 0}
+  tutorialVoices: []
+  swordSlashSound: {fileID: 0}
+--- !u!4 &1927029126
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1927029124}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1973995715
 PrefabInstance:
   m_ObjectHideFlags: 0
