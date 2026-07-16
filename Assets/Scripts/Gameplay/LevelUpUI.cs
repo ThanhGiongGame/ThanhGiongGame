@@ -48,6 +48,29 @@ public class LevelUpUI : MonoBehaviour
     private void OnDestroy()
     {
         XPManager.OnLevelUp -= OnLevelUp;
+
+        // Scene changes can happen while the upgrade modal is open. Do not
+        // leave the next scene paused because this instance was destroyed.
+        if (_isShowing)
+        {
+            Time.timeScale = 1f;
+        }
+    }
+
+    private void Update()
+    {
+        if (!_isShowing)
+        {
+            return;
+        }
+
+        // The level-up choice owns the input state until the player chooses
+        // a card. This prevents a camera or pause-menu startup from locking
+        // the cursor and resuming gameplay behind the modal.
+        Time.timeScale = 0f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        EnsureEventSystem();
     }
 
     // ---- Event ----
@@ -245,10 +268,18 @@ public class LevelUpUI : MonoBehaviour
         }
 
 #if ENABLE_INPUT_SYSTEM
+        StandaloneInputModule legacyModule = eventSystem.GetComponent<StandaloneInputModule>();
+        if (legacyModule != null)
+        {
+            legacyModule.enabled = false;
+        }
+
         if (eventSystem.GetComponent<InputSystemUIInputModule>() == null)
         {
             eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
         }
+
+        eventSystem.GetComponent<InputSystemUIInputModule>().enabled = true;
 #else
         if (eventSystem.GetComponent<StandaloneInputModule>() == null)
         {
