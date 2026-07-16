@@ -562,31 +562,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: e6a89506061623c418f61f1f0996f51f, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.99562675
+      value: -0.9956825
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: e6a89506061623c418f61f1f0996f51f, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: -0.000015072699
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: e6a89506061623c418f61f1f0996f51f, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.093420595
+      value: 0.0928165
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: e6a89506061623c418f61f1f0996f51f, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: -0.001240608
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: e6a89506061623c418f61f1f0996f51f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: e6a89506061623c418f61f1f0996f51f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -10.721
+      value: -10.651
       objectReference: {fileID: 0}
     - target: {fileID: -6769691430286951708, guid: e6a89506061623c418f61f1f0996f51f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
+      value: 0.141
       objectReference: {fileID: 0}
     - target: {fileID: -2645858150239339148, guid: e6a89506061623c418f61f1f0996f51f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3067,7 +3067,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -819.30066, y: 534.19946}
+  m_AnchoredPosition: {x: -819.30115, y: 534.19934}
   m_SizeDelta: {x: 1638, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &656462540
@@ -3274,7 +3274,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 956278771}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.99997795
+  m_Size: 0.98468715
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -6896,7 +6896,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1628753036}
   m_Direction: 0
   m_Value: 1
-  m_Size: 0.999985
+  m_Size: 0.9846982
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
