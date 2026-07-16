@@ -688,6 +688,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 839cf6938bf63f54692f4e9cfb5e4b5e, type: 3}
   - {fileID: 8300000, guid: d65f01e93f8858247af4a067176a01b5, type: 3}
   - {fileID: 8300000, guid: dd398dc0fc98ec74483271517ef1e464, type: 3}
+  swordSlashSound: {fileID: 0}
 --- !u!82 &164620029
 AudioSource:
   m_ObjectHideFlags: 0
@@ -4972,6 +4973,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TutorialController
   dialogueAudioSource: {fileID: 0}
   tutorialVoices: []
+  swordSlashSound: {fileID: 0}
 --- !u!4 &1927029126
 Transform:
   m_ObjectHideFlags: 0
@@ -5747,6 +5749,10 @@ PrefabInstance:
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 698098672}
+    - target: {fileID: 8282201192710278390, guid: 1ff77e15980f96c4294e1f89b2ec27ef, type: 3}
+      propertyPath: slashSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 32ac9809cd1de0849a7d6c0d9eb517d5, type: 3}
     - target: {fileID: 8549726175872734583, guid: 1ff77e15980f96c4294e1f89b2ec27ef, type: 3}
       propertyPath: m_Enabled
       value: 1
