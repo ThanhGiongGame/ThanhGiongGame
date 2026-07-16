@@ -101,8 +101,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   maxHealth: 120
   currentHealth: 120
-  moveSpeed: 10
-  damage: 30
+  moveSpeed: 6
+  damage: 15
   attackRange: 4
   attackCooldown: 1
   isRanged: 0

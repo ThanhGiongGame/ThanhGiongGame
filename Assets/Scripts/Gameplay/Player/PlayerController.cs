@@ -870,7 +870,7 @@ public class PlayerController : MonoBehaviour
                     {
                         hitEnemiesThisAttack.Add(e);
                         e.TakeDamage(slashDamageMultiplier * 20f);
-                        e.ApplyKnockbackStun(currentAttackDirVector, 8f, 0.2f);
+                        e.ApplyKnockbackStun(currentAttackDirVector, 15f, 0.5f);
                         HitEffect.Spawn(e.transform.position + Vector3.up, Color.red, 0.5f);
                     }
                 }
@@ -1147,7 +1147,7 @@ public class BasicSlashProjectile : MonoBehaviour
             if (e != null)
             {
                 e.TakeDamage(damage);
-                e.ApplyKnockbackStun(dir, 8f, 0.2f);
+                e.ApplyKnockbackStun(dir, 15f, 0.5f);
             }
         }
     }
