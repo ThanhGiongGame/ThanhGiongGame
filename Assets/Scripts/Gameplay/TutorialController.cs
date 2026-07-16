@@ -83,6 +83,11 @@ public class TutorialController : MonoBehaviour
 
         XPManager.OnLevelUp += HandleTutorialLevelUp;
 
+        if (BGMManager.Instance != null)
+        {
+            BGMManager.Instance.FadeTo("Audio/background/Sunlight_Through_Bamboo", 2.0f);
+        }
+
         StartCoroutine(OpeningSequence());
     }
 
