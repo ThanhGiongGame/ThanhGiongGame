@@ -514,7 +514,7 @@ TerrainCollider:
     m_Bits: 0
   m_LayerOverridePriority: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: ef6893f004044c64584a48be7036f64b, type: 2}
   m_EnableTreeColliders: 0
@@ -529,7 +529,7 @@ Terrain:
   serializedVersion: 6
   m_TerrainData: {fileID: 15600000, guid: ef6893f004044c64584a48be7036f64b, type: 2}
   m_TreeDistance: 2000
-  m_TreeBillboardDistance: 250
+  m_TreeBillboardDistance: 100
   m_TreeCrossFadeLength: 14
   m_TreeMaximumFullLODCount: 1764
   m_DetailObjectDistance: 244
