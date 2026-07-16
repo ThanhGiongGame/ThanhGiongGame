@@ -95,7 +95,6 @@ public class CameraManager : MonoBehaviour
         
         SetCameraActive(shopCamera, false);
         SetCameraActive(equipmentCamera, false);
-        AimSuGiaCameraAtMessenger();
         SetCameraActive(sugiaCamera, true);
 
         // Hide standard bottom tabs so they don't overlap dialogue
@@ -615,32 +614,6 @@ public class CameraManager : MonoBehaviour
         sugiaCamera ??= FindCameraByName("SuGiaCamera");
     }
 
-    private void AimSuGiaCameraAtMessenger()
-    {
-        if (sugiaCamera == null)
-        {
-            return;
-        }
-
-        GameObject target = FindByName("sugia");
-        if (target == null) target = FindByName("SuGia");
-        if (target == null) target = FindByName("SuGiaPosition");
-
-        if (target == null)
-        {
-            return;
-        }
-
-        Vector3 lookPoint = GetRenderableCenter(target);
-        Vector3 cameraOffset = -target.transform.forward * 180f + Vector3.up * 95f;
-        sugiaCamera.transform.position = lookPoint + cameraOffset;
-
-        Vector3 direction = lookPoint - sugiaCamera.transform.position;
-        if (direction.sqrMagnitude > 0.001f)
-        {
-            sugiaCamera.transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
-        }
-    }
 
     private static Vector3 GetRenderableCenter(GameObject target)
     {
