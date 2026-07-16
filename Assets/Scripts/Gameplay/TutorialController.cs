@@ -388,6 +388,8 @@ public class TutorialController : MonoBehaviour
         SetMarkerVisible(gateMarker, true);
         yield return new WaitForSecondsRealtime(0.8f);
 
+        yield return ShowDialogue("Truyền thuyết", "Nhờ cơm gạo dân làng gom góp và khao khát cứu nước, Gióng vươn vai biến thành một tráng sĩ cao lớn, oai phong lẫm liệt, sẵn sàng ra trận phá giặc.");
+
         yield return FadeToWhite();
         GameProgressSave.MarkTutorialComplete();
         PlayerPrefs.SetInt("TutorialComplete", 1);
