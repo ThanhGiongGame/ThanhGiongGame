@@ -21,14 +21,9 @@ public class CameraManager : MonoBehaviour
         ResolveSceneCameras();
         
         // Ensure only EquipmentCamera is active and tagged at the very start
-        if (shopCamera != null) shopCamera.gameObject.SetActive(false);
-        if (sugiaCamera != null) sugiaCamera.gameObject.SetActive(false);
-        
-        if (equipmentCamera != null) 
-        {
-            equipmentCamera.gameObject.SetActive(true);
-            equipmentCamera.tag = "MainCamera";
-        }
+        SetCameraActive(shopCamera, false);
+        SetCameraActive(sugiaCamera, false);
+        SetCameraActive(equipmentCamera, true);
     }
 
     private void Start()
@@ -49,7 +44,15 @@ public class CameraManager : MonoBehaviour
 
         SetupMapSelection();
         SetupMessenger();
-        ShowEquipment();
+
+        if (PlayerPrefs.GetInt("PendingMapUnlock", 0) > 0)
+        {
+            ShowSuGiaCamera();
+        }
+        else
+        {
+            ShowEquipment();
+        }
     }
 
     private void SetupMessenger()
@@ -79,13 +82,9 @@ public class CameraManager : MonoBehaviour
     {
         ResolveSceneCameras();
         
-        if (shopCamera != null) shopCamera.gameObject.SetActive(false);
-        if (sugiaCamera != null) sugiaCamera.gameObject.SetActive(false);
-        
-        if (equipmentCamera != null)
-        {
-            equipmentCamera.gameObject.SetActive(true);
-        }
+        SetCameraActive(shopCamera, false);
+        SetCameraActive(sugiaCamera, false);
+        SetCameraActive(equipmentCamera, true);
         
         SetTabVisuals("BtnEquipment");
     }
@@ -94,14 +93,10 @@ public class CameraManager : MonoBehaviour
     {
         ResolveSceneCameras();
         
-        if (shopCamera != null) shopCamera.gameObject.SetActive(false);
-        if (equipmentCamera != null) equipmentCamera.gameObject.SetActive(false);
-        
-        if (sugiaCamera != null) 
-        {
-            sugiaCamera.gameObject.SetActive(true);
-            sugiaCamera.tag = "MainCamera";
-        }
+        SetCameraActive(shopCamera, false);
+        SetCameraActive(equipmentCamera, false);
+        AimSuGiaCameraAtMessenger();
+        SetCameraActive(sugiaCamera, true);
 
         // Hide standard bottom tabs so they don't overlap dialogue
         SetTabVisuals(""); 
@@ -620,6 +615,50 @@ public class CameraManager : MonoBehaviour
         sugiaCamera ??= FindCameraByName("SuGiaCamera");
     }
 
+    private void AimSuGiaCameraAtMessenger()
+    {
+        if (sugiaCamera == null)
+        {
+            return;
+        }
+
+        GameObject target = FindByName("sugia");
+        if (target == null) target = FindByName("SuGia");
+        if (target == null) target = FindByName("SuGiaPosition");
+
+        if (target == null)
+        {
+            return;
+        }
+
+        Vector3 lookPoint = GetRenderableCenter(target);
+        Vector3 cameraOffset = -target.transform.forward * 180f + Vector3.up * 95f;
+        sugiaCamera.transform.position = lookPoint + cameraOffset;
+
+        Vector3 direction = lookPoint - sugiaCamera.transform.position;
+        if (direction.sqrMagnitude > 0.001f)
+        {
+            sugiaCamera.transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+        }
+    }
+
+    private static Vector3 GetRenderableCenter(GameObject target)
+    {
+        Renderer[] renderers = target.GetComponentsInChildren<Renderer>(true);
+        if (renderers.Length == 0)
+        {
+            return target.transform.position + Vector3.up * 100f;
+        }
+
+        Bounds bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+        {
+            bounds.Encapsulate(renderers[i].bounds);
+        }
+
+        return bounds.center;
+    }
+
     private static Camera FindCameraByName(string objectName)
     {
         Camera[] cameras = FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -646,6 +685,8 @@ public class CameraManager : MonoBehaviour
             {
                 listener.enabled = active;
             }
+
+            targetCamera.tag = active ? "MainCamera" : "Untagged";
         }
     }
 
