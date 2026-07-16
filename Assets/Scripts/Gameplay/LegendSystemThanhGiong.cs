@@ -103,19 +103,29 @@ public class LegendSystemThanhGiong : MonoBehaviour
         Vector3 pos = transform.position + new Vector3(rand.x, 0, rand.y);
         
         string prefabName = isEvo ? "ThanhGiong_EvoBamboo" : "ThanhGiong_Bamboo";
-        GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
         
-        GameObject bamboo = prefab != null ? Instantiate(prefab) : Create3DBamboo(prefabName, isEvo);
-        bamboo.transform.position = pos + Vector3.up * (isEvo ? 1f : 0.75f);
+        // Force creating own mesh instead of using prefab
+        GameObject bamboo = Create3DBamboo(prefabName, isEvo);
         
-        BoxCollider bc = bamboo.GetComponent<BoxCollider>();
-        if (bc == null) bc = bamboo.AddComponent<BoxCollider>();
+        float height = isEvo ? 8f : 6f; // Since localScale.y is 4f and 3f
+        float halfHeight = height / 2f;
+        
+        Vector3 targetRisePos = pos + Vector3.up * halfHeight;
+        Vector3 startPos = pos + Vector3.down * halfHeight;
+        
+        bamboo.transform.position = startPos;
+        
+        Collider existingCol = bamboo.GetComponent<Collider>();
+        if (existingCol != null) Destroy(existingCol);
+
+        BoxCollider bc = bamboo.AddComponent<BoxCollider>();
         bc.isTrigger = true; 
         bc.size = new Vector3(1.5f, 1.5f, 1.5f); // Solid obstacle with big hitbox
 
         var logic = bamboo.AddComponent<ThanhGiongBamboo>();
         logic.damage = isEvo ? 40f : bambooDamage;
         logic.isEvo = isEvo;
+        logic.targetRisePos = targetRisePos;
 
         // Brown ground dust — bamboo stabs into earth
         LegendParticles.AddGroundDust(bamboo, rate: isEvo ? 10f : 5f);
@@ -130,9 +140,9 @@ public class LegendSystemThanhGiong : MonoBehaviour
 
     private GameObject Create3DBamboo(string prefabName, bool isEvo)
     {
-        GameObject bamboo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        GameObject bamboo = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         bamboo.name = prefabName;
-        bamboo.transform.localScale = isEvo ? new Vector3(0.5f, 2f, 0.5f) : new Vector3(0.3f, 1.5f, 0.3f);
+        bamboo.transform.localScale = isEvo ? new Vector3(0.5f, 4f, 0.5f) : new Vector3(0.4f, 3f, 0.4f);
         
         Renderer rend = bamboo.GetComponent<Renderer>();
         if (rend != null)
@@ -142,31 +152,9 @@ public class LegendSystemThanhGiong : MonoBehaviour
             Shader shaderToUse = urpShader != null ? urpShader : stdShader;
             
             Material mat = new Material(shaderToUse);
-            Sprite sprite = Resources.Load<Sprite>("Sprites/" + prefabName);
-            
-            if (sprite != null)
-            {
-                if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", sprite.texture);
-                if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", sprite.texture);
-                
-                if (urpShader != null)
-                {
-                    mat.SetFloat("_AlphaClip", 1f);
-                    mat.SetFloat("_Cutoff", 0.5f);
-                }
-                else
-                {
-                    mat.SetFloat("_Mode", 1f);
-                    mat.EnableKeyword("_ALPHATEST_ON");
-                    mat.renderQueue = 2450;
-                }
-            }
-            else
-            {
-                Color fbColor = new Color(0.8f, 0.9f, 0.2f);
-                if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", fbColor);
-                if (mat.HasProperty("_Color")) mat.SetColor("_Color", fbColor);
-            }
+            Color bambooColor = new Color(0.2f, 0.8f, 0.2f); // Solid green for bamboo
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", bambooColor);
+            if (mat.HasProperty("_Color")) mat.SetColor("_Color", bambooColor);
             
             rend.material = mat;
             rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
@@ -222,7 +210,9 @@ public class ThanhGiongBamboo : MonoBehaviour
 {
     public float damage;
     public bool isEvo;
+    public Vector3 targetRisePos;
     private Transform target;
+    private bool isRising = true;
 
     void Start()
     {
@@ -239,14 +229,27 @@ public class ThanhGiongBamboo : MonoBehaviour
             }
             if (target != null) {
                 GetComponent<Collider>().isTrigger = true; // Become projectile
-                transform.rotation = Quaternion.LookRotation(target.position - transform.position) * Quaternion.Euler(90f, 0, 0);
+                // We'll set rotation after it finishes rising
             }
         }
     }
 
     void Update()
     {
-        if (isEvo && target != null)
+        if (isRising)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, targetRisePos, 15f * Time.deltaTime);
+            if (Vector3.Distance(transform.position, targetRisePos) < 0.1f)
+            {
+                transform.position = targetRisePos;
+                isRising = false;
+                
+                if (isEvo && target != null) {
+                    transform.rotation = Quaternion.LookRotation(target.position - transform.position) * Quaternion.Euler(90f, 0, 0);
+                }
+            }
+        }
+        else if (isEvo && target != null)
         {
             transform.position = Vector3.MoveTowards(transform.position, target.position, 30f * Time.deltaTime);
         }

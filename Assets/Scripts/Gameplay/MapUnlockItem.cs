@@ -127,6 +127,9 @@ public class MapUnlockItem : MonoBehaviour
     
     private void BuildUnlockUI(int nextMap, int newLevel)
     {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
         GameObject canvasGO = new GameObject("MapUnlockCanvas");
         Canvas canvas = canvasGO.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;

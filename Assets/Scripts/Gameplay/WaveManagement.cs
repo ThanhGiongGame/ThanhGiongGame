@@ -201,6 +201,7 @@ public class WaveSpawner : MonoBehaviour
         if (enemy != null)
         {
             enemy.waveSpawner = this;
+            enemy.isSpecialWaveEnemy = true; // Added to prevent special waves from advancing map progress
             enemy.maxHealth *= healthMultiplier;
             enemy.currentHealth = enemy.maxHealth;
             enemy.moveSpeed *= speedMultiplier;

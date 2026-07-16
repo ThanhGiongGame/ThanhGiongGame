@@ -850,7 +850,7 @@ public class PlayerController : MonoBehaviour
     private void HandleArcAttackDamage()
     {
         // Scale the attack radius based on the weapon tier! This gives higher tier weapons actual range.
-        float radius = IsTutorialScene ? 2.2f : (4.5f * weaponScaleMultiplier);
+        float radius = IsTutorialScene ? 3.3f : (6.75f * weaponScaleMultiplier);
         
         // Use NonAlloc to prevent massive GC allocations every frame!
         int hitCount = Physics.OverlapSphereNonAlloc(transform.position, radius, _attackHits);
@@ -870,7 +870,7 @@ public class PlayerController : MonoBehaviour
                     {
                         hitEnemiesThisAttack.Add(e);
                         e.TakeDamage(slashDamageMultiplier * 20f);
-                        e.ApplyKnockbackStun(currentAttackDirVector, 8f, 0.2f);
+                        e.ApplyKnockbackStun(currentAttackDirVector, 15f, 0.5f);
                         HitEffect.Spawn(e.transform.position + Vector3.up, Color.red, 0.5f);
                     }
                 }
@@ -880,9 +880,11 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator SpawnCrescentSlashVisual(Vector3 direction)
     {
-        float scale = IsTutorialScene ? 0.5f : 1f;
+        float scale = IsTutorialScene ? 0.75f : 1.5f;
+        float heightOffset = 2.2f; // Increased height as requested
+        
         GameObject slashPivot = new GameObject("CrescentSlashPivot");
-        slashPivot.transform.position = transform.position + Vector3.up * (1.5f * scale);
+        slashPivot.transform.position = transform.position + Vector3.up * (heightOffset * scale);
         
         GameObject slashTip = new GameObject("SlashTip");
         slashTip.transform.SetParent(slashPivot.transform);
@@ -908,7 +910,7 @@ public class PlayerController : MonoBehaviour
             float angle = Mathf.Lerp(-90f, 90f, t);
             
             slashPivot.transform.rotation = baseRot * Quaternion.Euler(0, angle, 0);
-            slashPivot.transform.position = transform.position + Vector3.up * 1.5f;
+            slashPivot.transform.position = transform.position + Vector3.up * (heightOffset * scale);
             
             yield return null;
         }
@@ -927,7 +929,7 @@ public class PlayerController : MonoBehaviour
         GameObject slash = new GameObject("BasicSlash");
         
         // Scale the hitbox and forward reach based on weapon tier scale
-        float depth = 3.5f * weaponScaleMultiplier; // Longer base depth to match spear
+        float depth = 5.25f * weaponScaleMultiplier; // Longer base depth to match spear
         float forwardOffset = depth / 2f; // Offset by half depth so it starts exactly at the player's center
         
         // Always place the hitbox relative to the player's body to avoid inner blind spots!
@@ -936,11 +938,11 @@ public class PlayerController : MonoBehaviour
         
         // Visual effect can still use attackSpawnPoint if available
         Vector3 fxPos = attackSpawnPoint != null ? attackSpawnPoint.position : slash.transform.position;
-        HitEffect.Spawn(fxPos, new Color(1f, 0.8f, 0.2f), 0.5f * weaponScaleMultiplier);
+        HitEffect.Spawn(fxPos, new Color(1f, 0.8f, 0.2f), 0.75f * weaponScaleMultiplier);
         
         BoxCollider col = slash.AddComponent<BoxCollider>();
         // Base size is 3 wide, 4.0 high (to hit everything from the floor up), and depth based on weapon
-        col.size = new Vector3(3f * weaponScaleMultiplier, 4.0f, depth);
+        col.size = new Vector3(4.5f * weaponScaleMultiplier, 4.0f, depth);
         col.isTrigger = true;
         
         var logic = slash.AddComponent<BasicSlashProjectile>();
@@ -1145,7 +1147,7 @@ public class BasicSlashProjectile : MonoBehaviour
             if (e != null)
             {
                 e.TakeDamage(damage);
-                e.ApplyKnockbackStun(dir, 8f, 0.2f);
+                e.ApplyKnockbackStun(dir, 15f, 0.5f);
             }
         }
     }
@@ -1156,7 +1158,7 @@ public class AttackArcIndicator : MonoBehaviour
     private const int ArcSegments = 25;
     private const float ArcHalfAngle = 55f;
 
-    private float ArcRadius => playerController != null && playerController.IsTutorialScene ? 1.7f : 3.4f;
+    private float ArcRadius => playerController != null && playerController.IsTutorialScene ? 2.55f : 5.1f;
 
     private PlayerController playerController;
     private LineRenderer arcLine;

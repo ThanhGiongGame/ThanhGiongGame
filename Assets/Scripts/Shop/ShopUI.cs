@@ -463,7 +463,7 @@ public class ShopUI : MonoBehaviour
 
         if (escMenuPanel != null)
         {
-            SetRect(escMenuPanel, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 330f), new Vector2(0.5f, 0.5f));
+            SetRect(escMenuPanel, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 480f), new Vector2(0.5f, 0.5f));
         }
     }
 
