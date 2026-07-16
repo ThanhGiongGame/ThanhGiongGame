@@ -47,6 +47,8 @@ public class WaveSpawner : MonoBehaviour
 
     private void Start()
     {
+        Enemy.GlobalFreeze = false;
+        
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null)
         {
@@ -60,10 +62,10 @@ public class WaveSpawner : MonoBehaviour
         // Set kills required to spawn Boss based on map
         switch (mapIndex)
         {
-            case 0: killsToSpawnBoss = 20; break;
-            case 1: killsToSpawnBoss = 30; break;
-            case 2: killsToSpawnBoss = 40; break;
-            default: killsToSpawnBoss = 20; break;
+            case 0: killsToSpawnBoss = 10; break;
+            case 1: killsToSpawnBoss = 15; break;
+            case 2: killsToSpawnBoss = 20; break;
+            default: killsToSpawnBoss = 10; break;
         }
 
         // Ensure EnemyPool exists

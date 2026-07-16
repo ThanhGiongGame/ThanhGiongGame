@@ -502,7 +502,7 @@ public class Enemy : MonoBehaviour
         }
 
         // XP Drop Chance logic
-        float xpAmount = 30f;
+        float xpAmount = 90f;
         if (UpgradeManager.Instance != null)
         {
             float doubleXpChance = UpgradeManager.Instance.XpDropChanceLevel * 0.15f;

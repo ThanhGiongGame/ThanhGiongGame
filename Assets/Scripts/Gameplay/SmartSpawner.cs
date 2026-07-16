@@ -130,6 +130,8 @@ public class SmartSpawner : MonoBehaviour
                 _spawnIntervalMax = 3f;
                 _spawnBatchMin = 1;
                 _spawnBatchMax = 2;
+                innerRadius = 20f;
+                outerRadius = 35f;
 
                 // Chicken + Linh-1 (chủ yếu chicken, ít linh-1)
                 TryAddEnemyType("chicken", 0.65f);
@@ -144,6 +146,8 @@ public class SmartSpawner : MonoBehaviour
                 _spawnIntervalMax = 2.5f;
                 _spawnBatchMin = 1;
                 _spawnBatchMax = 3;
+                innerRadius = 20f;
+                outerRadius = 35f;
 
                 // Linh-1 + Linh-2
                 TryAddEnemyType("linh-1", 0.55f);
@@ -159,6 +163,8 @@ public class SmartSpawner : MonoBehaviour
                 _spawnIntervalMax = 2.8f; // Nerfed from 2f
                 _spawnBatchMin = 1; // Nerfed from 2
                 _spawnBatchMax = 2; // Nerfed from 3
+                innerRadius = 35f; // Made enemies spawn farther
+                outerRadius = 50f;
 
                 // Linh-1 + Linh-2 + Linh-3 (Reduced Linh-3 spawn rate)
                 TryAddEnemyType("linh-1", 0.40f);
@@ -174,6 +180,8 @@ public class SmartSpawner : MonoBehaviour
                 _spawnIntervalMax = 3f;
                 _spawnBatchMin = 1;
                 _spawnBatchMax = 2;
+                innerRadius = 20f;
+                outerRadius = 35f;
                 TryAddEnemyType("chicken", 0.5f);
                 TryAddEnemyType("linh-1", 0.5f);
                 _allowedSpecialEvents = new List<SpecialWaveType> { SpecialWaveType.Surround };

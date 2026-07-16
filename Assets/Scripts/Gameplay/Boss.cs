@@ -5,7 +5,7 @@ using UnityEngine;
 public class Boss : MonoBehaviour
 {
     [Header("Stats")]
-    public float moveSpeed = 1.5f;
+    public float moveSpeed = 4.0f;
     public float damage = 50f;
     
     [Header("Attack")]
@@ -289,6 +289,7 @@ public class Boss : MonoBehaviour
         if (isDead) return;
         isDead = true;
         IsStunned = true;
+        Enemy.GlobalFreeze = true;
         
         // Stop moving and attacking
         if (enemyScript != null)

@@ -44,6 +44,8 @@ public class LegendSystemLeLoi : MonoBehaviour
 
     private void Update()
     {
+        if (Enemy.GlobalFreeze) return;
+
         if (evoLevel > 0 && !hasRevived)
         {
             // Revive check

@@ -47,6 +47,8 @@ public class LegendSystemThanhGiong : MonoBehaviour
 
     private void Update()
     {
+        if (Enemy.GlobalFreeze) return;
+
         if (evoLevel > 0)
         {
             EvoUpdate();

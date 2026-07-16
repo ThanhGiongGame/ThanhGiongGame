@@ -37,6 +37,8 @@ public class LegendSystemDongA : MonoBehaviour
 
     private void Update()
     {
+        if (Enemy.GlobalFreeze) return;
+
         if (evoLevel > 0)
         {
             RotateRibbons(true);
