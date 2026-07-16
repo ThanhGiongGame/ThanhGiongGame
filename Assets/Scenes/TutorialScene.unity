@@ -5830,6 +5830,10 @@ PrefabInstance:
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 698098672}
+    - target: {fileID: 8282201192710278390, guid: 1ff77e15980f96c4294e1f89b2ec27ef, type: 3}
+      propertyPath: slashSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 32ac9809cd1de0849a7d6c0d9eb517d5, type: 3}
     - target: {fileID: 8549726175872734583, guid: 1ff77e15980f96c4294e1f89b2ec27ef, type: 3}
       propertyPath: m_Enabled
       value: 1
