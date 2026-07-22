@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+#if UNITY_EDITOR
+using UnityEditor;
 using UnityEngine;
 
 public class RemoveLeafCollider
@@ -22,3 +23,4 @@ public class RemoveLeafCollider
         Debug.Log($"Removed {count} colliders.");
     }
 }
+#endif
