@@ -8,17 +8,36 @@
 
 ---
 
-## Hình Ảnh Demo (Screenshots & Gameplay)
+## Gameplay Showcase (Video Demo)
 
-> *Chèn hình ảnh demo của game bằng cách thêm các file ảnh vào thư mục `docs/images/`:*
+Click vào hình ảnh bên dưới để xem video trải nghiệm Gameplay trên YouTube:
 
-| Map 1: Làng Quê Việt Nam | Map 3: Rừng Tre Hoang Sơ |
-| :---: | :---: |
-| ![Map 1 Làng Quê](docs/images/map1.png) | ![Map 3 Rừng Tre](docs/images/map3.png) |
+<div align="center">
+  <a href="https://youtu.be/qxTnkeCKk-o" target="_blank">
+    <img src="https://img.youtube.com/vi/qxTnkeCKk-o/maxresdefault.jpg" alt="Thánh Gióng Game Gameplay Trailer" width="85%">
+  </a>
+  <p><i>Xem Video Gameplay Demo trên YouTube: <a href="https://youtu.be/qxTnkeCKk-o">https://youtu.be/qxTnkeCKk-o</a></i></p>
+</div>
 
-| Giao Diện Chiến Đấu (Gameplay UI) | Đợt Quái Tấn Công (Wave Spawner) |
-| :---: | :---: |
-| ![Gameplay UI](docs/images/gameplay.png) | ![Wave Battle](docs/images/wave_battle.png) |
+---
+
+## Hình Ảnh Demo (Screenshots Gallery)
+
+<div align="center">
+
+| Ảnh 1 | Ảnh 2 | Ảnh 3 |
+| :---: | :---: | :---: |
+| <img src="images/1.png" width="300" alt="Screenshot 1"> | <img src="images/2.png" width="300" alt="Screenshot 2"> | <img src="images/3.png" width="300" alt="Screenshot 3"> |
+
+| Ảnh 4 | Ảnh 5 | Ảnh 6 |
+| :---: | :---: | :---: |
+| <img src="images/4.png" width="300" alt="Screenshot 4"> | <img src="images/5.png" width="300" alt="Screenshot 5"> | <img src="images/6.png" width="300" alt="Screenshot 6"> |
+
+| Ảnh 7 | Ảnh 8 | Ảnh 9 |
+| :---: | :---: | :---: |
+| <img src="images/7.png" width="300" alt="Screenshot 7"> | <img src="images/8.png" width="300" alt="Screenshot 8"> | <img src="images/9.png" width="300" alt="Screenshot 9"> |
+
+</div>
 
 ---
 
@@ -26,42 +45,58 @@
 
 ### Mục tiêu trò chơi
 - **Chiến đấu & Sống sót**: Tiêu diệt các làn sóng kẻ địch (giặc Ân, lính ném lao, lính cưỡi ngựa, quái gà...) qua từng đợt (Wave).
-- **Khám phá bản đồ**: Di chuyển qua các khu vực bản đồ sinh tự nhiên (Làng quê, Rừng tre) để tiêu diệt toàn bộ giặc bảo vệ dân làng.
+- **Khám phá bản đồ**: Di chuyển qua các khu vực bản đồ (Làng quê, Đồng bằng, Rừng tre) để tiêu diệt toàn bộ giặc bảo vệ dân làng.
 
 ### Phím điều khiển (Controls)
 
-| Thao tác | Phím thực hiện |
+| Thao tác | Phím thực hiện / Cơ chế |
 | :--- | :--- |
 | **Di chuyển** | <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> hoặc Phím mũi tên (<kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd>) |
-| **Tấn công / Chém** | <kbd>Chuột trái</kbd> (Left Click) hoặc Phím <kbd>Space</kbd> |
-| **Lướt / Chạy nhanh (Dash)** | Phím <kbd>Left Shift</kbd> |
-| **Tương tác / Kỹ năng** | Phím <kbd>E</kbd> |
+| **Chạy nhanh (Sprint)** | Giữ phím <kbd>Shift</kbd> (Left / Right Shift) khi di chuyển tiến |
+| **Tấn công (Attack)** | **Tự động vung vũ khí (Auto-Attack)** theo chu kỳ |
+| **Điều hướng góc chém** | **Di chuyển chuột Trái / Phải** để chỉnh hướng chém (Trái / Giữa / Phải) |
+| **Kỹ năng 1 (Sky Plunge)** | Phím <kbd>1</kbd> (hoặc Click Icon trên UI) |
+| **Kỹ năng 2 (Flame Dash)** | Phím <kbd>2</kbd> (hoặc Click Icon trên UI) |
+| **Tương tác / Hội thoại** | Phím <kbd>E</kbd> / <kbd>Space</kbd> / <kbd>Chuột trái</kbd> |
 | **Tạm dừng Game (Pause)** | Phím <kbd>ESC</kbd> |
+
+---
+
+## Các Bản Đồ Trong Game (Maps & Environments)
+
+Game gồm 3 bản đồ chiến trường độc đáo với bối cảnh và thử thách tăng dần:
+
+| Bản Đồ | Tên Bản Đồ | Mô Tả & Bối Cảnh | Điều Kiện Mở Khóa |
+| :--- | :--- | :--- | :--- |
+| **Map 1** | **Trong Làng (Nhà Lá)** | Đồng quê Việt Nam mộc mạc với những mái nhà lá đơn sơ, cây cối xanh mát và ruộng vườn thanh bình. | Mặc định (Có sẵn) |
+| **Map 2** | **Đồng Bằng (Chiến Trường)** | Nơi lính ngoại xâm kéo vào đánh phá làng quê đồng bằng hiểm nguy, đầy vách đá dựng đứng, cây cối và đuốc cháy. | Hoàn thành Map 1 |
+| **Map 3** | **Rừng Tre (Bamboo Forest)** | Rừng tre sâu thẳm rậm rạp rợp bóng tre xanh mát, phủ đầy cỏ dại rừng già cùng đom đóm huyền ảo dưới trăng. | Hoàn thành Map 2 |
 
 ---
 
 ## Tính Năng Nổi Bật (Key Features)
 
-### 1. Hệ Thống Bản Đồ Động (Procedural Generation & Map Management)
-- **Tạo Chunk ngẫu nhiên (`MapManager`)**: Sinh bản đồ liên tục và vô tận dựa trên thuật toán Chunk-based procedural generation.
-- **Thuật toán tránh trùng lặp vật thể (Euclidean Distance Validation)**:
-  - Tự động kiểm tra bán kính an toàn **6.0m** đối với các vật thể lớn (Nhà lá, Cây sồi, Cây liễu) để tránh hiện tượng chồng lấn vật thể.
-  - Phân bổ tự nhiên cỏ dại, hoa cỏ và đá phủ nền với khoảng cách tối thiểu **1.0m**.
-- **Đa dạng bản đồ (Map Themes)**:
-  - **Map 1 (Làng Quê)**: Phong cảnh làng quê Việt Nam thanh bình với nhà lá, cây xanh và đồng cỏ.
-  - **Map 3 (Rừng Tre)**: Cấu hình bụi tre mọc cụm (`SpawnBambooGroup`), thảm cỏ xanh dày và bóng tre hoang sơ.
+### 1. Cơ Chế Chiến Đấu & Điều Hướng Chuột
+- **Tấn công tự động & Điều hướng chém**: Nhân vật tự động vung vũ khí theo chu kỳ. Người chơi rê chuột sang Trái / Giữa / Phải để điều chỉnh hướng chém linh hoạt.
+- **Bộ kỹ năng đặc biệt**: 
+  - **Trảm Thiên (Sky Plunge)**: Nhảy cao giậm đất tạo sóng xung kích gây sát thương diện rộng.
+  - **Lướt Lửa (Flame Dash)**: Lướt nhanh về phía trước thiêu rụi kẻ địch trên đường đi.
 
-### 2. Cơ Chế Sinh Quái Vật Theo Làn Sóng (Wave Spawner System)
-- Quản lý các đợt tấn công của kẻ địch (`WaveSpawner`) tăng dần độ khó.
-- **Tự động lọc và chuyển đổi quái vật theo đặc thù từng Map**:
-  - *Map 3 (Rừng Tre)*: Tự động chuyển đổi lính cưỡi ngựa (EnemyA) thành **Quái Gà (Chicken)** và lính ném lao (EnemyC) thành **Lính Đi Bộ (EnemyB)** để phù hợp bối cảnh.
+### 2. Lối Chơi Rogue-lite & Hệ Thống Nâng Cấp
 
-### 3. Tối Ưu Đồ Họa URP & Runtime Shader Converter
-- Tự động chuyển đổi tất cả mô hình GLB/glTF dùng shader cũ sang **`Universal Render Pipeline/Lit`** ngay tại runtime.
-- Xử lý triệt để các lỗi hiển thị màn hình tím/hồng (Shader Error) và tràn camera.
+- **Hệ thống Lên cấp & Chọn thẻ (Level-Up System)**: Thu thập ngọc kinh nghiệm (XP Orbs) rơi từ quái để tăng cấp và lựa chọn các thẻ nâng cấp chỉ số/kỹ năng.
+- **Sức mạnh Truyền Thuyết Việt Nam**: Tích hợp các bộ kỹ năng mang dấu ấn thần thoại dân gian (Thánh Gióng, Cổ Loa, Đông Á, Lê Lợi, Sơn Tinh).
 
-### 4. Hệ Thống Âm Thanh (Sound Effects & Music)
-- Tích hợp hiệu ứng âm thanh chiến đấu, tiếng bước chân, tiếng chém tre và nhạc nền (BGM) chân thực.
+### 3. Đợt Quái Tấn Công & Trận Chiến Boss
+- **Làn sóng giặc Ân (Wave System)**: Kẻ địch xuất hiện theo từng đợt với độ khó tăng dần qua thời gian.
+- **Đấu Trùm kịch tính**: Boss có các kỹ năng diện rộng có cảnh báo đường đỏ và chuyển giai đoạn biến hình.
+
+### 4. Cửa Hàng & Trang Bị Nhân Vật
+- **Nâng cấp trang bị (Tier 1 - Tier 4)**: Thay đổi và mở khóa các cấp độ Ngựa sắt, Nhân vật và Vũ khí.
+- **Vật phẩm bổ trợ (Loadout Buff)**: Mua các chỉ số Máu, Sát thương và Tốc độ chạy trước khi bước vào trận chiến.
+
+### 5. Màn Chơi Hướng Dẫn & Cốt Truyện
+- Tích hợp chuỗi hướng dẫn tân thủ chi tiết cùng hệ thống hội thoại NPC dẫn dắt người chơi bước vào hành trình Thánh Gióng đánh đuổi giặc Ân bảo vệ quê hương.
 
 ---
 
@@ -83,8 +118,7 @@ ThanhGiongGame/
 │   ├── Scripts/            # Mã nguồn C# (MapManager, WaveSpawner, PlayerController...)
 │   ├── Prefabs/            # Các Prefab vật thể, quái vật, nhân vật
 │   └── TextMesh Pro/       # Phông chữ & UI assets
-├── docs/
-│   └── images/             # Thư mục chứa hình ảnh screenshot dự án
+├── images/                 # Thư mục chứa hình ảnh screenshot (1.png - 9.png)
 ├── ProjectSettings/        # Thiết lập cấu hình Unity (Input, Graphics, Quality, Tag...)
 ├── Packages/               # Các gói phụ thuộc Unity PackageManager (URP, TMP...)
 ├── BaoCaoThayDoi.txt       # Nhật ký chi tiết cập nhật và tối ưu hóa hệ thống
@@ -114,16 +148,16 @@ ThanhGiongGame/
 
 ## Thành Viên Phát Triển (Team Members)
 
-- **Giảng viên hướng dẫn**: [Tên Giảng Viên]
-- **Đội ngũ sinh viên thực hiện**:
-  - **UGing265** (Team Lead / Main Developer) - [GitHub Profile](https://github.com/UGing265)
-  - **[Tên Thành Viên 2]** - [Vai trò: 3D Art / Map Design]
-  - **[Tên Thành Viên 3]** - [Vai trò: Gameplay / Sound Design]
+- **Giảng viên hướng dẫn**: HungLD
+- **Team members**:
+  - DevShiroru
+  - Tecookie
+  - BlueCloudK
+  - Hieu080304
 
 ---
 
-## Bản Quyền & Giấy Phép (Copyright & License)
+## Bản Quyền (Copyright)
 
-© 2026 **UGing265** & Đội ngũ phát triển **Game 3D Thánh Gióng**. All rights reserved.
+© 2026 **DevShiroru** & Đội ngũ phát triển **Game 3D Thánh Gióng**. All rights reserved.
 
-Dự án được phát hành theo giấy phép [MIT License](LICENSE). Bạn được phép tham khảo và đóng góp cho mã nguồn dự án.
